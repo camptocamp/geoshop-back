@@ -12,7 +12,7 @@ services:
     image: postgis/postgis:15-3.4-alpine
     volumes:
       # - "/db/docker_db/data:/var/lib/postgresql/data"
-      - "/db/docker_db/init-scripts:/docker-entrypoint-initdb.d"
+      - "resources/db/:/docker-entrypoint-initdb.d/:ro"
     environment:
       POSTGRES_PASSWORD: "coucou"
       LANG: 'en_US.utf8'
