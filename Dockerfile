@@ -18,10 +18,4 @@ ENV PYTHONUNBUFFERED 1
 
 COPY . /app/geoshop_back/
 
-ARG ENV_FILE
-RUN mv ${ENV_FILE} .env && mkdir /mnt/geoshop_data
-
-RUN export $(egrep -v '^#' .env | xargs) && \
-    python manage.py migrate && \
-    python manage.py collectstatic --noinput && \
-    python manage.py compilemessages --locale=fr
+# RUN mkdir /mnt/geoshop_data
