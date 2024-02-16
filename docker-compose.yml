@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  db:
+    image: postgis/postgis:15-3.4-alpine
+    volumes:
+      # - "/db/docker_db/data:/var/lib/postgresql/data"
+      - "/db/docker_db/init-scripts:/docker-entrypoint-initdb.d"
+    environment:
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_DB: ${PGDATABASE}
+      # TODO set this from env vars
+      # this is needed to avoid issues like ---database "postgres" has no actual collation version, but a version was recorded---
+      # perhaps setting POSTGRES_COLLATE: would also be enoughe
+      LANG: 'en_US.utf8'
+      LC_COLLATE: 'en_US.utf8'
+      LC_CTYPE: 'en_US.utf8'
+    ports:
+      - ${PGPORT}:5432
+    networks:
+      - default
+
+  api:
+    image: geoshop-api
+    build:
+      context: .
+      args:
+        ENV_FILE: .env
+    depends_on:
+      - db
+    env_file: .env
+    command: "gunicorn wsgi -b :8000 --timeout 90"
+    restart: unless-stopped
+    ports:
+      - "8080:8000"
+    volumes:
+      - "${GEOSHOP_DATA}:/mnt/geoshop_data"
+    networks:
+      - default
+
+  # front:
+  #   image: ${DOCKER_BASE}-front
+  #   build:
+  #     context: ./front/
+  #     args:
+  #       FRONT_HREF: ${FRONT_HREF}
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${DOCKER_FRONT_PORT}:80"
