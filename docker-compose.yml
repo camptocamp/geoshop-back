@@ -1,5 +1,12 @@
 version: '3'
 
+networks:
+  geoshop:
+    driver: bridge
+
+# volumes:
+#   geoshop_data: {}
+
 services:
   db:
     image: postgis/postgis:15-3.4-alpine
@@ -7,37 +14,55 @@ services:
       # - "/db/docker_db/data:/var/lib/postgresql/data"
       - "/db/docker_db/init-scripts:/docker-entrypoint-initdb.d"
     environment:
-      POSTGRES_USER: ${PGUSER}
-      POSTGRES_PASSWORD: ${PGPASSWORD}
-      POSTGRES_DB: ${PGDATABASE}
-      # TODO set this from env vars
-      # this is needed to avoid issues like ---database "postgres" has no actual collation version, but a version was recorded---
-      # perhaps setting POSTGRES_COLLATE: would also be enoughe
+      POSTGRES_PASSWORD: "coucou"
       LANG: 'en_US.utf8'
       LC_COLLATE: 'en_US.utf8'
       LC_CTYPE: 'en_US.utf8'
+    env_file: .env
     ports:
-      - ${PGPORT}:5432
+      - 5432:5432
     networks:
-      - default
+      - geoshop
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  api:
+  migrate:
     image: geoshop-api
     build:
       context: .
-      args:
-        ENV_FILE: .env
+      dockerfile: Dockerfile
     depends_on:
       - db
     env_file: .env
-    command: "gunicorn wsgi -b :8000 --timeout 90"
-    restart: unless-stopped
-    ports:
-      - "8080:8000"
-    volumes:
-      - "${GEOSHOP_DATA}:/mnt/geoshop_data"
+    command:
+      - sleep
+      - infinity
+    # command:
+    #   - bash
+    #   - -c
+    #   - "python manage.py migrate && python manage.py collectstatic && python manage.py compilemessages --locale=fr && python manage.py fixturize"
     networks:
-      - default
+      - geoshop
+
+  # api:
+  #   image: geoshop-api
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     migrate:
+  #       condition: service_completed_successfully
+  #   env_file: .env
+  #   command: "gunicorn wsgi -b :8000 --timeout 90"
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8080:8000"
+  #   # volumes:
+  #   #   - "geoshop_data:/mnt/geoshop_data"
+  #   networks:
+  #     - geoshop
 
   # front:
   #   image: ${DOCKER_BASE}-front
