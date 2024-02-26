@@ -49,6 +49,34 @@ WITH unaccent, simple;
 
 Now that the database is ready, you can start backend either with Docker or not.
 
+### Run dev server without docker on a Linux based machine
+
+- Create a virtual python environment and install the requirements.txt
+
+- run the migrations on the DB and collectstatic:
+
+    ```
+    python manage.py migrate
+    python manage.py collectstatic
+    ```
+
+- Create admin account and Extract group with permissions
+    ```
+    python manage.py fixturize
+    ```
+
+- Create a super user:
+    ```
+    python manage.py createsuperuser
+    ```
+
+- Run the application:
+    ```
+    python3 manage.py runserver
+    ```
+
+Access the application under the indicated address
+
 ### Run dev server without docker on Windows
 
 You'll need to configure 3 paths to your GDAL installation according to `.env.sample`.
@@ -57,7 +85,7 @@ Then, we're going to:
 
  * Run migrations
  * Collect static files for the admin interface
- * Generate translations for your langage
+ * Generate translations for your language
  * Add minimal users to database
 
 ```shell
