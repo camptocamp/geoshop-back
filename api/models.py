@@ -482,11 +482,10 @@ class Product(models.Model):
         default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL,
     )
     ts = SearchVectorField(null=True)
-    #TODO: A geom defaulting to None would be great, meaning product is available everywhere
     geom = models.MultiPolygonField(
         _("geom"),
         srid=settings.DEFAULT_SRID,
-        default=MultiPolygon(Polygon.from_bbox((2519900, 1186430, 2578200, 1227030))),
+        default=MultiPolygon(Polygon.from_bbox(settings.DEFAULT_EXTENT)),
     )
 
     class Meta:

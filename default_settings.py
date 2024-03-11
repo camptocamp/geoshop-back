@@ -234,5 +234,9 @@ INTRA_LEGEND_URL = os.environ.get('INTRA_LEGEND_URL', '')
 # Geometries settings
 DEFAULT_SRID = 2056
 
+# Default Extent
+#TODO: A geom defaulting to None would be great, meaning product is available everywhere
+DEFAULT_EXTENT = (2519900, 1186430, 2578200, 1227030)
+
 # Controls values of metadata accessibility field that will turn the metadata public
 METADATA_PUBLIC_ACCESSIBILITIES = ['PUBLIC', 'APPROVAL_NEEDED']
