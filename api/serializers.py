@@ -22,6 +22,8 @@ from .models import (
     Metadata, MetadataCategoryEch, MetadataContact, Order, OrderItem, OrderType,
     Pricing, Product, ProductFormat, UserChange)
 
+from typing import List, Dict
+
 # Get the UserModel
 UserModel = get_user_model()
 
@@ -31,7 +33,7 @@ class WKTPolygonField(serializers.Field):
     Polygons are serialized to POLYGON((Long, Lat)) notation
     """
 
-    def to_representation(self, value):
+    def to_representation(self, value) -> str:
         if isinstance(value, dict) or value is None:
             return value
         new_value = copy.copy(value)
@@ -39,6 +41,7 @@ class WKTPolygonField(serializers.Field):
 
         # Use buffer and Douglas-Peucker to simplify geom (one vertex 0.2m) for large polygons
         # The smallest Cadastre has 156 vertices
+        # TODO is this generally true or only for NE?
         if new_value.num_coords > 156:
             new_value = new_value.buffer(0.5)
             new_value = new_value.simplify(0.2, preserve_topology=False)
@@ -196,7 +199,7 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
             'url': {'lookup_field': 'id_name'}
         }
 
-    def get_contact_persons(self, obj):
+    def get_contact_persons(self, obj) -> List[Dict[str, str]]:
         """obj is a Metadata instance. Returns list of dicts"""
         qset = MetadataContact.objects.filter(metadata=obj)
         return [
@@ -204,7 +207,7 @@ class MetadataSerializer(serializers.HyperlinkedModelSerializer):
                 'request': self.context['request']
             }).data for m in qset]
 
-    def get_legend_link(self, obj):
+    def get_legend_link(self, obj) -> str:
         return obj.get_legend_link()
 
 
@@ -258,7 +261,7 @@ class OrderItemValidationSerializer(OrderItemSerializer):
     """
     order_guid = serializers.SerializerMethodField()
 
-    def get_order_guid(self, obj):
+    def get_order_guid(self, obj) -> str:
         return obj.order.download_guid
 
 
@@ -486,7 +489,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
         help_text='Input the translated string value, for example "Privé"')
     client = UserIdentitySerializer()
     invoice_contact = IdentitySerializer()
-    geom = WKTPolygonField()
+    geom = WKTPolygonField() # TODO type can not be detected this is a sting
     geom_srid = serializers.IntegerField()
     geom_area = serializers.FloatField()
 

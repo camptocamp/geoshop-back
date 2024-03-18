@@ -16,6 +16,8 @@ from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.parsers import MultiPartParser
 
+from drf_spectacular.utils import extend_schema
+
 from allauth.account.views import ConfirmEmailView
 
 from .models import (
@@ -88,6 +90,9 @@ class CurrentUserView(views.APIView):
     """
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(
+        responses=UserIdentitySerializer,
+    )
     def get(self, request):
         user = request.user
         ser = UserIdentitySerializer(user, context={'request': request})
@@ -349,6 +354,9 @@ class ExtractOrderView(views.APIView):
     """
     permission_classes = [ExtractGroupPermission]
 
+    @extend_schema(
+            responses=ExtractOrderSerializer
+    )
     def get(self, request, *args, **kwargs):
         # Start by getting orderitems that are PENDING and that will be extracted by current user
         order_items = OrderItem.objects.filter(
@@ -375,7 +383,7 @@ class ExtractOrderView(views.APIView):
             # Replace items in the order by the only concerned item
             order_data['items'].append(item_data)
             # Once fetched by extract, status of item changes
-            item.status = OrderItem.OrderItemStatus.IN_EXTRACT
+            item.orderitem_status = OrderItem.OrderItemStatus.IN_EXTRACT
             item.save()
         if len(response_data) == 0:
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -470,7 +478,7 @@ class ProductViewSet(MultiSerializerMixin, viewsets.ReadOnlyModelViewSet):
     """
     querysets = {
         'default': Product.objects.all(),
-        'list': Product.objects.filter(status=Product.ProductStatus.PUBLISHED)
+        'list': Product.objects.filter(productStatus=Product.ProductStatus.PUBLISHED)
     }
     filter_backends = (FullTextSearchFilter,)
     serializers = {

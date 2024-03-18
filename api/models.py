@@ -453,8 +453,8 @@ class Product(models.Model):
             ),
         ],
     )
-    status = models.CharField(
-        _("status"),
+    productStatus = models.CharField(
+        _("product_status"),
         max_length=30,
         choices=ProductStatus.choices,
         default=ProductStatus.DRAFT,
