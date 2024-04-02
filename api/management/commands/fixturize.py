@@ -15,7 +15,7 @@ class Command(BaseCommand):
     Creates internal group
     """
     def handle(self, *args, **options):
-        admin_user = UserModel.objects.get(username='admin')
+        admin_user = UserModel.objects.get(username=os.environ.get('ADMIN_USERNAME', 'admin'))
         admin_user.set_password(os.environ['ADMIN_PASSWORD'])
         admin_user.save()
 
