@@ -1,7 +1,4 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -242,7 +239,8 @@ AUTO_LEGEND_URL = os.environ.get('AUTO_LEGEND_URL', '')
 INTRA_LEGEND_URL = os.environ.get('INTRA_LEGEND_URL', '')
 
 # Geometries settings
-DEFAULT_SRID = 2056
+# FIXME: Does this work with another SRID?
+DEFAULT_SRID = int(os.environ.get('DEFAULT_SRID', '2056'))
 
 # Controls values of metadata accessibility field that will turn the metadata public
 METADATA_PUBLIC_ACCESSIBILITIES = ['PUBLIC', 'APPROVAL_NEEDED']
