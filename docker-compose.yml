@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 networks:
   geoshop:
@@ -10,16 +10,20 @@ services:
     volumes:
       - "./resources/db:/docker-entrypoint-initdb.d:ro"
     environment:
-      LANG: 'en_US.utf8'
-      LC_COLLATE: 'en_US.utf8'
-      LC_CTYPE: 'en_US.utf8'
+      POSTGRES_USER: "${PGUSER}"
+      POSTGRES_PASSWORD: "${PGPASSWORD}"
+      POSTGRES_DB: "${PGDATABASE}"
+      LANG: "en_US.utf8"
+      LC_COLLATE: "en_US.utf8"
+      LC_CTYPE: "en_US.utf8"
     env_file: .env
     ports:
       - 5432:5432
     networks:
       - geoshop
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U geoshop"]
+      test:
+        ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${PGUSER} -d ${PGDATABASE}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -33,10 +37,14 @@ services:
       db:
         condition: service_healthy
     env_file: .env
+    environment:
+      PGHOST: "db"
     command:
       - bash
       - -c
       - "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py compilemessages --locale=fr && python manage.py fixturize"
+    volumes:
+      - "static-files:/app/geoshop_back/static:rw"
     networks:
       - geoshop
 
@@ -48,9 +56,16 @@ services:
       migrate:
         condition: service_completed_successfully
     env_file: .env
+    environment:
+      PGHOST: "db"
     command: "gunicorn wsgi -b :8000 --timeout 90"
     restart: unless-stopped
+    volumes:
+      - "static-files:/app/geoshop_back/static:ro"
     ports:
       - "8080:8000"
     networks:
       - geoshop
+
+volumes:
+  static-files:
