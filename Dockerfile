@@ -18,6 +18,3 @@ ENV PYTHONUNBUFFERED 1
 
 COPY . /app/geoshop_back/
 RUN mv /app/geoshop_back/default_settings.py /app/geoshop_back/settings.py
-
-# FIXME: why was this needed?
-# RUN mkdir /mnt/geoshop_data
