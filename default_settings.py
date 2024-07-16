@@ -50,6 +50,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_spectacular',
     'corsheaders',
+    'health_check',
+    'health_check.db',
+    'health_check.contrib.migrations',
 ]
 
 MIDDLEWARE = [
@@ -261,3 +264,12 @@ SWISS_EXTENT = (2828694.200665463,1075126.8548189853,2484749.5514877755,1299777.
 
 # Controls values of metadata accessibility field that will turn the metadata public
 METADATA_PUBLIC_ACCESSIBILITIES = ['PUBLIC', 'APPROVAL_NEEDED']
+
+# Healthcheck subsets configuration
+HEALTH_CHECK = {
+    "SUBSETS": {
+        "startup": ["MigrationsHealthCheck", "DatabaseBackend"],
+        "readiness": ["DatabaseBackend"],
+        "liveness": []
+    },
+}
