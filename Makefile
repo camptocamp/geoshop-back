@@ -9,6 +9,17 @@ build: ## Build docker image
 		--build-arg=VERSION=$(VERSION) .
 	docker tag camptocamp/geoshop-api:$(VERSION) camptocamp/geoshop-api:$(DOCKER_TAG)
 
+.PHONY: build_ghcr
+build_ghcr: ## Build docker image tagged for GHCR
+	docker build --tag=ghcr.io/camptocamp/geoshop-api:$(VERSION) \
+		--build-arg=VERSION=$(VERSION) .
+	docker tag ghcr.io/camptocamp/geoshop-api:$(VERSION) ghcr.io/camptocamp/geoshop-api:$(DOCKER_TAG)
+
+.PHONY: push_ghcr
+push_ghcr: ## Push docker image to GHCR
+	docker push ghcr.io/camptocamp/geoshop-api:$(VERSION)
+	docker push ghcr.io/camptocamp/geoshop-api:$(DOCKER_TAG)
+
 .PHONY: test
 test: ## Run tests
 	docker compose exec -T api python manage.py test -v 2 --force-color --noinput
