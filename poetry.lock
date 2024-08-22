@@ -114,7 +114,7 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-allauth"
-version = "64.0.0"
+version = "64.1.0"
 description = "Integrated set of Django applications addressing authentication, registration, account management as well as 3rd party (social) account authentication."
 category = "main"
 optional = false
@@ -197,14 +197,15 @@ django = ">=4.2"
 
 [[package]]
 name = "djangorestframework-gis"
-version = "1.0"
+version = "1.1"
 description = "Geographic add-ons for Django Rest Framework"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-djangorestframework = "*"
+django-filter = ">=23.5,<25.0"
+djangorestframework = ">=3.12,<3.16"
 
 [[package]]
 name = "djangorestframework-simplejwt"
@@ -327,7 +328,7 @@ referencing = ">=0.31.0"
 
 [[package]]
 name = "markdown"
-version = "3.6"
+version = "3.7"
 description = "Python implementation of John Gruber's Markdown."
 category = "main"
 optional = false

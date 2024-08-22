@@ -88,5 +88,5 @@ urlpatterns = [
     path("oidc/authenticate/",  OIDCAuthenticateClass.as_view(), name="oidc_authentication_init"),
     path("oidc/logout", OIDCLogoutView.as_view(), name="oidc_logout"),
 
-    path("oidclogin", oidc.UserView),
+    path("oidc-login", oidc.UserView),
 ] + static(settings.STATIC_URL,document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
