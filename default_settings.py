@@ -1,5 +1,9 @@
 import os
+import requests
+from dotenv import load_dotenv
 from django.utils.translation import gettext_lazy as _
+
+load_dotenv()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -53,6 +57,7 @@ INSTALLED_APPS = [
     'health_check',
     'health_check.db',
     'health_check.contrib.migrations',
+    'mozilla_django_oidc',
 ]
 
 MIDDLEWARE = [
@@ -67,6 +72,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'mozilla_django_oidc.middleware.SessionRefresh',
 ]
 
 ROOT_URLCONF = 'urls'
@@ -274,3 +280,44 @@ HEALTH_CHECK = {
         "liveness": []
     },
 }
+
+# OIDC configuration
+def discover_endpoints(discovery_url: str) -> dict:
+
+    """
+    Performs OpenID Connect discovery to retrieve the provider configuration.
+    """
+    response = requests.get(discovery_url)
+    if response.status_code != 200:
+        raise ValueError("Failed to retrieve provider configuration.")
+
+    provider_config = response.json()
+
+    # Extract endpoint URLs from provider configuration
+    return {
+        "authorization_endpoint": provider_config["authorization_endpoint"],
+        "token_endpoint": provider_config["token_endpoint"],
+        "userinfo_endpoint": provider_config["userinfo_endpoint"],
+        "jwks_uri": provider_config["jwks_uri"],
+    }
+
+AUTHENTICATION_BACKENDS = ("oidc.PermissionBackend",)
+OIDC_RP_CLIENT_ID = os.environ.get("OIDC_RP_CLIENT_ID")
+ZITADEL_PROJECT = os.environ.get("ZITADEL_PROJECT")
+OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_RP_CLIENT_SECRET")
+OIDC_OP_BASE_URL = os.environ.get("OIDC_OP_BASE_URL")
+
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_RP_SCOPES = "openid profile email address phone"
+OIDC_OP_DISCOVERY_ENDPOINT = OIDC_OP_BASE_URL + "/.well-known/openid-configuration"
+
+discovery_info = discover_endpoints(OIDC_OP_DISCOVERY_ENDPOINT) 
+OIDC_OP_AUTHORIZATION_ENDPOINT = discovery_info["authorization_endpoint"]
+OIDC_OP_TOKEN_ENDPOINT = discovery_info["token_endpoint"]
+OIDC_OP_USER_ENDPOINT = discovery_info["userinfo_endpoint"]
+OIDC_OP_JWKS_ENDPOINT = discovery_info["jwks_uri"]
+
+LOGIN_REDIRECT_URL = "http://localhost:8000/oidc/callback"
+LOGOUT_REDIRECT_URL = "http://localhost:8000/oidc/logout"
+LOGIN_URL = "http://localhost:8000/oidc/authenticate/"
+

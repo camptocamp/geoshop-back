@@ -50,6 +50,7 @@ uritemplate = "^4.1.1"
 urllib3 = "^2.2.2"
 whitenoise = "^6.7.0"
 Django = "^5.1"
+mozilla-django-oidc = "^4.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.6.0"]

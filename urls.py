@@ -7,6 +7,9 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from mozilla_django_oidc.urls import OIDCCallbackClass,OIDCAuthenticateClass
+from mozilla_django_oidc.views import OIDCLogoutView 
+
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -14,6 +17,7 @@ from rest_framework_simplejwt.views import (
 )
 from api.routers import GeoshopRouter
 from api import views
+import oidc
 
 admin.site.site_header = _("GeoShop Administration")
 admin.site.site_title = _("GeoShop Admin")
@@ -78,4 +82,11 @@ urlpatterns = [
     path('api/docs/schema', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('health/', include('health_check.urls')),
+
+    # OIDC urls
+    path("oidc/callback", OIDCCallbackClass.as_view(), name="oidc_authentication_callback"),
+    path("oidc/authenticate/",  OIDCAuthenticateClass.as_view(), name="oidc_authentication_init"),
+    path("oidc/logout", OIDCLogoutView.as_view(), name="oidc_logout"),
+
+    path("oidclogin", oidc.UserView),
 ] + static(settings.STATIC_URL,document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
