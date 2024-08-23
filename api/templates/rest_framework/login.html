@@ -1,0 +1,7 @@
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+      const hostElement = document.querySelector("input[value='Log in']").parentElement.parentElement;
+      hostElement.innerHTML += "<a href='/oidc/authenticate'>Login with Zitadel</a>";
+  });
+</script>
+{% extends "rest_framework/login_base.html" %}
