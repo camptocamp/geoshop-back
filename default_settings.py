@@ -301,7 +301,10 @@ def discover_endpoints(discovery_url: str) -> dict:
         "jwks_uri": provider_config["jwks_uri"],
     }
 
-AUTHENTICATION_BACKENDS = ("oidc.PermissionBackend",)
+AUTHENTICATION_BACKENDS = (
+    "oidc.PermissionBackend",
+    "django.contrib.auth.backends.ModelBackend"
+)
 OIDC_RP_CLIENT_ID = os.environ.get("OIDC_RP_CLIENT_ID")
 ZITADEL_PROJECT = os.environ.get("ZITADEL_PROJECT")
 OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_RP_CLIENT_SECRET")

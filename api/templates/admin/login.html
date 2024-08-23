@@ -1,9 +1,10 @@
 <script>
-    window.onload = () => {
+  window.onload = () => {
       document.querySelector("input[value='Log in']")
           .parentElement
           .parentElement
           .innerHTML += "<a href='/oidc/authenticate'>Login with Zitadel</a>";
   };
 </script>
-{% extends "rest_framework/login_base.html" %}
+
+{% extends "admin/login.html" %}
