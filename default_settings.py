@@ -320,7 +320,7 @@ OIDC_OP_TOKEN_ENDPOINT = discovery_info["token_endpoint"]
 OIDC_OP_USER_ENDPOINT = discovery_info["userinfo_endpoint"]
 OIDC_OP_JWKS_ENDPOINT = discovery_info["jwks_uri"]
 
-LOGIN_REDIRECT_URL = "http://localhost:8000/oidc/callback"
-LOGOUT_REDIRECT_URL = "http://localhost:8000/oidc/logout"
-LOGIN_URL = "http://localhost:8000/oidc/authenticate/"
+LOGIN_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/callback"
+LOGOUT_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/logout"
+LOGIN_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/authenticate"
 

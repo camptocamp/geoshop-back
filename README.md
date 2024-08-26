@@ -82,3 +82,22 @@ python manage.py test
 ## Customize
 
 custom.js in `api/templates/gis/admin`
+
+# Configuring Zitadel authentication
+
+For OpenID authentication, Geoshop uses [mozilla-django-oidc](https://github.com/mozilla/mozilla-django-oidc) library, published under [Mozilla Public License 2.0](https://github.com/mozilla/mozilla-django-oidc/blob/main/LICENSE) which requires creating a [Zitadel](https://zitadel.com/) account and some extra configuration on the local side to work properly.
+
+## Zitadel side
+[Zitadel Django Tutorial](https://zitadel.com/docs/sdk-examples/python-django)
+
+## Local side
+
+Following environment variables (or lines in the .env file) define main authentication parameters:
+
+```env
+OIDC_REDIRECT_BASE_URL = "http://localhost:8000"
+OIDC_OP_BASE_URL="please set oidc op base url"
+ZITADEL_PROJECT="set_zitadel_project"
+OIDC_RP_CLIENT_ID="set oidc rp client id"
+OIDC_RP_CLIENT_SECRET="set oidc rp client secret"
+```
