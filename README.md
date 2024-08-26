@@ -101,3 +101,12 @@ ZITADEL_PROJECT="set_zitadel_project"
 OIDC_RP_CLIENT_ID="set oidc rp client id"
 OIDC_RP_CLIENT_SECRET="set oidc rp client secret"
 ```
+
+## Roles and permissions
+
+Zitadel roles and their Geoshop equivalents:
+
+| Zitadel role      | Geoshop       |
+| ----------------- | ------------- |
+| admin             | superuser     |
+| staff             | staff         |
