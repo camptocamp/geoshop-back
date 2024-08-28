@@ -313,6 +313,7 @@ OIDC_OP_BASE_URL = os.environ.get("OIDC_OP_BASE_URL")
 OIDC_RP_SIGN_ALGO = "RS256"
 OIDC_RP_SCOPES = "openid profile email address phone"
 OIDC_OP_DISCOVERY_ENDPOINT = OIDC_OP_BASE_URL + "/.well-known/openid-configuration"
+OIDC_USE_PKCE = True
 
 discovery_info = discover_endpoints(OIDC_OP_DISCOVERY_ENDPOINT) 
 OIDC_OP_AUTHORIZATION_ENDPOINT = discovery_info["authorization_endpoint"]

@@ -22,8 +22,6 @@ class PermissionBackend(OIDCAuthenticationBackend):
 
     def create_user(self, claims):
         roles = self.get_roles(claims)
-        if not roles:
-            return self.UserModel.objects.none()
         user = self.UserModel.objects.create_user(username=claims.get("sub"))
         updateUser(user, claims, roles)
         user.save()
