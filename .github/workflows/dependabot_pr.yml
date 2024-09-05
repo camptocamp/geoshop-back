@@ -6,9 +6,13 @@ on:
       - opened
 
 jobs:
+  tests:
+    if: ${{ github.actor == 'dependabot[bot]' && github.event.label.name == 'dependencies' }}
+    uses: ./.github/workflows/tests.yml
   dependabot:
     runs-on: ubuntu-latest
     if: ${{ github.actor == 'dependabot[bot]' && github.event.label.name == 'dependencies' }}
+    needs: [tests]
 
     steps:
       - name: Dependabot metadata
