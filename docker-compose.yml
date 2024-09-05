@@ -29,7 +29,7 @@ services:
       retries: 5
 
   migrate:
-    image: camptocamp/geoshop-api
+    image: geoshop-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -40,18 +40,18 @@ services:
     environment:
       PGHOST: "db"
     command: >
-        bash -c "
-        python3 manage.py migrate &&
-        python3 manage.py collectstatic --noinput &&
-        python3 manage.py compilemessages --locale=fr &&
-        python3 manage.py fixturize"
+      bash -c "
+      python3 manage.py migrate &&
+      python3 manage.py collectstatic --noinput &&
+      python3 manage.py compilemessages --locale=fr &&
+      python3 manage.py fixturize"
     volumes:
       - "static-files:/app/geoshop_back/static:rw"
     networks:
       - geoshop
 
   api:
-    image: camptocamp/geoshop-api
+    image: geoshop-api
     depends_on:
       db:
         condition: service_healthy

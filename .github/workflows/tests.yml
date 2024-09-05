@@ -8,6 +8,7 @@ on:
 jobs:
   tests:
     name: Execute unit tests
+    concurrency: ci-${{ github.ref }}
     strategy:
       matrix:
         python-version: [3.12]
