@@ -1,7 +1,11 @@
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
-from django.contrib.auth.models import Permission, User
-from django.contrib import admin
+from django.conf import settings
 from django.shortcuts import render
+
+def status(request):
+    return {
+        "OIDC_ENABLED": settings.OIDC_ENABLED,
+    }
 
 def updateUser(user, claims):
     user.email = claims.get("email")

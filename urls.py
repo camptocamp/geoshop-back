@@ -8,7 +8,7 @@ from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from mozilla_django_oidc.urls import OIDCCallbackClass,OIDCAuthenticateClass
-from mozilla_django_oidc.views import OIDCLogoutView 
+from mozilla_django_oidc.views import OIDCLogoutView
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -84,9 +84,12 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('health/', include('health_check.urls')),
 
-    # OIDC urls
-    path("oidc/callback", OIDCCallbackClass.as_view(), name="oidc_authentication_callback"),
-    path("oidc/authenticate/",  OIDCAuthenticateClass.as_view(), name="oidc_authentication_init"),
-    path("oidc/logout", OIDCLogoutView.as_view(), name="oidc_logout"),
-
 ] + static(settings.STATIC_URL,document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
+
+            # OIDC urls
+if settings.OIDC_ENABLED:
+    urlpatterns += [
+      path("oidc/callback", OIDCCallbackClass.as_view(), name="oidc_authentication_callback"),
+      path("oidc/authenticate/",  OIDCAuthenticateClass.as_view(), name="oidc_authentication_init"),
+      path("oidc/logout", OIDCLogoutView.as_view(), name="oidc_logout"),
+    ]

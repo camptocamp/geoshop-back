@@ -1,10 +1,14 @@
-<script>
-  window.onload = () => {
-      document.querySelector("input[value='Log in']")
-          .parentElement
-          .parentElement
-          .innerHTML += `<a href="/oidc/authenticate${window.location.search}">Login with Zitadel</a>`;
-  };
-</script>
-
 {% extends "admin/login.html" %}
+{% block body %}
+    {{ block.super }}
+    {% if OIDC_ENABLED %}
+    <script>
+      window.onload = () => {
+          document.querySelector("input[value='Log in']")
+              .parentElement
+              .parentElement
+              .innerHTML += `<a href="/oidc/authenticate${window.location.search}">Login with Zitadel</a>`;
+      };
+    </script>
+    {% endif %}
+{% endblock %}
