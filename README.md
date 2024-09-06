@@ -98,7 +98,7 @@ For OpenID authentication, Geoshop uses [mozilla-django-oidc](https://github.com
 
 .env variables are usually enough:
 ```python
-ZITADEL_ENABLED = True|False # Toggle Zitadel authentication globally.
+OIDC_ENABLED = True|False # Toggle Zitadel authentication globally.
 OIDC_OP_BASE_URL = "..." # Your Zitadel instance url (something like https://geoshop-demo-abcdef.zitadel.cloud)
 OIDC_REDIRECT_BASE_URL = "http://localhost:8000" # Where the service lives, different for local server or docker container
 ZITADEL_PROJECT = "..."
