@@ -1,4 +1,5 @@
 networks:
+    default:
     qnetwork:
 
 volumes:
@@ -206,6 +207,10 @@ services:
             - default
         depends_on:
             selenium:
+                condition: service_healthy
+            extract:
+                condition: service_healthy
+            geoshop:
                 condition: service_healthy
             frontend:
                 condition: service_started
