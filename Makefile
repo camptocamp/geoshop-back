@@ -3,6 +3,8 @@ DOCKER_TAG ?= latest
 
 export DOCKER_BUILDKIT=1
 
+.DEFAULT_GOAL := help
+
 .PHONY: build
 build: ## Build docker image
 	docker build --tag=camptocamp/geoshop-api:$(VERSION) \
