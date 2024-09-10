@@ -7,11 +7,11 @@ on:
 
 jobs:
   tests:
-    if: ${{ github.actor == 'dependabot[bot]' && github.event.label.name == 'dependencies' }}
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && contains(github.event.issue.labels.*.name, 'dependencies')
     uses: ./.github/workflows/tests.yml
   dependabot:
     runs-on: ubuntu-latest
-    if: ${{ github.actor == 'dependabot[bot]' && github.event.label.name == 'dependencies' }}
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && contains(github.event.issue.labels.*.name, 'dependencies')
     needs: [tests]
 
     steps:
