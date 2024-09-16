@@ -321,12 +321,12 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-allauth"
-version = "64.1.0"
+version = "64.2.1"
 description = "Integrated set of Django applications addressing authentication, registration, account management as well as 3rd party (social) account authentication."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "django_allauth-64.1.0.tar.gz", hash = "sha256:713bfc410021140aefae0f04eeaac5d50ebedad7abaf43174670a9ec002c595c"},
+    {file = "django_allauth-64.2.1.tar.gz", hash = "sha256:54bf0af8dc5c334254dd56f9069447c19b9b623110a095b2a0dcb82a414e1055"},
 ]
 
 [package.dependencies]
@@ -1167,4 +1167,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "07addec3e3ed68a8de9de1417b969442239d38c19ef41f576bc66519178f9e58"
+content-hash = "7c01535d1fc4c7bbcb6a576891e874fdb5b4c58f43ace5b081bd771ccc06023c"
