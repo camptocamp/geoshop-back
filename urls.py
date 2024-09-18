@@ -98,6 +98,7 @@ urlpatterns = [
             # OIDC urls
 if settings.OIDC_ENABLED:
     urlpatterns += [
+        path(f'{ROOTURL}oidc/token', oidc.validate_token, name='oidc_validate_token'),
         path(f'{ROOTURL}oidc/callback', OIDCCallbackClass.as_view(), name='oidc_authentication_callback'),
         path(f'{ROOTURL}oidc/authenticate/', OIDCAuthenticateClass.as_view(), name='oidc_authentication_init'),
         path(f'{ROOTURL}oidc/logout', OIDCLogoutView.as_view(), name='oidc_logout'),

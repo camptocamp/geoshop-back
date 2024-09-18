@@ -8,6 +8,8 @@ ENV  POETRY_NO_INTERACTION=1 \
 
 WORKDIR /app/geoshop_back/
 COPY poetry.lock pyproject.toml /app/geoshop_back/
+COPY private_key.json /app/geoshop_back/
+COPY user_key.json /app/geoshop_back/
 
 RUN apt update && apt install -y libgdal-dev libffi-dev gettext && \
     pip install poetry && \
@@ -22,3 +24,4 @@ RUN mv -vn /app/geoshop_back/default_settings.py /app/geoshop_back/settings.py
 RUN mv .env.sample .env
 RUN python3 manage.py compilemessages --locale=fr
 RUN rm -f .env
+
