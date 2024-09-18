@@ -47,6 +47,8 @@ services:
       python3 manage.py fixturize"
     volumes:
       - "static-files:/app/geoshop_back/static:rw"
+      - "locale-files:/app/geoshop_back/locale:rw"
+      - "api-locale-files:/app/geoshop_back/api/locale:rw"
     networks:
       - geoshop
 
@@ -73,6 +75,8 @@ services:
       retries: 5
     volumes:
       - "static-files:/app/geoshop_back/static:ro"
+      - "locale-files:/app/geoshop_back/locale:ro"
+      - "api-locale-files:/app/geoshop_back/api/locale:ro"
     ports:
       - "8000:8000"
     networks:
@@ -80,3 +84,5 @@ services:
 
 volumes:
   static-files:
+  locale-files:
+  api-locale-files:
