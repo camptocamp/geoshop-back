@@ -299,6 +299,7 @@ def discover_endpoints(discovery_url: str) -> dict:
         "token_endpoint": provider_config["token_endpoint"],
         "userinfo_endpoint": provider_config["userinfo_endpoint"],
         "jwks_uri": provider_config["jwks_uri"],
+        "introspection_endpoint": provider_config["introspection_endpoint"],
     }
 
 AUTHENTICATION_BACKENDS = (
@@ -326,6 +327,8 @@ if OIDC_ENABLED:
     OIDC_OP_TOKEN_ENDPOINT = discovery_info["token_endpoint"]
     OIDC_OP_USER_ENDPOINT = discovery_info["userinfo_endpoint"]
     OIDC_OP_JWKS_ENDPOINT = discovery_info["jwks_uri"]
+    OIDC_OP_AUTHORIZATION_ENDPOINT = discovery_info["authorization_endpoint"]
+    OIDC_PRIVATE_KEYFILE = os.environ.get("OIDC_PRIVATE_KEYFILE")
 
     LOGIN_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/callback"
     LOGOUT_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/"
