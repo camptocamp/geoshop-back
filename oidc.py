@@ -75,13 +75,17 @@ class FrontendAuthentication(View):
         # TODO: Test missing id token
         # TODO: Localize error response
         # TODO: Test same token multiple times
+        # TODO: Test user does not exist
+        # TODO: Test user exists, but unauthrized
+        # TODO: Test user exists and authorized
         token_data = json.loads(request.body.decode("utf-8"))
         if "token" not in token_data:
             return JsonResponse({"error": "No token provided"}, status=400)
 
         user_data = self._resolve_user_data(token_data["token"])
-        user = UserModel.objects.get(username=user_data["email"])
-        if not user:
+        try:
+            user = UserModel.objects.get(username=user_data["email"])
+        except UserModel.DoesNotExist:
             user = UserModel.objects.create_user(username=user_data["email"])
         _updateUser(user, user_data)
         user.save()
