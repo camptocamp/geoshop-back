@@ -17,3 +17,8 @@ COPY . /app/geoshop_back/
 
 # Copy default settings to settings only if there is no such file
 RUN mv -vn /app/geoshop_back/default_settings.py /app/geoshop_back/settings.py
+
+# Compile locales
+RUN mv .env.sample .env
+RUN python3 manage.py compilemessages --locale=fr
+RUN rm -f .env
