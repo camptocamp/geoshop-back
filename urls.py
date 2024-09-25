@@ -62,7 +62,7 @@ router.register_additional_route_to_root(f'{ROOTURL}auth/register', 'auth_regist
 urlpatterns = [
     # this url is used to generate email content
     #TODO FIXME: the favicon is not served correctly
-    path(f'{ROOTURL}favicon.ico', RedirectView.as_view(url=f'{ROOTURL}{settings.STATIC_URL}favicon.ico')),
+    path('favicon.ico', RedirectView.as_view(url='{}api/favicon.ico'.format(settings.STATIC_URL))),
     re_path(rf'^{ROOTURL}auth/reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
             TemplateView.as_view(),
             name='password_reset_confirm'),
