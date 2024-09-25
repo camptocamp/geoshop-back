@@ -231,7 +231,8 @@ SPECTACULAR_SETTINGS = {
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-FORCE_SCRIPT_NAME = os.environ.get('ROOTURL', '')
+FORCE_SCRIPT_NAME = os.environ.get('FORCE_SCRIPT_NAME', '')
+ROOTURL=os.getenv('ROOTURL', '')
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # For large admin fields like order with order items
