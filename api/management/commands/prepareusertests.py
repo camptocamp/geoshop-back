@@ -20,7 +20,7 @@ class Command(BaseCommand):
     """
     def handle(self, *args, **options):
         # Set all ready orders to ARCHIVED
-        orders_ready = Order.objects.filter(status=Order.OrderStatus.READY).all()
+        orders_ready = Order.objects.filter(order_status=Order.OrderStatus.READY).all()
         for order in orders_ready:
             order.order_status = Order.OrderStatus.ARCHIVED
             order.save()
