@@ -49,6 +49,14 @@ WITH unaccent, simple;
 
 Now that the database is ready, you can start backend either with Docker or not.
 
+### Testing data
+
+```bash
+python manage.py seed
+```
+
+Will seed your database with testing users, contracts and other sample data.
+
 ### Run dev server without docker on Windows
 
 You'll need to configure 3 paths to your GDAL installation according to `.env.sample`.
