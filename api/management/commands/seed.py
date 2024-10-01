@@ -45,7 +45,7 @@ class Command(BaseCommand):
         return value
 
     def addUser(self, username: str, email: str, password: str) -> User:
-        return self.getOrCreate(UserModel, username=username, defaults={email: email, password: password})
+        return self.getOrCreate(UserModel, username=username, defaults={"email": email, "password": password})
 
     def setIdentity(self, user: User, params: dict[str, any]) -> Identity:
         for k, v in params.items():
@@ -54,29 +54,16 @@ class Command(BaseCommand):
         self.success(f"Updated identity for user '{user.username}'")
         return user.identity
 
-    def addContact(self, user: User, params: dict[str, any]) -> Contact:
-        params["belongs_to"] = user
-        contact = self.addContact(**params)
-        self.success(f"Created contact \"{contact.first_name} {contact.last_name}\"")
-        return contact
-
-    def addOrderType(self, name: str) -> OrderType:
-        return self.getOrCreate(OrderType, name=name)
-
     def addProduct(self, user: User, label: str) -> OrderType:
         return self.getOrCreate(Product, label=label, defaults={
-            "metadata": self.getOrCreate(Metadata, name="metadata", defaults={"modified_user_id": user.id}),
+            "metadata": self.getOrCreate(Metadata, id_name="metadata", name="metadata", defaults={"modified_user_id": user.id}),
             "pricing": self.getOrCreate(Pricing, name="Free", defaults={"pricing_type": Pricing.PricingType.FREE}),
             "provider": user
         })
 
-    def addDataFormat(self, name: str) -> DataFormat:
-        return self.getOrCreate(DataFormat, name=name)
-
     def seed(self):
         # Create users
-        rincevent = self.addUser(
-            'rincevent', 'rincevent@mail.com', 'rincevent')
+        rincevent = self.addUser('rincevent', 'rincevent@mail.com', 'rincevent')
         self.setIdentity(rincevent, {
             "email": os.environ.get('EMAIL_TEST_TO', 'admin@admin.com'),
             "first_name": 'Jean',
@@ -198,7 +185,7 @@ class Command(BaseCommand):
             )
         ))
 
-        order_type_prive = self.addOrderType('Privé')
+        order_type_prive = self.getOrCreate(OrderType, name='Privé', defaults={})
 
         # Create orders
         order1 = Order.objects.create(
@@ -277,10 +264,10 @@ class Command(BaseCommand):
         product_deprecated = self.addProduct(mma,
                                              'MO07 - Objets divers et éléments linéaires - linéaires')
 
-        data_format = self.addDataFormat('Geobat NE complet (DXF)')
-        data_format_maquette = self.addDataFormat('3dm (Fichier Rhino)')
+        data_format = self.getOrCreate(DataFormat, name='Geobat NE complet (DXF)', defaults={})
+        data_format_maquette = self.getOrCreate(DataFormat, name='3dm (Fichier Rhino)', defaults={})
 
-        orderitems = [
+        for order_item in [
             OrderItem.objects.create(order=order1, product=product1),
             OrderItem.objects.create(order=order1, product=product2),
             OrderItem.objects.create(order=order_download, product=product1),
@@ -290,8 +277,7 @@ class Command(BaseCommand):
             OrderItem.objects.create(order=order4, product=product2),
             OrderItem.objects.create(
                 order=order_mka2, product=product1, data_format=data_format)
-        ]
-        for order_item in orderitems:
+        ]:
             order_item.set_price()
             order_item.save()
         order_item_deprecated = OrderItem.objects.create(
