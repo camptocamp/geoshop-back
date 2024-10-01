@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
 
 load_dotenv()
@@ -306,7 +307,18 @@ AUTHENTICATION_BACKENDS = (
     "django.contrib.auth.backends.ModelBackend",
 )
 
-OIDC_ENABLED = os.environ.get("OIDC_ENABLED", "False") == "True"
+def check_oidc() -> bool:
+    if os.environ.get("OIDC_ENABLED", "False") == "False":
+        return False
+    missing = []
+    for x in ["OIDC_RP_CLIENT_ID", "ZITADEL_PROJECT", "OIDC_OP_BASE_URL", "OIDC_PRIVATE_KEYFILE"]:
+        if not os.environ.get(x):
+            missing.append(x)
+    if missing:
+        raise ImproperlyConfigured(f"OIDC is enabled, but missing required parameters {missing}")
+    return True
+
+OIDC_ENABLED = check_oidc()
 if OIDC_ENABLED:
     INSTALLED_APPS.append('mozilla_django_oidc')
     MIDDLEWARE.append('mozilla_django_oidc.middleware.SessionRefresh')
