@@ -482,7 +482,7 @@ class Product(models.Model):
         default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL,
     )
     ts = SearchVectorField(null=True)
-    bbox = settings.SWISS_EXTENT
+    bbox = settings.DEFAULT_EXTENT
     geom = models.MultiPolygonField(
         _("geom"),
         srid=settings.DEFAULT_SRID,
