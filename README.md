@@ -87,10 +87,6 @@ python manage.py runserver
 python manage.py test
 ```
 
-## Customize
-
-custom.js in `api/templates/gis/admin`
-
 # OIDC authentication
 
 ## Glossary

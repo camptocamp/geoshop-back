@@ -96,7 +96,6 @@ venv
 
 # customized project files
 settings.py
-api/templates/gis/admin/custom.js
 
 # collected static files
 static/*
