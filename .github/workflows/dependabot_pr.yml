@@ -4,20 +4,27 @@ on:
   pull_request:
     types:
       - opened
+      - synchronize
+      - reopened
+      - labeled
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   tests:
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && contains(github.event.issue.labels.*.name, 'dependencies')
+    if: github.actor == 'dependabot[bot]' && contains(github.event.pull_request.labels.*.name, 'dependencies')
     uses: ./.github/workflows/tests.yml
   dependabot:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && contains(github.event.issue.labels.*.name, 'dependencies')
+    if: github.actor == 'dependabot[bot]' && contains(github.event.pull_request.labels.*.name, 'dependencies')
     needs: [tests]
 
     steps:
       - name: Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v1.3.2
+        uses: dependabot/fetch-metadata@v2
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
