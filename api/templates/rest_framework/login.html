@@ -7,7 +7,13 @@
           document.querySelector("input[value='Log in']")
               .parentElement
               .parentElement
-              .innerHTML += `<a href="/oidc/authenticate${window.location.search}">Login with Zitadel</a>`;
+              .innerHTML += `
+              <div class="form-group"></div>
+              <div class="form-actions-no-box">
+                <a href="{% url 'oidc_authentication_init' %}?next={{ next }}">
+                    <input type="button" class="btn btn-primary form-control" value="Login with Zitadel" />
+                </a>
+              </div>`;
       };
     </script>
     {% endif %}
