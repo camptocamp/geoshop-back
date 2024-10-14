@@ -282,6 +282,9 @@ HEALTH_CHECK = {
     },
 }
 
+AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
+
+
 # OIDC configuration
 def discover_endpoints(discovery_url: str) -> dict:
 
@@ -303,9 +306,6 @@ def discover_endpoints(discovery_url: str) -> dict:
         "introspection_endpoint": provider_config["introspection_endpoint"],
     }
 
-AUTHENTICATION_BACKENDS = (
-    "django.contrib.auth.backends.ModelBackend",
-)
 
 def check_oidc() -> bool:
     if os.environ.get("OIDC_ENABLED", "False") == "False":
@@ -322,25 +322,29 @@ OIDC_ENABLED = check_oidc()
 if OIDC_ENABLED:
     INSTALLED_APPS.append('mozilla_django_oidc')
     MIDDLEWARE.append('mozilla_django_oidc.middleware.SessionRefresh')
-    AUTHENTICATION_BACKENDS = ("oidc.PermissionBackend", ) + AUTHENTICATION_BACKENDS
+    AUTHENTICATION_BACKENDS = ('oidc.PermissionBackend',) + AUTHENTICATION_BACKENDS
+    REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"] = (
+        "oidc.PermissionBackend",
+    ) + REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"]
 
     OIDC_RP_CLIENT_ID = os.environ.get("OIDC_RP_CLIENT_ID")
     ZITADEL_PROJECT = os.environ.get("ZITADEL_PROJECT")
     OIDC_RP_CLIENT_SECRET = os.environ.get("OIDC_RP_CLIENT_SECRET")
     OIDC_OP_BASE_URL = os.environ.get("OIDC_OP_BASE_URL")
+    OIDC_PRIVATE_KEYFILE = os.environ.get("OIDC_PRIVATE_KEYFILE")
 
     OIDC_RP_SIGN_ALGO = "RS256"
     OIDC_RP_SCOPES = "openid profile email address phone"
-    OIDC_OP_DISCOVERY_ENDPOINT = OIDC_OP_BASE_URL + "/.well-known/openid-configuration"
     OIDC_USE_PKCE = True
 
-    discovery_info = discover_endpoints(OIDC_OP_DISCOVERY_ENDPOINT)
+    discovery_info = discover_endpoints(
+        OIDC_OP_BASE_URL + "/.well-known/openid-configuration"
+    )
+    OIDC_INTROSPECT_URL = discovery_info["introspection_endpoint"]
     OIDC_OP_AUTHORIZATION_ENDPOINT = discovery_info["authorization_endpoint"]
     OIDC_OP_TOKEN_ENDPOINT = discovery_info["token_endpoint"]
     OIDC_OP_USER_ENDPOINT = discovery_info["userinfo_endpoint"]
     OIDC_OP_JWKS_ENDPOINT = discovery_info["jwks_uri"]
-    OIDC_OP_AUTHORIZATION_ENDPOINT = discovery_info["authorization_endpoint"]
-    OIDC_PRIVATE_KEYFILE = os.environ.get("OIDC_PRIVATE_KEYFILE")
 
     LOGIN_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/callback"
     LOGOUT_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/"
