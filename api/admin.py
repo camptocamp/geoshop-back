@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis import admin
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
+from django_extended_ol.forms.widgets import WMTSWidget
 
 from .helpers import send_geoshop_email
 from .models import (
@@ -40,13 +41,9 @@ class CustomModelAdmin(admin.GISModelAdmin):
 
 class CustomGeoModelAdmin(CustomModelAdmin):
     """
-    Custom widget for the admin if a custom js is provided
-    TODO: deprecated in 5.0
+    Custom widget for the admin
     """
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    if Path(f'{current_dir}/templates/gis/admin/custom.js').is_file():
-        map_template = 'gis/admin/custom.html'
-        map_srid = 2056
+    gis_widget = WMTSWidget
 
 
 class DocumentAdmin(CustomModelAdmin):

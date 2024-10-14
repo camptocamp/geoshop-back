@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'health_check',
     'health_check.db',
     'health_check.contrib.migrations',
+    'django_extended_ol',
 ]
 
 MIDDLEWARE = [
@@ -266,9 +267,8 @@ INTRA_LEGEND_URL = os.environ.get('INTRA_LEGEND_URL', '')
 # FIXME: Does this work with another SRID?
 DEFAULT_SRID = int(os.environ.get('DEFAULT_SRID', '2056'))
 
-# Default Extent
 # default extent is set to the BBOX of switzerland
-SWISS_EXTENT = (2828694.200665463,1075126.8548189853,2484749.5514877755,1299777.3195268118)
+DEFAULT_EXTENT = (2828694.200665463,1075126.8548189853,2484749.5514877755,1299777.3195268118)
 
 # Controls values of metadata accessibility field that will turn the metadata public
 METADATA_PUBLIC_ACCESSIBILITIES = ['PUBLIC', 'APPROVAL_NEEDED']
@@ -349,3 +349,25 @@ if OIDC_ENABLED:
     LOGIN_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/callback"
     LOGOUT_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/"
     LOGIN_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/authenticate"
+
+# Customize openlayers widget used in admin interface
+OLWIDGET = {
+    "globals": {
+        "srid": DEFAULT_SRID,
+        "extent": [2420000, 130000, 2900000, 1350000],
+        "resolutions": [
+            4000, 3750, 3500, 3250, 3000, 2750, 2500, 2250, 2000, 1750, 1500, 1250,
+            1000, 750, 650, 500, 250, 100, 50, 20, 10, 5, 2.5, 2, 1.5, 1, 0.5
+        ],
+    },
+    "wmts": {
+        "layer_name": 'ch.kantone.cadastralwebmap-farbe',
+        "style": 'default',
+        "matrix_set": '2056',
+        "attributions": '<a target="new" href="https://www.swisstopo.admin.ch/internet/swisstopo/en/home.html"'
+            + '>swisstopo</a>', # optional
+        "url_template": 'https://wmts10.geo.admin.ch/1.0.0/{Layer}/default/current/2056/{TileMatrix}/{TileCol}/{TileRow}.png',
+        "request_encoding": 'REST', # optional
+        "format": 'image/png' # optional
+    }
+}
