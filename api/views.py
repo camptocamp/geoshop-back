@@ -349,7 +349,7 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
 class ExtractOrderView(views.APIView):
     """
     API endpoint that allows Orders to be fetched by Extract.
-    This endpoint searches for orderitems belonging to current Extract user and 
+    This endpoint searches for orderitems belonging to current Extract user and
     rebuilds Order context around the order item for each matched order item.
     """
     permission_classes = [ExtractGroupPermission]
