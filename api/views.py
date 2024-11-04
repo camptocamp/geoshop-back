@@ -587,8 +587,7 @@ class OrderItemByTokenView(generics.RetrieveAPIView):
             item.order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
 
-
-class DownloadLinkView(generics.RetrieveAPIView):
+class DownloadView(generics.RetrieveAPIView):
     """
     Returns the download link based on order UUID
     """
@@ -601,16 +600,22 @@ class DownloadLinkView(generics.RetrieveAPIView):
         queryset = self.get_queryset()
         instance = get_object_or_404(queryset, download_guid=guid)
         if instance.extract_result:
+            file = Path(settings.MEDIA_ROOT, instance.extract_result.name)
+            if file.is_file():
+                with open(file, 'rb') as result:
+                    response = Response(
+                        headers={'Content-Disposition': 'attachment; filename="report.zip"'},
+                        content_type='application/zip'
+                    )
+                    response.content = result.read()
+                    return response
+            else:
+                return Response(
+                    {"detail": _("Zip does not exist")},
+                    status=status.HTTP_200_OK)
             instance.date_downloaded = timezone.now()
             instance.save()
-            if Path(settings.MEDIA_ROOT, instance.extract_result.name).is_file():
-                return Response({
-                    'download_link' : instance.extract_result.url})
-            return Response(
-                {"detail": _("Zip does not exist")},
-                status=status.HTTP_200_OK)
         return Response(status=status.HTTP_404_NOT_FOUND)
-
 
 class UserChangeView(generics.CreateAPIView):
     """
