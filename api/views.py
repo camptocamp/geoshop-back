@@ -611,8 +611,8 @@ class DownloadView(generics.RetrieveAPIView):
                     return response
             else:
                 return Response(
-                    {"detail": _("Zip does not exist")},
-                    status=status.HTTP_200_OK)
+                    {"detail": _("Zip file not found")},
+                    status=status.HTTP_404_NOT_FOUND)
             instance.date_downloaded = timezone.now()
             instance.save()
         return Response(status=status.HTTP_404_NOT_FOUND)
