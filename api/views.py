@@ -1,3 +1,4 @@
+import mimetypes
 from pathlib import Path
 
 from django.conf import settings
@@ -607,10 +608,13 @@ class DownloadView(generics.RetrieveAPIView):
         if instance.extract_result:
             file = Path(settings.MEDIA_ROOT, instance.extract_result.name)
             if file.is_file():
+                (actualType, unused) = mimetypes.guess_type(file)
                 with open(file, 'rb') as result:
                     response = Response(
-                        headers={'Content-Disposition': 'attachment; filename="report.zip"'},
-                        content_type='application/zip'
+                        headers={
+                            'Content-Disposition': f'attachment; filename="${file.name}"',
+                            'Content-Type': actualType if actualType else 'application/octet-stream'
+                        },
                     )
                     response.content = result.read()
                     return response
