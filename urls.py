@@ -84,7 +84,7 @@ urlpatterns = [
     path(f'{ROOTURL}token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path(f'{ROOTURL}token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path(f'{ROOTURL}session-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path(f'{ROOTURL}validate/orderitem/<uuid:token>',
+    re_path(rf'^{ROOTURL}validate/orderitem/(?P<token>[a-zA-Z0-9_-]+)$',
             views.OrderItemByTokenView.as_view(), name='orderitem_validate'),
     path(f'{ROOTURL}admin/', admin.site.urls, name='admin'),
     path(f'{ROOTURL}', include(router.urls)),

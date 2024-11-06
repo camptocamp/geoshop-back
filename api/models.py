@@ -857,6 +857,7 @@ class OrderItem(models.Model):
     )
     comment = models.TextField(_("comment"), null=True, blank=True)
     token = models.CharField(_("token"), max_length=256, null=True, blank=True)
+    download_guid = models.UUIDField(_("download_guid"), null=True, blank=True)
 
     class Meta:
         db_table = "order_item"

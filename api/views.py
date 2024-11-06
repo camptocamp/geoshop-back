@@ -598,7 +598,7 @@ class DownloadView(generics.RetrieveAPIView):
     def get(self, request, guid):
         queryset = Order.objects.filter(download_guid=guid)
         if not len(queryset):
-            queryset = OrderItem.objects.filter(token=guid)
+            queryset = OrderItem.objects.filter(download_guid=guid)
         if not len(queryset):
             return Response(
                 {"detail": _("No object matches given id")}, status=status.HTTP_404_NOT_FOUND)

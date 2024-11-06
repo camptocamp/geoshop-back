@@ -66,12 +66,12 @@ class TestResponseFile(APITestCase):
         obj = self.addOrder({"title": "Order with tokened items"})
         items = obj.items.all()
         item = OrderItem.objects.get(id=items[0].id)
-        item.token = ITEM_EXISTS_UUID
+        item.download_guid = ITEM_EXISTS_UUID
         item.extract_result.name = "another_demo_file"
         item.save()
 
         item = OrderItem.objects.get(id=items[1].id)
-        item.token = ITEM_FILE_NOTFOUND_UUID
+        item.download_guid = ITEM_FILE_NOTFOUND_UUID
         item.extract_result.name = "missing_another_demo_file"
         item.save()
 
