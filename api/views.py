@@ -591,14 +591,19 @@ class DownloadView(generics.RetrieveAPIView):
     """
     Returns the download link based on order UUID
     """
-    queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
 
     def get(self, request, guid):
-        queryset = self.get_queryset()
-        instance = get_object_or_404(queryset, download_guid=guid)
+        queryset = Order.objects.filter(download_guid=guid)
+        if not len(queryset):
+            queryset = OrderItem.objects.filter(token=guid)
+        if not len(queryset):
+            return Response(
+                {"detail": _("No object matches given id")}, status=status.HTTP_404_NOT_FOUND)
+        instance = queryset[0]
+
         if instance.extract_result:
             file = Path(settings.MEDIA_ROOT, instance.extract_result.name)
             if file.is_file():
