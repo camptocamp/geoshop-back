@@ -282,6 +282,11 @@ HEALTH_CHECK = {
     },
 }
 
+FEATURE_FLAGS = {
+    "oidc": os.environ.get("OIDC_ENABLED", "False") == "False",
+    "registration": os.environ.get("REGISTRATION_ENABLED", "False") == "False",
+}
+
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
 
@@ -308,7 +313,7 @@ def discover_endpoints(discovery_url: str) -> dict:
 
 
 def check_oidc() -> bool:
-    if os.environ.get("OIDC_ENABLED", "False") == "False":
+    if FEATURE_FLAGS['oidc']:
         return False
     missing = []
     for x in ["OIDC_RP_CLIENT_ID", "ZITADEL_PROJECT", "OIDC_OP_BASE_URL", "OIDC_PRIVATE_KEYFILE"]:
@@ -318,8 +323,7 @@ def check_oidc() -> bool:
         raise ImproperlyConfigured(f"OIDC is enabled, but missing required parameters {missing}")
     return True
 
-OIDC_ENABLED = check_oidc()
-if OIDC_ENABLED:
+if check_oidc():
     INSTALLED_APPS.append('mozilla_django_oidc')
     MIDDLEWARE.append('mozilla_django_oidc.middleware.SessionRefresh')
     AUTHENTICATION_BACKENDS = ('oidc.PermissionBackend',) + AUTHENTICATION_BACKENDS

@@ -55,7 +55,7 @@ router.register_additional_route_to_root(f'{ROOTURL}auth/change', 'auth_change_u
 router.register_additional_route_to_root(f'{ROOTURL}auth/current', 'auth_current_user')
 router.register_additional_route_to_root(f'{ROOTURL}auth/password', 'auth_password')
 router.register_additional_route_to_root(f'{ROOTURL}auth/password/confirm', 'auth_password_confirm')
-router.register_additional_route_to_root(f'{ROOTURL}auth/register', 'auth_register')
+
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
@@ -75,7 +75,6 @@ urlpatterns = [
     path(f'{ROOTURL}auth/verify-email/', views.VerifyEmailView.as_view(), name='auth_verify_email'),
     re_path(rf'^{ROOTURL}auth/account-confirm-email/(?P<key>[-:\w]+)/$', TemplateView.as_view(),
             name='account_confirm_email'),
-    path(f'{ROOTURL}auth/register/', views.RegisterView.as_view(), name='auth_register'),
     path(f'{ROOTURL}extract/order/', views.ExtractOrderView.as_view(), name='extract_order'),
     path(f'{ROOTURL}extract/orderitem/', views.ExtractOrderItemView.as_view(), name='extract_orderitem'),
     re_path(rf'^{ROOTURL}extract/orderitem/(?P<pk>[0-9]+)$',
@@ -93,11 +92,18 @@ urlpatterns = [
     path(f'{ROOTURL}health/', include('health_check.urls')),
 ] + static(settings.STATIC_URL,document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
 
-            # OIDC urls
-if settings.OIDC_ENABLED:
+# OIDC links if OIDC is enabled
+if settings.FEATURE_FLAGS["oidc"]:
     urlpatterns += [
         path(f'{ROOTURL}oidc/token', oidc.FrontendAuthentication.as_view(), name='oidc_validate_token'),
         path(f'{ROOTURL}oidc/callback', OIDCCallbackClass.as_view(), name='oidc_authentication_callback'),
         path(f'{ROOTURL}oidc/authenticate/', OIDCAuthenticateClass.as_view(), name='oidc_authentication_init'),
         path(f'{ROOTURL}oidc/logout', OIDCLogoutView.as_view(), name='oidc_logout'),
+    ]
+
+# Registration links if registration is enabled
+if settings.FEATURE_FLAGS["registration"]:
+    router.register_additional_route_to_root(f'{ROOTURL}auth/register', 'auth_register')
+    urlpatterns += [
+        path(f'{ROOTURL}auth/register/', views.RegisterView.as_view(), name='auth_register'),
     ]
