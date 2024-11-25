@@ -1,5 +1,9 @@
 import json
 import copy
+import shapely
+import shapely.ops as ops
+from shapely.geometry.polygon import Polygon
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
@@ -26,7 +30,9 @@ from typing import List, Dict
 
 # Get the UserModel
 UserModel = get_user_model()
+import logging
 
+logger = logging.getLogger(__name__)
 
 class WKTPolygonField(serializers.Field):
     """
@@ -289,6 +295,19 @@ class OrderSerializer(serializers.ModelSerializer):
     client = serializers.HiddenField(
         default=serializers.CurrentUserDefault(),
     )
+
+    def validate(self, attrs):
+        super().validate(attrs)
+        self._errors = {}
+        geom = attrs['geom']
+        area = geom.area
+        if area > settings.MAX_ORDER_AREA:
+            raise ValidationError({
+                'message': _(f'Order area is too large'),
+                'expected': settings.MAX_ORDER_AREA,
+                'actual': area
+            })
+        return attrs
 
     class Meta:
         model = Order

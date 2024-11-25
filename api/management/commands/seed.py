@@ -186,6 +186,7 @@ class Command(BaseCommand):
         ))
 
         order_type_prive = self.getOrCreate(OrderType, name='Privé', defaults={})
+        public = self.getOrCreate(OrderType, name='Public', defaults={})
 
         # Create orders
         order1 = Order.objects.create(
