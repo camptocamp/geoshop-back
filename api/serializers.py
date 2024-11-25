@@ -299,9 +299,11 @@ class OrderSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         super().validate(attrs)
         self._errors = {}
+        if 'geom' not in attrs:
+            return attrs
         geom = attrs['geom']
         area = geom.area
-        if area > settings.MAX_ORDER_AREA:
+        if settings.MAX_ORDER_AREA > 0 and area > settings.MAX_ORDER_AREA:
             raise ValidationError({
                 'message': _(f'Order area is too large'),
                 'expected': settings.MAX_ORDER_AREA,

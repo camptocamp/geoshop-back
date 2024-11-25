@@ -1,5 +1,8 @@
+import json
+
 from django.urls import reverse
 from django.core import mail
+from django.test import override_settings
 
 from djmoney.money import Money
 from rest_framework import status
@@ -428,3 +431,39 @@ class OrderTests(APITestCase):
         Tests email is sent when a product inside a group needs validation
         """
         self.order_item_validation(True)
+
+    @override_settings(MAX_ORDER_AREA = 1000)
+    def test_order_geom_is_too_big(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['geom'] = {
+            'type': 'Polygon',
+            'coordinates': [
+                [[2545488, 1203070],
+                 [2545605, 1211390],
+                 [2557441, 1202601],
+                 [2557089, 1210921],
+                 [2545488, 1203070]]
+            ]}
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
+        errorDetails = json.loads(response.content)
+        self.assertEqual(errorDetails['message'], ['Order area is too large'])
+        self.assertEqual(errorDetails['expected'], ['1000'])
+        self.assertTrue(errorDetails['actual'][0].startswith('109980.5'))
+
+    @override_settings(MAX_ORDER_AREA = 1000000)
+    def test_order_geom_is_fine(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['geom'] = {
+            'type': 'Polygon',
+            'coordinates': [
+                [[2545488, 1203070],
+                 [2545605, 1211390],
+                 [2557441, 1202601],
+                 [2557089, 1210921],
+                 [2545488, 1203070]]
+            ]}
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)

@@ -372,5 +372,5 @@ OLWIDGET = {
     }
 }
 
-# Maximum allowed area of an order, in square meters
-MAX_ORDER_AREA=60000 # 6 hectares
+# Limit maximum allowed area of an order, in square meters. 0 for unlimited
+MAX_ORDER_AREA=0
