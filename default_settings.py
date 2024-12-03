@@ -283,8 +283,8 @@ HEALTH_CHECK = {
 }
 
 FEATURE_FLAGS = {
-    "oidc": os.environ.get("OIDC_ENABLED", "False") == "False",
-    "registration": os.environ.get("REGISTRATION_ENABLED", "False") == "False",
+    "oidc": os.environ.get("OIDC_ENABLED", "False") == "True",
+    "registration": os.environ.get("REGISTRATION_ENABLED", "True") == "True",
 }
 
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
@@ -313,7 +313,7 @@ def discover_endpoints(discovery_url: str) -> dict:
 
 
 def check_oidc() -> bool:
-    if FEATURE_FLAGS['oidc']:
+    if not FEATURE_FLAGS['oidc']:
         return False
     missing = []
     for x in ["OIDC_RP_CLIENT_ID", "ZITADEL_PROJECT", "OIDC_OP_BASE_URL", "OIDC_PRIVATE_KEYFILE"]:
