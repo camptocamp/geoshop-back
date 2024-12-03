@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 UserModel = get_user_model()
 
 def status(request):
-    return {"OIDC_ENABLED": settings.OIDC_ENABLED}
+    return {"OIDC_ENABLED": settings.FEATURE_FLAGS["oidc"]}
 
 
 def _updateUser(user, claims):
