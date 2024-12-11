@@ -1,16 +1,15 @@
 {% extends "email_base_template.html" %}
 {% load i18n %}
 {% block content %}
-<p>{% blocktrans %} L'extraction pour la commande n°{{ order_id }} a été réalisée. {% endblocktrans %}</p>
-<p>
-        {% blocktrans %} Connectez-vous sur le géoshop et téléchargez les produits commandés dans la section "Mes commandes"
-        ou en cliquant directement sur ce lien: {% endblocktrans %}<br>
-        <a style="color:#26A59A" href="{{ front_url }}/welcome/download/{{ download_guid }}">
-                {{ front_url }}/welcome/download/{{ download_guid }}
-        </a>
+<p>{% blocktrans %}The extraction for order n°{{ order_id }} has been completed. {% endblocktrans %}</p>
+<p>{% blocktrans %}Log in to the Geoshop and download the ordered products from the "My Orders" section
+or by clicking directly on this link: {% endblocktrans %}<br>
+<a style="color:#26A59A" href="{{ front_url }}/welcome/download/{{ download_guid }}">
+{{ front_url }}/welcome/download/{{ download_guid }}
+</a>
 </p>
 <p>
-        {% trans "Veuillez prendre note que les liens de téléchargement ne sont disponibles que pendant 1 mois." %}
+        {% trans "Please note that the download links are only available for 1 month." %}
 </p>
 {% endblock %}
 {% block footer %}

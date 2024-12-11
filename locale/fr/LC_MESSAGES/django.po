@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-24 17:06+0200\n"
+"POT-Creation-Date: 2024-12-11 11:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,30 +18,30 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: default_settings.py:123 settings.py:122
+#: .\default_settings.py:131 .\settings.py:126
 msgid "German"
 msgstr "Allemand"
 
-#: default_settings.py:124 settings.py:123
+#: .\default_settings.py:132 .\settings.py:127
 msgid "Italian"
 msgstr "Italien"
 
-#: default_settings.py:125 settings.py:124
+#: .\default_settings.py:133 .\settings.py:128
 msgid "French"
 msgstr "Français"
 
-#: default_settings.py:126 settings.py:125
+#: .\default_settings.py:134 .\settings.py:129
 msgid "English"
 msgstr "Anglais"
 
-#: default_settings.py:127 settings.py:126
+#: .\default_settings.py:135 .\settings.py:130
 msgid "Romansh"
 msgstr "Romanche"
 
-#: urls.py:18
+#: .\urls.py:32
 msgid "GeoShop Administration"
 msgstr "Administration du GeoShop"
 
-#: urls.py:19
+#: .\urls.py:33
 msgid "GeoShop Admin"
 msgstr "Administration du GeoShop"

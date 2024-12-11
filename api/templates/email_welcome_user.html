@@ -1,8 +1,8 @@
 {% extends "email_base_template.html" %}
 {% load i18n %}
 {% block content %}
-        <p>{% trans "Votre demande de création de compte est en cours de vérification." %}</p>
-        <p>{% trans "Vous recevrez un email lorsque votre inscription sera validée." %}</p>
+        <p>{% trans "Your account creation request is under review." %}</p>
+        <p>{% trans "You will receive an email when your registration is approved." %}</p>
 {% endblock %}
 {% block footer %}
         {% include "email_user_footer.html"%}
