@@ -3,14 +3,14 @@
 {% block content %}
 <!-- TODO template needs translation -->
 <p>
-  {% trans "Votre accord est nécessaire en vue de traiter une commande du géoshop. Cliquez sur ce lien pour valider ou refuser la commande:" %}<br>
+  {% trans "Your approval is required to process an order from the Geoshop. Click on this link to approve or reject the order:" %}<br>
   <a style="color:#26A59A" href="{{ front_url }}/welcome/validate/{{ what }}/{{ token }}">
     {{ front_url }}/welcome/validate/{{ what }}/{{ token }}
   </a>
 </p>
 <p>
-    {% trans "Veuillez noter que le client ne recevra pas les données tant qu'une action de votre part n'est pas entreprise.
-    Si vous estimez que cet email est une erreur, veuillez s'il vous plaît prendre contact avec le" %}
+    {% trans "Please note that the client will not receive the data until you take action." %}
+    {% trans "If you believe this email was sent to you in error, please contact " %}
   <a href="mailto:{{ REPLY_TO_EMAIL }}">{{ REPLY_TO_EMAIL }}</a>.
 </p>
 {% endblock %}

@@ -1,8 +1,8 @@
 {% extends "email_base_template.html" %}
 {% load i18n %}
 {% block content %}
-        <p>{% blocktrans %}Le devis pour la commande n°{{ order_id }} a été réalisé.{% endblocktrans %}</p>
-        <p>{% trans "Connectez-vous sur le géoshop et confirmez ou annulez votre commande dans la section \"Mes commandes\"." %}</p>
+        <p>{% blocktrans %}The quote for order n°{{ order_id }} has been completed.{% endblocktrans %}</p>
+        <p>{% blocktrans %}Log in to the Geoshop and confirm or cancel your order in the "My Orders" section."{% endblocktrans %}</p>
 {% endblock %}
 {% block footer %}
 {% endblock %}
