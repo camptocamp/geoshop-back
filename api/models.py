@@ -6,6 +6,7 @@ from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
 from django.utils import timezone
@@ -412,7 +413,6 @@ class PricingGeometry(models.Model):
     def __str__(self):
         return self.name
 
-
 class Product(models.Model):
     """
     A product is mostly a table or a raster. It can also be a group of products.
@@ -482,12 +482,7 @@ class Product(models.Model):
         default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL,
     )
     ts = SearchVectorField(null=True)
-    bbox = settings.DEFAULT_EXTENT
-    geom = models.MultiPolygonField(
-        _("geom"),
-        srid=settings.DEFAULT_SRID,
-        default=MultiPolygon(Polygon.from_bbox(bbox)),
-    )
+
 
     class Meta:
         db_table = "product"
@@ -510,6 +505,22 @@ class Product(models.Model):
 
     thumbnail_tag.short_description = _("thumbnail")
 
+class ProductQuota(models.Model):
+    user_group = models.ForeignKey(
+        Group, models.CASCADE, verbose_name=_("user_group")
+    )
+    product = models.ForeignKey(
+        Product, models.CASCADE, verbose_name=_("product"), default=1
+    )
+    bbox = settings.DEFAULT_EXTENT
+    geom = models.MultiPolygonField(
+        _("geom"),
+        srid=settings.DEFAULT_SRID,
+        default=MultiPolygon(Polygon.from_bbox(bbox)))
+    quota = models.FloatField(_("quota"))
+
+    def __str__(self):
+        return f'Quota for "{self.user_group}" in "{self.product}" is "{self.quota}"'
 
 class Order(models.Model):
     """

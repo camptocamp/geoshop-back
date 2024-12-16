@@ -24,7 +24,8 @@ from .models import (
     OrderItem,
     Pricing,
     Product,
-    ProductFormat)
+    ProductFormat,
+    ProductQuota)
 
 UserModel = get_user_model()
 
@@ -188,16 +189,21 @@ class OrderAdmin(CustomGeoModelAdmin):
             return HttpResponseRedirect(redirect_url)
         return super().response_change(request, obj)
 
+class ProductQuotaAdmin(CustomGeoModelAdmin):
+    pass
+
+class ProductQuotaInline(admin.TabularInline):
+    model = ProductQuota
+    extra = 1
 
 class ProductAdmin(CustomGeoModelAdmin):
     save_as = True
-    inlines = [ProductFormatInline]
+    inlines = [ProductFormatInline, ProductQuotaInline]
     raw_id_fields = ('metadata', 'group')
     exclude = ('ts',)
     search_fields = ['label']
     list_filter = ('product_status',)
     readonly_fields = ('thumbnail_tag',)
-
 
 class AbstractIdentityAdmin(CustomModelAdmin):
     list_display = ['last_name', 'first_name', 'company_name', 'email']
@@ -281,3 +287,4 @@ admin.site.register(OrderItem)
 admin.site.register(Pricing, PricingAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(ProductFormat)
+admin.site.register(ProductQuota, ProductQuotaAdmin)
