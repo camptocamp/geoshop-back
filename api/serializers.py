@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.gis.gdal import GDALException
-from django.contrib.gis.geos import Polygon, GEOSException, GEOSGeometry, WKTWriter
+from django.contrib.gis.geos import Polygon, MultiPolygon, GEOSException, GEOSGeometry, WKTWriter
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
@@ -22,9 +22,9 @@ from allauth.account.adapter import get_adapter
 
 from .helpers import send_geoshop_email, zip_all_orderitems
 from .models import (
-    Copyright, Contact, Document, DataFormat, Identity,
+    Copyright, Contact, Document, DataFormat, Group, Identity,
     Metadata, MetadataCategoryEch, MetadataContact, Order, OrderItem, OrderType,
-    Pricing, Product, ProductFormat, UserChange)
+    Pricing, Product, ProductFormat, ProductOwnership, UserChange)
 
 from typing import List, Dict
 
@@ -301,14 +301,31 @@ class OrderSerializer(serializers.ModelSerializer):
         self._errors = {}
         if 'geom' not in attrs:
             return attrs
-        geom = attrs['geom']
-        area = geom.area
-        if settings.MAX_ORDER_AREA > 0 and area > settings.MAX_ORDER_AREA:
+        requestedGeom = Polygon(
+            [xy[0:2] for xy in list(attrs['geom'].coords[0])],
+            srid=settings.DEFAULT_SRID
+        )
+        relevantOwnedAreas = ProductOwnership.objects.filter(
+            product__in=[ item['product'] for item in attrs['items']],
+            user_group__in=Group.objects.filter(user=self.context.get('request').user)
+        ).all()
+
+        ownedAreas = MultiPolygon(srid=settings.DEFAULT_SRID)
+        for area in relevantOwnedAreas:
+            ownedAreas = ownedAreas.union(area.geom)
+
+        ownedRequestedGeom = requestedGeom.intersection(ownedAreas)
+        if (round(ownedRequestedGeom.area) == 0 and settings.MAX_ORDER_AREA > 0
+            and requestedGeom.area > settings.MAX_ORDER_AREA):
             raise ValidationError({
                 'message': _(f'Order area is too large'),
                 'expected': settings.MAX_ORDER_AREA,
-                'actual': area
+                'actual': requestedGeom.area
             })
+
+        attrs['actualGeom'] = ownedRequestedGeom
+        attrs['geom'] = requestedGeom
+
         return attrs
 
     class Meta:

@@ -413,6 +413,7 @@ class PricingGeometry(models.Model):
     def __str__(self):
         return self.name
 
+
 class Product(models.Model):
     """
     A product is mostly a table or a raster. It can also be a group of products.
@@ -482,7 +483,12 @@ class Product(models.Model):
         default=settings.DEFAULT_PRODUCT_THUMBNAIL_URL,
     )
     ts = SearchVectorField(null=True)
-
+    bbox = settings.DEFAULT_EXTENT
+    geom = models.MultiPolygonField(
+        _("geom"),
+        srid=settings.DEFAULT_SRID,
+        default=MultiPolygon(Polygon.from_bbox(bbox)),
+    )
 
     class Meta:
         db_table = "product"
@@ -505,7 +511,7 @@ class Product(models.Model):
 
     thumbnail_tag.short_description = _("thumbnail")
 
-class ProductQuota(models.Model):
+class ProductOwnership(models.Model):
     user_group = models.ForeignKey(
         Group, models.CASCADE, verbose_name=_("user_group")
     )
@@ -517,10 +523,9 @@ class ProductQuota(models.Model):
         _("geom"),
         srid=settings.DEFAULT_SRID,
         default=MultiPolygon(Polygon.from_bbox(bbox)))
-    quota = models.FloatField(_("quota"))
 
     def __str__(self):
-        return f'Quota for "{self.user_group}" in "{self.product}" is "{self.quota}"'
+        return f'Product ownership for "{self.user_group}" in "{self.product}"'
 
 class Order(models.Model):
     """
@@ -582,6 +587,8 @@ class Order(models.Model):
         null=True,
     )
     geom = models.PolygonField(_("geom"), srid=settings.DEFAULT_SRID)
+    actualGeom = models.PolygonField(_("actualGeom"), srid=settings.DEFAULT_SRID, null=True)
+
     client = models.ForeignKey(
         UserModel, models.PROTECT, verbose_name=_("client"), blank=True
     )
