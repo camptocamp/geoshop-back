@@ -25,7 +25,7 @@ from .models import (
     Pricing,
     Product,
     ProductFormat,
-    ProductQuota)
+    ProductOwnership)
 
 UserModel = get_user_model()
 
@@ -189,16 +189,16 @@ class OrderAdmin(CustomGeoModelAdmin):
             return HttpResponseRedirect(redirect_url)
         return super().response_change(request, obj)
 
-class ProductQuotaAdmin(CustomGeoModelAdmin):
+class ProductOwnershipAdmin(CustomGeoModelAdmin):
     pass
 
-class ProductQuotaInline(admin.TabularInline):
-    model = ProductQuota
+class ProductOwnershipInline(admin.TabularInline):
+    model = ProductOwnership
     extra = 1
 
 class ProductAdmin(CustomGeoModelAdmin):
     save_as = True
-    inlines = [ProductFormatInline, ProductQuotaInline]
+    inlines = [ProductFormatInline, ProductOwnershipInline]
     raw_id_fields = ('metadata', 'group')
     exclude = ('ts',)
     search_fields = ['label']
@@ -287,4 +287,4 @@ admin.site.register(OrderItem)
 admin.site.register(Pricing, PricingAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(ProductFormat)
-admin.site.register(ProductQuota, ProductQuotaAdmin)
+admin.site.register(ProductOwnership, ProductOwnershipAdmin)
