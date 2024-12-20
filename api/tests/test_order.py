@@ -4,12 +4,32 @@ from django.urls import reverse
 from django.core import mail
 from django.test import override_settings
 
+from math import isclose
+from django.contrib.gis.geos import Polygon
+
 from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import Contact, OrderItem, Order, Metadata, Product, ProductFormat
+from api.models import (
+  Contact,
+  OrderItem,
+  Order,
+  Metadata,
+  Product,
+  ProductFormat,
+)
 from api.tests.factories import BaseObjectsFactory
 
+
+def areasEqual(geomA, geomB, srid: int = 2056) -> bool:
+    """We can consider polygons equal if """
+    polyA = Polygon(geomA['coordinates'][0], srid=srid)
+    polyB = Polygon(geomB['coordinates'][0], srid=srid)
+    intAB = polyA.intersection(polyB).area
+    uniAB = polyA.union(polyB).area
+    return (isclose(intAB, polyA.area) and isclose(intAB, polyB.area) and
+            isclose(uniAB, polyA.area) and isclose(uniAB, polyB.area) and
+            isclose(polyA.difference(polyB).area, 0))
 
 class OrderTests(APITestCase):
     """
@@ -466,4 +486,65 @@ class OrderTests(APITestCase):
                  [2545488, 1203070]]
             ]}
         response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+
+    @override_settings(MAX_ORDER_AREA = 100)
+    def test_order_owned_contains(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['items'] = [{
+                'product': 'Produit gratuit'
+        }]
+        self.order_data['geom'] = {
+            'type': 'Polygon',
+            'coordinates': [
+                [[2682192.2803059844, 1246970.4157564922],
+                 [2682178.2106039342, 1247984.965345809],
+                 [2683720.8073948864, 1248006.558970477],
+                 [2683735.1414241255, 1246992.0130589735],
+                 [2682192.2803059844, 1246970.4157564922]]
+            ]}
+        response = self.client.post(url, self.order_data, format='json')
+        order = json.loads(response.content)
+
+        self.assertTrue(areasEqual(order["geom"], order["actualGeom"]))
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+
+    @override_settings(MAX_ORDER_AREA = 1000)
+    def test_order_owned_intersects(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['items'] = [{
+                'product': 'Produit gratuit'
+        }]
+        self.order_data['geom'] = {
+            'type': 'Polygon',
+            'coordinates': [
+                [[2651783.430446268, 1248297.3690953483],
+                 [2651756.3479182185, 1251397.9173197772],
+                 [2717461.37168784, 1252336.6990602014],
+                 [2717522.8814288364, 1249236.639547884],
+                 [2651783.430446268, 1248297.3690953483]]
+            ]}
+        response = self.client.post(url, self.order_data, format='json')
+
+        order = json.loads(response.content)
+        self.assertFalse(areasEqual(order["geom"], order["actualGeom"]))
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+
+    @override_settings(MAX_ORDER_AREA = 100)
+    def test_order_unowned_limited(self):
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['items'] = [{
+                'product': 'Produit gratuit'
+        }]
+        self.order_data['geom'] = {
+            'type': 'Polygon',
+            'coordinates': [
+                [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]
+            ]}
+        response = self.client.post(url, self.order_data, format='json')
+        order = json.loads(response.content)
+        self.assertEqual(len(order["actualGeom"]["coordinates"]), 0)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
