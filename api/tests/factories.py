@@ -1,12 +1,12 @@
 import os
 from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, MultiPolygon
 from django.core import management
 from djmoney.money import Money
 from django.utils import timezone
 from django.urls import reverse
 
-from api.models import Contact, DataFormat, Metadata, Order, OrderType, Pricing, Product, ProductFormat
+from api.models import Contact, DataFormat, Metadata, Order, OrderType, Pricing, Product, ProductFormat, Group, ProductOwnership
 
 UserModel = get_user_model()
 TOKEN_URL = reverse('token_obtain_pair')
@@ -193,6 +193,35 @@ class BaseObjectsFactory:
             geom=Polygon.from_bbox((2528577, 1193422, 2542482, 1199018)),
             date_ordered=timezone.now()
         )
+
+        self.zurichDataOwner = ProductOwnership.objects.create(
+            user_group=Group.objects.create(name="zurich_data_owner"),
+            product=self.products['free'],
+            geom=MultiPolygon([Polygon([
+            [8.472347, 47.364641], [8.472347, 47.404275],
+            [8.576202, 47.404275], [8.576202, 47.364641],
+            [8.472347, 47.364641]
+        ])], srid=4326))
+        self.lausanneDataOwner = ProductOwnership.objects.create(
+            user_group=Group.objects.create(name="lausanne_data_owner"),
+            product=self.products['free'],
+            geom=MultiPolygon([Polygon([
+            [6.59008, 46.500283], [6.59008, 46.551542],
+            [6.694794, 46.551542], [6.694794, 46.500283],
+            [6.59008, 46.500283]
+        ])], srid=4326))
+        self.switzerlandDataOwner = ProductOwnership.objects.create(
+            user_group=Group.objects.create(name="switzerland_data_owner"),
+            product=self.products['free'],
+            geom=MultiPolygon([Polygon([
+            [5.50415, 45.713851], [5.50415, 47.857403],
+            [10.667725, 47.857403], [10.667725, 45.713851],
+            [5.50415, 45.713851]
+        ])], srid=4326))
+
+        zurichOwners = self.zurichDataOwner.user_group
+        zurichOwners.user_set.add(self.user_private)
+        zurichOwners.save()
 
 
 class ExtractFactory:

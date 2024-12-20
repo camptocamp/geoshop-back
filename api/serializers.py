@@ -1,7 +1,5 @@
 import json
 import copy
-import shapely
-import shapely.ops as ops
 from shapely.geometry.polygon import Polygon
 
 from django.conf import settings
@@ -313,8 +311,9 @@ class OrderSerializer(serializers.ModelSerializer):
         ownedAreas = MultiPolygon(srid=settings.DEFAULT_SRID)
         for area in relevantOwnedAreas:
             ownedAreas = ownedAreas.union(area.geom)
-
         ownedRequestedGeom = requestedGeom.intersection(ownedAreas)
+        attrs['actualGeom'] = ownedRequestedGeom
+
         if (round(ownedRequestedGeom.area) == 0 and settings.MAX_ORDER_AREA > 0
             and requestedGeom.area > settings.MAX_ORDER_AREA):
             raise ValidationError({
@@ -322,9 +321,6 @@ class OrderSerializer(serializers.ModelSerializer):
                 'expected': settings.MAX_ORDER_AREA,
                 'actual': requestedGeom.area
             })
-
-        attrs['actualGeom'] = ownedRequestedGeom
-        attrs['geom'] = requestedGeom
 
         return attrs
 

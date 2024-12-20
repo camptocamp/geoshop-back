@@ -10,6 +10,7 @@ from django.contrib.gis import admin
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 from django_extended_ol.forms.widgets import WMTSWidget
+from django.contrib.auth.models import Group
 
 from .helpers import send_geoshop_email
 from .models import (
