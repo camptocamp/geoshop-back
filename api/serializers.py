@@ -297,7 +297,7 @@ class OrderSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         super().validate(attrs)
         self._errors = {}
-        if 'geom' not in attrs:
+        if ('geom' not in attrs) or (settings.MAX_ORDER_AREA == 0):
             return attrs
         requestedGeom = Polygon(
             [xy[0:2] for xy in list(attrs['geom'].coords[0])],
@@ -314,8 +314,8 @@ class OrderSerializer(serializers.ModelSerializer):
         ownedRequestedGeom = requestedGeom.intersection(ownedAreas)
         attrs['actualGeom'] = ownedRequestedGeom
 
-        if (round(ownedRequestedGeom.area) == 0 and settings.MAX_ORDER_AREA > 0
-            and requestedGeom.area > settings.MAX_ORDER_AREA):
+        if (round(ownedRequestedGeom.area) == 0 and
+            requestedGeom.area > settings.MAX_ORDER_AREA):
             raise ValidationError({
                 'message': _(f'Order area is too large'),
                 'expected': settings.MAX_ORDER_AREA,
