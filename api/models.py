@@ -518,11 +518,10 @@ class ProductOwnership(models.Model):
     product = models.ForeignKey(
         Product, models.CASCADE, verbose_name=_("product"), default=1
     )
-    bbox = settings.DEFAULT_EXTENT
     geom = models.MultiPolygonField(
         _("geom"),
         srid=settings.DEFAULT_SRID,
-        default=MultiPolygon(Polygon.from_bbox(bbox)))
+        default=MultiPolygon(Polygon.from_bbox(settings.DEFAULT_EXTENT)))
 
     def __str__(self):
         return f'Product ownership for "{self.user_group}" in "{self.product}"'
