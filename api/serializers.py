@@ -311,15 +311,14 @@ class OrderSerializer(serializers.ModelSerializer):
         ownedAreas = MultiPolygon(srid=settings.DEFAULT_SRID)
         for area in relevantOwnedAreas:
             ownedAreas = ownedAreas.union(area.geom)
-        ownedRequestedGeom = requestedGeom.intersection(ownedAreas)
-        attrs['actualGeom'] = ownedRequestedGeom
-
-        if (round(ownedRequestedGeom.area) == 0 and
-            requestedGeom.area > settings.MAX_ORDER_AREA):
+        unownedAreas = requestedGeom.difference(ownedAreas)
+        attrs['excludedGeom'] = unownedAreas
+        if (unownedAreas.area > settings.MAX_ORDER_AREA):
             raise ValidationError({
                 'message': _(f'Order area is too large'),
                 'expected': settings.MAX_ORDER_AREA,
-                'actual': requestedGeom.area
+                'actual': requestedGeom.area,
+                'excluded': unownedAreas.area
             })
 
         return attrs
