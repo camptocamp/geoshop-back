@@ -489,7 +489,7 @@ class OrderTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
 
     @override_settings(MAX_ORDER_AREA = 100)
-    def test_order_owned_contains(self):
+    def test_order_owned_noExcluded(self):
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         self.order_data['items'] = [{
@@ -507,11 +507,11 @@ class OrderTests(APITestCase):
         response = self.client.post(url, self.order_data, format='json')
         order = json.loads(response.content)
 
-        self.assertTrue(areasEqual(order["geom"], order["actualGeom"]))
+        self.assertEqual(len(order["excludedGeom"]["coordinates"]), 0)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
 
-    @override_settings(MAX_ORDER_AREA = 1000)
-    def test_order_owned_intersects(self):
+    @override_settings(MAX_ORDER_AREA = 1001)
+    def test_order_owned_intersects_toobig(self):
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         self.order_data['items'] = [{
@@ -528,11 +528,12 @@ class OrderTests(APITestCase):
             ]}
         response = self.client.post(url, self.order_data, format='json')
 
-        order = json.loads(response.content)
-        self.assertFalse(areasEqual(order["geom"], order["actualGeom"]))
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+        errorDetails = json.loads(response.content)
+        self.assertEqual(errorDetails['message'], ['Order area is too large'])
+        self.assertEqual(errorDetails['expected'], ['1001'])
+        self.assertTrue(errorDetails['actual'][0].startswith('203800502.0'))
 
-    @override_settings(MAX_ORDER_AREA = 100)
+    @override_settings(MAX_ORDER_AREA = 10000)
     def test_order_unowned_limited(self):
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
@@ -542,9 +543,13 @@ class OrderTests(APITestCase):
         self.order_data['geom'] = {
             'type': 'Polygon',
             'coordinates': [
-                [[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]
+                [[2682058.9416315095, 1246529.024343783],
+                 [2682052.9914918, 1246958.8119991398],
+                 [2682208.5772218467, 1246960.9680303528],
+                 [2682214.538653401, 1246531.1805305541],
+                 [2682058.9416315095, 1246529.024343783]]
             ]}
         response = self.client.post(url, self.order_data, format='json')
         order = json.loads(response.content)
-        self.assertEqual(len(order["actualGeom"]["coordinates"]), 0)
+        self.assertEqual(len(order["excludedGeom"]["coordinates"]), 1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)

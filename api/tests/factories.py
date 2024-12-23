@@ -198,26 +198,32 @@ class BaseObjectsFactory:
             user_group=Group.objects.create(name="zurich_data_owner"),
             product=self.products['free'],
             geom=MultiPolygon([Polygon([
-            [8.472347, 47.364641], [8.472347, 47.404275],
-            [8.576202, 47.404275], [8.576202, 47.364641],
-            [8.472347, 47.364641]
-        ])], srid=4326))
+            [2678084.641714959, 1246491.459194262],
+            [2678026.5975109423, 1250897.6804795086],
+            [2685865.173103665, 1251006.1324528102],
+            [2685929.053569935, 1246599.9914154143],
+            [2678084.641714959, 1246491.459194262]
+        ])]))
         self.lausanneDataOwner = ProductOwnership.objects.create(
             user_group=Group.objects.create(name="lausanne_data_owner"),
             product=self.products['free'],
             geom=MultiPolygon([Polygon([
-            [6.59008, 46.500283], [6.59008, 46.551542],
-            [6.694794, 46.551542], [6.694794, 46.500283],
-            [6.59008, 46.500283]
-        ])], srid=4326))
+            [2534861.402730483, 1150239.0030801909],
+            [2534923.142683635, 1155936.9007802252],
+            [2542953.5027929996, 1155855.250616442],
+            [2542899.372803648, 1150157.2750742848],
+            [2534861.402730483, 1150239.0030801909]
+        ])]))
         self.switzerlandDataOwner = ProductOwnership.objects.create(
             user_group=Group.objects.create(name="switzerland_data_owner"),
             product=self.products['free'],
             geom=MultiPolygon([Polygon([
-            [5.50415, 45.713851], [5.50415, 47.857403],
-            [10.667725, 47.857403], [10.667725, 45.713851],
-            [5.50415, 45.713851]
-        ])], srid=4326))
+            [2449355.7225977806, 1064320.9468696574],
+            [2455237.7729970617, 1302556.4191441573],
+            [2841601.3432626957, 1305741.504752999],
+            [2851408.7686695675, 1067635.8085796747],
+            [2449355.7225977806, 1064320.9468696574]
+        ])]))
 
         zurichOwners = self.zurichDataOwner.user_group
         zurichOwners.user_set.add(self.user_private)
