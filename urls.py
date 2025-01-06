@@ -79,7 +79,6 @@ urlpatterns = [
     path(f'{ROOTURL}extract/orderitem/', views.ExtractOrderItemView.as_view(), name='extract_orderitem'),
     re_path(rf'^{ROOTURL}extract/orderitem/(?P<pk>[0-9]+)$',
             views.ExtractOrderItemView.as_view(), name='extract_orderitem'),
-    path(f'{ROOTURL}token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path(f'{ROOTURL}token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path(f'{ROOTURL}token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path(f'{ROOTURL}session-auth/', include('rest_framework.urls', namespace='rest_framework')),
@@ -91,6 +90,12 @@ urlpatterns = [
     path(f'{ROOTURL}docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path(f'{ROOTURL}health/', include('health_check.urls')),
 ] + static(settings.STATIC_URL,document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
+
+# Hiding Name/Password Token obtain link behind feature flags
+if settings.FEATURE_FLAGS["local_auth"]:
+    urlpatterns += [
+        path(f'{ROOTURL}token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    ]
 
 # OIDC links if OIDC is enabled
 if settings.FEATURE_FLAGS["oidc"]:
@@ -107,3 +112,4 @@ if settings.FEATURE_FLAGS["registration"]:
     urlpatterns += [
         path(f'{ROOTURL}auth/register/', views.RegisterView.as_view(), name='auth_register'),
     ]
+

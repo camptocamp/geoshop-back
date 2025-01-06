@@ -285,6 +285,7 @@ HEALTH_CHECK = {
 FEATURE_FLAGS = {
     "oidc": os.environ.get("OIDC_ENABLED", "False") == "True",
     "registration": os.environ.get("REGISTRATION_ENABLED", "True") == "True",
+    "local_auth": os.environ.get("LOCAL_AUTH_ENABLED", "True") == "True"
 }
 
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
