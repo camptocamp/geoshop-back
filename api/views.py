@@ -612,7 +612,7 @@ class DownloadView(generics.RetrieveAPIView):
                 with open(file, 'rb') as result:
                     response = Response(
                         headers={
-                            'Content-Disposition': f'attachment; filename="${file.name}"',
+                            'Content-Disposition': f'attachment; filename="{file.name}"',
                             'Content-Type': actualType if actualType else 'application/octet-stream'
                         },
                     )
