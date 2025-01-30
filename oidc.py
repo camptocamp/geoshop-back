@@ -11,6 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
+from api.models import Identity
 
 UserModel = get_user_model()
 
@@ -22,7 +23,13 @@ def _updateUser(user, claims):
     user.email = claims.get("email")
     user.first_name = claims.get("given_name")
     user.last_name = claims.get("family_name")
-    return user
+    identity, _ = Identity.objects.get_or_create(user=user)
+    if not identity.email:
+      identity.email = claims.get("email")
+    identity.first_name = claims.get("given_name")
+    identity.last_name = claims.get("family_name")
+    identity.save()
+    user.save()
 
 
 def _read_private_key(keyfile):
@@ -88,8 +95,6 @@ class FrontendAuthentication(View):
         except UserModel.DoesNotExist:
             user = UserModel.objects.create_user(username=user_data["email"])
         _updateUser(user, user_data)
-        user.save()
-
         token = RefreshToken.for_user(user)
         return JsonResponse({"access": str(token.access_token), "refresh": str(token)})
 
@@ -104,7 +109,6 @@ class PermissionBackend(OIDCAuthenticationBackend):
     def create_user(self, claims):
         user = self.UserModel.objects.create_user(username=claims.get("email"))
         _updateUser(user, claims)
-        user.save()
         return user
 
     def update_user(self, user, claims):
