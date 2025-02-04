@@ -25,8 +25,9 @@ if os.name == 'nt' and os.environ.get('DEBUG'):
     GEOS_LIBRARY_PATH = 'C:/OSGeo4W/bin/geos_c'
 
 ALLOWED_HOSTS = os.environ["ALLOWED_HOST"].split(",")
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'localhost')
-EMAIL_PORT = os.environ.get('EMAIL_PORT', 1025)
+hostport = os.environ.get('EMAIL_HOST', 'localhost:1025').split(":")
+EMAIL_HOST = hostport[0]
+EMAIL_PORT = hostport[1] if len(hostport) == 2 else os.environ.get('EMAIL_PORT', 1025)
 # Setting to test email sending in console
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 
