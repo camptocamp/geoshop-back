@@ -586,7 +586,7 @@ class Order(models.Model):
         null=True,
     )
     geom = models.PolygonField(_("geom"), srid=settings.DEFAULT_SRID)
-    excludedGeom = models.PolygonField(_("excludedGeom"), srid=settings.DEFAULT_SRID, null=True)
+    excludedGeom = models.PolygonField(_("excludedGeom"), srid=settings.DEFAULT_SRID, blank=True, null=True)
 
     client = models.ForeignKey(
         UserModel, models.PROTECT, verbose_name=_("client"), blank=True
