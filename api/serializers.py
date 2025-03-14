@@ -435,7 +435,7 @@ class PublicOrderSerializer(OrderSerializer):
             'date_downloaded', 'extract_result', 'download_guid'
         ]
 
-class PricingSerializer(serializers.HyperlinkedModelSerializer):
+class PricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pricing
         fields = '__all__'
