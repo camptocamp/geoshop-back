@@ -435,6 +435,10 @@ class PublicOrderSerializer(OrderSerializer):
             'date_downloaded', 'extract_result', 'download_guid'
         ]
 
+class PricingSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Pricing
+        fields = '__all__'
 
 class ProductSerializer(serializers.ModelSerializer):
     """
@@ -448,8 +452,7 @@ class ProductSerializer(serializers.ModelSerializer):
         lookup_field='id_name'
     )
 
-    pricing = serializers.StringRelatedField(
-        read_only=True)
+    pricing = PricingSerializer(read_only=True)
 
     provider = serializers.CharField(
         source='provider.identity.company_name',
@@ -608,12 +611,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
     def save(self):
         return self.set_password_form.save()
-
-
-class PricingSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Pricing
-        fields = '__all__'
 
 
 class ProductFormatSerializer(serializers.ModelSerializer):
