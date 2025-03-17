@@ -1,4 +1,3 @@
-
 [[package]]
 name = "asgiref"
 version = "3.8.1"
@@ -542,7 +541,7 @@ rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
 
 [[package]]
 name = "rpds-py"
-version = "0.22.3"
+version = "0.23.1"
 description = "Python bindings to Rust's persistent data structures (rpds)"
 category = "main"
 optional = false
@@ -635,7 +634,7 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "98b61bc5dcb70249a7fe1467c64c1d2fa8bcbcf3066bcfa8bb546e49cb4bcb8c"
+content-hash = "47b7f111c937cdc044d476ef25c3822cb16171b3afb2164f7628824dd9f42706"
 
 [metadata.files]
 asgiref = []

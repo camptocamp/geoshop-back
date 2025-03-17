@@ -637,11 +637,7 @@ class DataFormatListSerializer(ProductFormatSerializer):
 
 
 class ProductDigestSerializer(ProductSerializer):
-    pricing = serializers.SlugRelatedField(
-        required=False,
-        queryset=DataFormat.objects.all(),
-        slug_field='name'
-    )
+    pricing = PricingSerializer(read_only=True)
     provider = serializers.CharField(
         source='provider.identity.company_name',
         read_only=True)

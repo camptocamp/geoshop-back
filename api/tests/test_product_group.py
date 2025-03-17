@@ -107,6 +107,7 @@ class ProductGroupTests(APITestCase):
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(len(response.data), 4, 'Check that all products are visible')
+        self.assertTrue(all("id" in p["pricing"] for p in response.data["results"]))
 
     def test_groups_are_expanded_when_confirmed(self):
         """
