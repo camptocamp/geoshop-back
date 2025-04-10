@@ -238,7 +238,7 @@ class OrderItemProductField(serializers.RelatedField):
         return {
             "id": value.id,
             "label": value.label,
-            "pricing": {"type": value.pricing.pricing_type},
+            "pricing": {"pricing_type": value.pricing.pricing_type},
         }
 
     def to_internal_value(self, data):
