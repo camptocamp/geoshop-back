@@ -109,12 +109,13 @@ class OrderTests(APITestCase):
         # Update
         data = {
             "items": [{
-                "product": "Produit gratuit"}]
+                "product": {"label": "Produit gratuit"}
+        }]
         }
 
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data['items'][0]['product'], data['items'][0]['product'], 'Check product')
+        self.assertEqual(response.data['items'][0]['product']['label'], data['items'][0]['product']['label'], 'Check product')
         self.assertEqual(
             response.data['items'][0]['price_status'], OrderItem.PricingStatus.CALCULATED, 'Check price is calculated')
         self.assertIsNotNone(response.data['items'][0]['available_formats'], 'Check available formats are present')
@@ -145,7 +146,7 @@ class OrderTests(APITestCase):
         # Edit order that's already confirmed, should not work
         data = {
             "items": [{
-                "product": "Produit forfaitaire"}]
+                "product": {"label": "Produit forfaitaire"}}]
         }
         url = reverse('order-detail', kwargs={'pk':order_id})
         response = self.client.patch(url, data, format='json')
@@ -165,7 +166,7 @@ class OrderTests(APITestCase):
         data = {
             "items": [
                 {
-                    "product": "Maquette 3D",
+                    "product": {"label": "Maquette 3D"},
                     "data_format": "Rhino 3DM"
                 }
             ]
@@ -175,7 +176,7 @@ class OrderTests(APITestCase):
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         ordered_item = response.data['items'][0]
-        self.assertEqual(ordered_item['product'], data['items'][0]['product'], 'Check product')
+        self.assertEqual(ordered_item['product']['label'], data['items'][0]['product']['label'], 'Check product')
         self.assertEqual(ordered_item['product_provider'], self.config.provider.identity.company_name, 'Check provider is present')
         self.assertEqual(ordered_item['price_status'], OrderItem.PricingStatus.PENDING, 'Check quote is needed')
         self.assertIsNone(response.data['processing_fee'], 'Check quote is needed')
@@ -222,7 +223,7 @@ class OrderTests(APITestCase):
         data = {
             "items": [
                 {
-                    "product": "MO",
+                    "product": {"label": "MO"},
                     "data_format": "Geobat NE complet (DXF)"
                 }
             ]
@@ -255,7 +256,7 @@ class OrderTests(APITestCase):
         data = {
             "items": [
                 {
-                    "product": "MO",
+                    "product": {"label": "MO"},
                     "data_format": "Geobat NE complet (DXF)"
                 }
             ]
@@ -285,7 +286,7 @@ class OrderTests(APITestCase):
         data1 = {
             "items": [
                 {
-                    "product": "Produit forfaitaire"
+                    "product": {"label": "Produit forfaitaire"}
                 }
             ]
         }
@@ -297,9 +298,9 @@ class OrderTests(APITestCase):
         data2 = {
             "items": [
                 {
-                    "product": "Produit forfaitaire"
+                    "product": {"label": "Produit forfaitaire"}
                 },{
-                    "product": "Produit gratuit"
+                    "product": {"label": "Produit gratuit"}
                 }
             ]
         }
@@ -399,11 +400,11 @@ class OrderTests(APITestCase):
         data = {
             "items": [
                 {
-                    "product": product_name_to_order,
+                    "product": {"label": product_name_to_order},
                     "data_format": "DXF"
                 },
                 {
-                    "product": "MO",
+                    "product": {"label": "MO"},
                     "data_format": "Geobat NE complet (DXF)"
                 }
             ]
@@ -493,7 +494,7 @@ class OrderTests(APITestCase):
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         self.order_data['items'] = [{
-                'product': 'Produit gratuit'
+                'product': {'label': 'Produit gratuit'},
         }]
         self.order_data['geom'] = {
             'type': 'Polygon',
@@ -515,7 +516,7 @@ class OrderTests(APITestCase):
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         self.order_data['items'] = [{
-                'product': 'Produit gratuit'
+                'product': {'label': 'Produit gratuit'},
         }]
         self.order_data['geom'] = {
             'type': 'Polygon',
@@ -538,7 +539,7 @@ class OrderTests(APITestCase):
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         self.order_data['items'] = [{
-                'product': 'Produit gratuit'
+                'product': {'label': 'Produit gratuit'},
         }]
         self.order_data['geom'] = {
             'type': 'Polygon',

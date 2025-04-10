@@ -13,6 +13,7 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from djmoney.contrib.django_rest_framework import MoneyField
 
+from rest_framework import relations
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -231,6 +232,17 @@ class OrderDigestSerializer(serializers.HyperlinkedModelSerializer):
             'part_vat_currency', 'part_vat', 'extract_result',
             'invoice_contact']
 
+class OrderItemProductField(serializers.RelatedField):
+
+    def to_representation(self, value):
+        return {
+            "id": value.id,
+            "label": value.label,
+            "pricing": {"type": value.pricing.pricing_type},
+        }
+
+    def to_internal_value(self, data):
+        return self.get_queryset().get(label=data["label"])
 
 class OrderItemSerializer(serializers.ModelSerializer):
     """
@@ -243,9 +255,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         queryset=DataFormat.objects.all(),
         slug_field='name'
     )
-    product = serializers.SlugRelatedField(
-        queryset=Product.objects.all(),
-        slug_field='label')
+    product = OrderItemProductField(queryset=Product.objects)
     product_id = serializers.PrimaryKeyRelatedField(read_only=True)
     product_provider = serializers.SerializerMethodField()
     available_formats = serializers.ListField(read_only=True)
