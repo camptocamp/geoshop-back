@@ -551,6 +551,8 @@ class Order(models.Model):
                 message=_("Title contains forbidden characters"),
             ),
         ],
+        blank=True,
+        null=False
     )
     description = models.TextField(_("description"), blank=True)
     processing_fee = MoneyField(

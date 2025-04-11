@@ -29,9 +29,9 @@ class TestResponseFile(APITestCase):
     order_data = {
             "order_type": "Privé",
             "items": [
-                {"product": "Maquette 3D"},
-                {"product": "Maquette 3D"},
-                {"product": "Maquette 3D"},
+                {"product": {"label": "Maquette 3D"}},
+                {"product": {"label": "Maquette 3D"}},
+                {"product": {"label": "Maquette 3D"}},
             ],
             "title": "Test file exists",
             "description": "Nice order",
