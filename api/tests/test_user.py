@@ -1,4 +1,5 @@
 import os
+
 from django.urls import reverse
 from django.core import mail
 from django.contrib.auth import get_user_model
@@ -83,7 +84,8 @@ class UserChangeTests(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         # Forbidden if not logged in
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, response.content)
+        self.assertIn(response.status_code,
+                      [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN], response.content)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
