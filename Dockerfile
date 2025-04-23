@@ -20,6 +20,6 @@ RUN mv -vn /app/geoshop_back/default_settings.py /app/geoshop_back/settings.py
 
 # Compile locales
 RUN mv .env.sample .env
-RUN python3 manage.py compilemessages --locale=fr
+RUN OIDC_ENABLED=False python3 manage.py compilemessages --locale=fr
 RUN rm -f .env
 
