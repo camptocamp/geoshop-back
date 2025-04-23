@@ -52,8 +52,8 @@ whitenoise = "^6.9.0"
 Django = "^5.1"
 mozilla-django-oidc = "^4.0.1"
 Authlib = "^1.5.2"
-django-extended-ol = "1.0.0"
-shapely = "^2.0.7"
+django-extended-ol = "^1.0.0"
+shapely = "^2.1.0"
 
 [build-system]
 requires = ["poetry-core>=1.6.0"]
