@@ -4,7 +4,8 @@ LABEL Maintainer="andrey.rusakov@camptocamp.com" Vendor="Camptocamp"
 ENV  POETRY_NO_INTERACTION=1 \
      POETRY_VIRTUALENVS_CREATE=false \
      POETRY_CACHE_DIR='/var/cache/pypoetry' \
-     POETRY_HOME='/usr/local'
+     POETRY_HOME='/usr/local' \
+     OIDC_ENABLED=False
 
 WORKDIR /app/geoshop_back/
 COPY poetry.lock pyproject.toml /app/geoshop_back/
@@ -20,6 +21,6 @@ RUN mv -vn /app/geoshop_back/default_settings.py /app/geoshop_back/settings.py
 
 # Compile locales
 RUN mv .env.sample .env
-RUN OIDC_ENABLED=False python3 manage.py compilemessages --locale=fr
+RUN python3 manage.py compilemessages --locale=fr
 RUN rm -f .env
 

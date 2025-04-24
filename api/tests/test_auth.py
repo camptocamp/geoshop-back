@@ -82,12 +82,11 @@ class OidcAuthTests(APITestCase):
 
         data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertDictContainsSubset({"email": self.email, "username": self.email}, data)
+        self.assertEqual(data, data | {"email": self.email, "username": self.email}, response.content)
 
         response = self.client.get(reverse("identity-detail", kwargs={"pk": data["identity_id"]}))
         identity = response.data
-        self.assertDictContainsSubset(
-            {
+        self.assertEqual(identity, identity | {
                 "email": self.email,
                 "first_name": self.fakeUser["given_name"],
                 "last_name": self.fakeUser["family_name"],
@@ -116,12 +115,11 @@ class OidcAuthTests(APITestCase):
 
         data = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertDictContainsSubset({"email": self.email, "username": self.email}, data)
+        self.assertEqual(data, data | {"email": self.email, "username": self.email}, response.content)
 
         response = self.client.get(reverse("identity-detail", kwargs={"pk": data["identity_id"]}))
         identity = response.data
-        self.assertDictContainsSubset(
-            {
+        self.assertEqual(identity, identity | {
                 "email": self.email,
                 "first_name": self.fakeUser["given_name"],
                 "last_name": self.fakeUser["family_name"],
