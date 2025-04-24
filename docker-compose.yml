@@ -82,15 +82,10 @@ services:
 
   oidcdemo:
     image: python:alpine
-    command: >
-      sh -c "
-      apk add curl &&
-      mkdir -p /data/.well-known &&
-      cp /testdata/openid-wellknown.json /data/.well-known/openid-configuration &&
-      python -m http.server -d /data 1234
-      "
+    command: sh -c "apk add curl && python -m http.server -d /data 1234"
     volumes:
-      - "./testdata:/testdata:ro"
+      - ./testdata:/testdata:ro
+      - ./testdata/openid-wellknown.json:/data/.well-known/openid-configuration:ro
     networks:
       - geoshop
     healthcheck:
