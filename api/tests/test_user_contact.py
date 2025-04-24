@@ -48,7 +48,8 @@ class UserContacts(APITestCase):
         url = reverse('contact-list')
         response = self.client.get(url, format='json')
         # Forbidden if not logged in
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, response.content)
+        self.assertIn(response.status_code,
+                      [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN], response.content)
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
 
         response = self.client.post(url, data, format='json')

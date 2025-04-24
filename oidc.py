@@ -15,6 +15,7 @@ from api.models import Identity
 
 UserModel = get_user_model()
 
+
 def status(request):
     return {"OIDC_ENABLED": settings.FEATURE_FLAGS["oidc"]}
 
@@ -25,7 +26,7 @@ def _updateUser(user, claims):
     user.last_name = claims.get("family_name")
     identity, _ = Identity.objects.get_or_create(user=user)
     if not identity.email:
-      identity.email = claims.get("email")
+        identity.email = claims.get("email")
     identity.first_name = claims.get("given_name")
     identity.last_name = claims.get("family_name")
     identity.save()
@@ -58,7 +59,8 @@ class FrontendAuthentication(View):
                 "exp": int(time.time() + 3600),
                 "iat": int(time.time()),
             },
-            self.private_key["private_key"])
+            self.private_key["private_key"],
+        )
 
     def _resolve_user_data(self, token: str):
         resp = requests.post(
@@ -80,7 +82,7 @@ class FrontendAuthentication(View):
     def post(self, request):
         # Handle JSON error
         # TODO: Test missing id token
-        # TODO: Localize error response
+        # TODO: Localize error responser
         # TODO: Test same token multiple times
         # TODO: Test user does not exist
         # TODO: Test user exists, but unauthrized
@@ -102,7 +104,8 @@ class FrontendAuthentication(View):
 class PermissionBackend(OIDCAuthenticationBackend):
 
     def authenticate_header(self, request):
-        # TODO: Test if header exists
+        if "Authorization" not in request.headers:
+            return None
         token = request.headers["Authorization"].replace("Bearer ", "")
         return token
 
@@ -112,5 +115,5 @@ class PermissionBackend(OIDCAuthenticationBackend):
         return user
 
     def update_user(self, user, claims):
-        _updateUser(user, claims).save()
+        _updateUser(user, claims)
         return user
