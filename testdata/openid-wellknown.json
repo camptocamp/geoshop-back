@@ -1,0 +1,7 @@
+{
+    "introspection_endpoint": "a",
+    "authorization_endpoint": "b",
+    "token_endpoint": "c",
+    "userinfo_endpoint": "d",
+    "jwks_uri": "e"
+}
