@@ -249,6 +249,7 @@ MEDIA_URL = os.environ.get('MEDIA_URL', FORCE_SCRIPT_NAME + ROOTURL +'/files/')
 
 FRONT_PROTOCOL = os.environ["FRONT_PROTOCOL"]
 FRONT_URL = os.environ["FRONT_URL"]
+BACKEND_URL = os.environ.get("BACKEND_URL", "localhost:8000")
 FRONT_HREF = os.environ.get("FRONT_HREF", '')
 CSRF_COOKIE_DOMAIN = os.environ["CSRF_COOKIE_DOMAIN"]
 CSRF_TRUSTED_ORIGINS = []
