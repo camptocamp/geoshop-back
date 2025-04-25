@@ -783,6 +783,7 @@ class Order(models.Model):
                         template_data={
                             "order_id": self.id,
                             "download_guid": self.download_guid,
+                            "backend_url":  settings.BACKEND_URL,
                             "front_url": "{}://{}{}".format(
                                 settings.FRONT_PROTOCOL,
                                 settings.FRONT_URL,

@@ -4,9 +4,7 @@
 <p>{% blocktrans %}The extraction for order n°{{ order_id }} has been completed. {% endblocktrans %}</p>
 <p>{% blocktrans %}Log in to the Geoshop and download the ordered products from the "My Orders" section
 or by clicking directly on this link: {% endblocktrans %}<br>
-<a style="color:#26A59A" href="{{ front_url }}/welcome/download/{{ download_guid }}">
-{{ front_url }}/welcome/download/{{ download_guid }}
-</a>
+<a style="color:#26A59A" href="{{ backend_url }}/download/{{ download_guid }}/result">{{ backend_url }}/download/{{ download_guid }}/result</a>
 </p>
 <p>
         {% trans "Please note that the download links are only available for 1 month." %}
