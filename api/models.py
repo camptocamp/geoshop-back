@@ -484,6 +484,7 @@ class Product(models.Model):
     )
     ts = SearchVectorField(null=True)
     bbox = settings.DEFAULT_EXTENT
+    max_order_area = models.IntegerField(_("max_order_area"), default=settings.MAX_ORDER_AREA)
     geom = models.MultiPolygonField(
         _("geom"),
         srid=settings.DEFAULT_SRID,

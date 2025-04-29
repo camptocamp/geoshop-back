@@ -307,7 +307,7 @@ class OrderSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         super().validate(attrs)
         self._errors = {}
-        if ('geom' not in attrs) or (settings.MAX_ORDER_AREA == 0):
+        if ('geom' not in attrs):
             return attrs
         requestedGeom = Polygon(
             [xy[0:2] for xy in list(attrs['geom'].coords[0])],
@@ -318,17 +318,40 @@ class OrderSerializer(serializers.ModelSerializer):
             user_group__in=Group.objects.filter(user=self.context.get('request').user)
         ).all()
 
-        ownedAreas = MultiPolygon(srid=settings.DEFAULT_SRID)
+        ownedByProduct = {}
         for area in relevantOwnedAreas:
-            ownedAreas = ownedAreas.union(area.geom)
-        unownedAreas = requestedGeom.difference(ownedAreas)
-        attrs['excludedGeom'] = unownedAreas
-        if (unownedAreas.area > settings.MAX_ORDER_AREA):
+            ownedByProduct[area.product.label] = area.geom
+
+        allowedToQuery = 0
+        excludedOverflow = 0
+        excludedFromOrder = Polygon(
+            [xy[0:2] for xy in list(attrs['geom'].coords[0])],
+            srid=settings.DEFAULT_SRID,
+        )
+        for item in attrs['items']:
+            product = item['product']
+            # If max_order_area is zero, then product doesn't have limit by ordered area
+            if not product.max_order_area:
+                continue
+
+            # If product is not owned by user, then whole ordered area is excluded
+            ownedArea = ownedByProduct.get(product.label, MultiPolygon(srid=settings.DEFAULT_SRID))
+            excludedFromItem = requestedGeom.difference(ownedArea)
+            excludedFromOrder = excludedFromOrder.difference(ownedArea)
+
+            # If excluded area is less than max order area, then we can ignore it
+            if excludedFromItem.area <= product.max_order_area:
+                continue
+            excludedOverflow += excludedFromItem.area - product.max_order_area
+            allowedToQuery += (ownedArea.area + product.max_order_area)
+
+        attrs['excludedGeom'] = excludedFromOrder
+        if (excludedOverflow > 0):
             raise ValidationError({
                 'message': _(f'Order area is too large'),
-                'expected': settings.MAX_ORDER_AREA,
+                'expected': allowedToQuery,
                 'actual': requestedGeom.area,
-                'excluded': unownedAreas.area
+                'excluded': excludedFromOrder.area
             })
 
         return attrs
@@ -475,7 +498,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        read_only_fields = ['pricing', 'label', 'group', 'metadata_summary']
+        read_only_fields = ['pricing', 'label', 'group', 'metadata_summary', 'max_order_area']
         exclude = ['order', 'ts', 'geom']
 
 

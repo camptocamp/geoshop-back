@@ -20,6 +20,10 @@ from api.models import (
 )
 from api.tests.factories import BaseObjectsFactory
 
+def updateMaxOrderArea(product, area):
+    fromDb = Product.objects.get(label=product)
+    fromDb.max_order_area = area
+    fromDb.save()
 
 def areasEqual(geomA, geomB, srid: int = 2056) -> bool:
     """We can consider polygons equal if """
@@ -454,44 +458,47 @@ class OrderTests(APITestCase):
         """
         self.order_item_validation(True)
 
-    @override_settings(MAX_ORDER_AREA = 1000)
     def test_order_geom_is_too_big(self):
+        updateMaxOrderArea('Produit gratuit', 1000)
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['items'] = [{ 'product': {'label': 'Produit gratuit'} }]
         self.order_data['geom'] = {
             'type': 'Polygon',
             'coordinates': [
+                # 2545488 1203070, 2557441 1202601, 2557089 1210921, 2545605 1211390, 2545488 1203070
                 [[2545488, 1203070],
-                 [2545605, 1211390],
                  [2557441, 1202601],
                  [2557089, 1210921],
+                 [2545605, 1211390],
                  [2545488, 1203070]]
             ]}
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
         errorDetails = json.loads(response.content)
         self.assertEqual(errorDetails['message'], ['Order area is too large'])
-        self.assertEqual(errorDetails['expected'], ['1000'])
-        self.assertTrue(errorDetails['actual'][0].startswith('109980.5'))
+        self.assertTrue(errorDetails['expected'][0].startswith('34558655.8'))
+        self.assertTrue(errorDetails['actual'][0].startswith('97442812.5'))
 
-    @override_settings(MAX_ORDER_AREA = 1000000)
     def test_order_geom_is_fine(self):
+        updateMaxOrderArea('Produit gratuit', 1000000000)
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['items'] = [{ 'product': {'label': 'Produit gratuit'} }]
         self.order_data['geom'] = {
             'type': 'Polygon',
             'coordinates': [
                 [[2545488, 1203070],
-                 [2545605, 1211390],
                  [2557441, 1202601],
                  [2557089, 1210921],
+                 [2545605, 1211390],
                  [2545488, 1203070]]
             ]}
         response = self.client.post(url, self.order_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
 
-    @override_settings(MAX_ORDER_AREA = 100)
     def test_order_owned_noExcluded(self):
+        updateMaxOrderArea('Produit gratuit', 100)
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         self.order_data['items'] = [{
@@ -512,8 +519,8 @@ class OrderTests(APITestCase):
         self.assertEqual(len(order["excludedGeom"]["coordinates"]), 0)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
 
-    @override_settings(MAX_ORDER_AREA = 1001)
     def test_order_owned_intersects_toobig(self):
+        updateMaxOrderArea('Produit gratuit', 1001)
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         self.order_data['items'] = [{
@@ -532,11 +539,11 @@ class OrderTests(APITestCase):
 
         errorDetails = json.loads(response.content)
         self.assertEqual(errorDetails['message'], ['Order area is too large'])
-        self.assertEqual(errorDetails['expected'], ['1001'])
+        self.assertTrue(errorDetails['expected'][0].startswith('34558656.85'))
         self.assertTrue(errorDetails['actual'][0].startswith('203800502.0'))
 
-    @override_settings(MAX_ORDER_AREA = 10000)
     def test_order_unowned_limited(self):
+        updateMaxOrderArea('Produit gratuit', 10000)
         url = reverse('order-list')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         self.order_data['items'] = [{
@@ -553,5 +560,6 @@ class OrderTests(APITestCase):
             ]}
         response = self.client.post(url, self.order_data, format='json')
         order = json.loads(response.content)
+
         self.assertEqual(len(order["excludedGeom"]["coordinates"]), 1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
