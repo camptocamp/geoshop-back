@@ -382,3 +382,6 @@ OLWIDGET = {
 
 # Limit maximum allowed area of an order, in square meters. 0 for unlimited
 MAX_ORDER_AREA=float(os.environ.get("MAX_ORDER_AREA", "0"))
+
+# 25 Megabytes
+DATA_UPLOAD_MAX_MEMORY_SIZE=int(os.environ.get("DATA_UPLOAD_MAX_MEMORY_SIZE", "26214400"))
