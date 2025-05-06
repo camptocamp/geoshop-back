@@ -153,6 +153,7 @@ class Identity(AbstractIdentity):
         max_length=10,
         choices=PreferredLanguage.choices,
         default=PreferredLanguage.GERMAN,
+        null=True,
     )
     contract_accepted = models.DateField(_("contract_accepted"), null=True, blank=True)
     is_public = models.BooleanField(_("is_public"), default=False)

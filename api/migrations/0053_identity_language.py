@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='identity',
             name='language',
-            field=models.CharField(choices=[('EN', 'English'), ('DE', 'German'), ('FR', 'French')], default='DE', max_length=10, verbose_name='language'),
+            field=models.CharField(choices=[('EN', 'English'), ('DE', 'German'), ('FR', 'French')], default='DE', null=True, max_length=10, verbose_name='language'),
         ),
     ]
