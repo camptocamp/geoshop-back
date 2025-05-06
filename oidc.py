@@ -15,6 +15,8 @@ from api.models import Identity
 
 UserModel = get_user_model()
 
+_defaultLanguage = 'de'
+_supportedLanguages = ['de', 'fr', 'en']
 
 def status(request):
     return {"OIDC_ENABLED": settings.FEATURE_FLAGS["oidc"]}
@@ -29,6 +31,12 @@ def _updateUser(user, claims):
         identity.email = claims.get("email")
     identity.first_name = claims.get("given_name")
     identity.last_name = claims.get("family_name")
+
+    userLanguage = claims.get("locale", _defaultLanguage).lower()
+    if userLanguage not in _supportedLanguages:
+        userLanguage = _defaultLanguage
+
+    identity.language = userLanguage
     identity.save()
     user.save()
 

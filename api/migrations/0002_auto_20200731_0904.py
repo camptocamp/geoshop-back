@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api', '0001_initial'),
+        ('api', '0053_identity_language'),
     ]
 
     def generate_superuser(apps, schema_editor):
@@ -15,7 +15,6 @@ class Migration(migrations.Migration):
         superuser = User.objects.create_superuser(
             username=os.environ.get('ADMIN_USERNAME', 'admin'),
             password=os.environ['ADMIN_PASSWORD'])
-
         superuser.save()
 
 

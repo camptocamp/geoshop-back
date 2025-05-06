@@ -260,7 +260,8 @@ class UserAdmin(BaseUserAdmin):
                         'messages': [_('Your account has been registered successfully.')],
                         'first_name': obj.identity.first_name,
                         'last_name': obj.identity.last_name
-                    }
+                    },
+                    language=obj.identity.language
                 )
                 self.message_user(
                     request,

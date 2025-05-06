@@ -5,7 +5,7 @@ from multiprocessing import Process
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import get_template, render_to_string
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.deconstruct import deconstructible
 
 LANG = settings.LANGUAGE_CODE
@@ -37,7 +37,7 @@ def _render_email_templates(template_name, template_data):
     )
 
 
-def send_geoshop_email(subject, message='', recipient=None, template_name=None, template_data=None):
+def send_geoshop_email(subject, message='', recipient=None, template_name=None, template_data=None, language=None):
     """
     Emailer for the geoshop. Will send email to admin or identities or raw email address.
 
@@ -57,10 +57,18 @@ def send_geoshop_email(subject, message='', recipient=None, template_name=None, 
         A Dict containing data for the provided template name. Ignored if template_name
         is not given.
     """
-    if template_name:
-        if template_data is None:
-            template_data = {'messages': [message]}
-        (message, html_message) = _render_email_templates(template_name, template_data)
+    currentLanguage = translation.get_language()
+    try:
+        if language:
+          translation.activate(language)
+        if template_name:
+            if template_data is None:
+                template_data = {'messages': [message]}
+            (message, html_message) = _render_email_templates(template_name, template_data)
+    finally:
+        if language:
+          translation.activate(currentLanguage)
+
     if recipient is None:
         recipient_list = [settings.ADMIN_EMAIL_LIST]
     elif isinstance(recipient, str):
