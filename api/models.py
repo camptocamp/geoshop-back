@@ -123,6 +123,10 @@ class Identity(AbstractIdentity):
     """
     All users have an Identity but not all identities are users.
     """
+    class PreferredLanguage(models.TextChoices):
+        ENGLISH = "EN", _("English")
+        GERMAN = "DE", _("German")
+        FRENCH = "FR", _("French")
 
     user = models.OneToOneField(
         UserModel,
@@ -143,6 +147,12 @@ class Identity(AbstractIdentity):
                 message=_("IDE number is not valid"),
             ),
         ],
+    )
+    language = models.CharField(
+        _("language"),
+        max_length=10,
+        choices=PreferredLanguage.choices,
+        default=PreferredLanguage.GERMAN,
     )
     contract_accepted = models.DateField(_("contract_accepted"), null=True, blank=True)
     is_public = models.BooleanField(_("is_public"), default=False)
@@ -684,6 +694,7 @@ class Order(models.Model):
                     "first_name": self.client.identity.first_name,
                     "last_name": self.client.identity.last_name,
                 },
+                language=self.client.identity.language
             )
         return price_is_set
 
@@ -793,6 +804,7 @@ class Order(models.Model):
                             "first_name": self.client.identity.first_name,
                             "last_name": self.client.identity.last_name,
                         },
+                        language=self.client.identity.language
                     )
             else:
                 self.order_status = Order.OrderStatus.REJECTED
