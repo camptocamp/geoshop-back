@@ -342,7 +342,7 @@ if check_oidc():
     OIDC_PRIVATE_KEYFILE = os.environ.get("OIDC_PRIVATE_KEYFILE")
 
     OIDC_RP_SIGN_ALGO = "RS256"
-    OIDC_RP_SCOPES = "openid profile email address phone"
+    OIDC_RP_SCOPES = "openid profile email address phone locale"
     OIDC_USE_PKCE = True
 
     discovery_info = discover_endpoints(
