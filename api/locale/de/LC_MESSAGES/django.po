@@ -695,7 +695,7 @@ msgstr "Lieber Administrator,"
 
 #: api/templates/email_admin.html:27
 msgid "Cet email vous a été envoyé car vous êtes administrateur du Geoshop."
-msgstr "Diese e-Mail wurde Ihnen zugestellt, da Sie Administrator des GeoShops sind.""
+msgstr "Diese e-Mail wurde Ihnen zugestellt, da Sie Administrator des GeoShops sind."
 
 #: api/templates/email_base_template.html:92
 msgid "Dear user,"
@@ -712,7 +712,7 @@ msgstr ""
 #: api/templates/email_download_ready.html:4
 #, python-format
 msgid " L'extraction pour la commande n°%(order_id)s a été réalisée. "
-msgstr " Die Daten für den Autrag n°%(order_id) wurden bereit gestellt. ""
+msgstr " Die Daten für den Autrag n°%(order_id)s wurden bereit gestellt. "
 
 #: api/templates/email_download_ready.html:6
 msgid ""
@@ -739,20 +739,20 @@ msgid ""
 "user account at %(site_name)s."
 msgstr ""
 "Sie erhalten diese e-Mail, da Sie eine Passwort zurücksetzen Anfrage für Ihren "
-"Zugang bei %(site_name) erstellt haben."
+"Zugang bei %(site_name)s erstellt haben."
 
 #: api/templates/email_password_reset.html:6
 msgid "Please go to the following page and choose a new password:"
-msgstr "Bitte gehen Sie zu folgender Seite and wählen ein neues Passwort:""
+msgstr "Bitte gehen Sie zu folgender Seite and wählen ein neues Passwort:"
 
 #: api/templates/email_password_reset.html:10
 msgid "Your username, in case you’ve forgotten:"
-msgstr "Ihr Benutzername:""
+msgstr "Ihr Benutzername:"
 
 #: api/templates/email_quote_done.html:4
 #, python-format
 msgid "Le devis pour la commande n°%(order_id)s a été réalisé."
-msgstr "Das Angebot für die Bestellung Nr. (order_id) wurde erstellt."
+msgstr "Das Angebot für die Bestellung Nr. %(order_id)s wurde erstellt."
 
 #: api/templates/email_quote_done.html:5
 msgid ""
@@ -797,7 +797,7 @@ msgstr ""
 
 #: api/templates/email_welcome_user.html:4
 msgid "Votre demande de création de compte est en cours de vérification."
-msgstr "Ihr Antrag zur Eröffnung eines Zugangs wird geprüft.""
+msgstr "Ihr Antrag zur Eröffnung eines Zugangs wird geprüft."
 
 #: api/templates/email_welcome_user.html:5
 msgid "Vous recevrez un email lorsque votre inscription sera validée."
