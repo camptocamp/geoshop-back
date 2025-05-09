@@ -32,7 +32,7 @@ def _updateUser(user, claims):
     identity.first_name = claims.get("given_name")
     identity.last_name = claims.get("family_name")
 
-    userLanguage = claims.get("locale", _defaultLanguage).lower()
+    userLanguage = (claims.get("locale") or _defaultLanguage).lower()
     if userLanguage not in _supportedLanguages:
         userLanguage = _defaultLanguage
 
