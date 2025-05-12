@@ -3,11 +3,10 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-12 11:03+0200\n"
+"POT-Creation-Date: 2025-05-12 14:05+0200\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -742,8 +741,7 @@ msgstr ""
 "diese e-Mail. Bei Fragen kontaktieren Sie uns bitte unter:"
 
 #: api/templates/email_download_ready.html:4
-#, fuzzy, python-format
-#| msgid "The extraction for order n%(order_id)s has been completed. "
+#, python-format
 msgid "The extraction for order n°%(order_id)s has been completed. "
 msgstr "Die Daten für den Autrag n°%(order_id)s wurden bereit gestellt. "
 
@@ -777,14 +775,11 @@ msgid "Please go to the following page and choose a new password:"
 msgstr "Bitte gehen Sie zu folgender Seite and wählen ein neues Passwort:"
 
 #: api/templates/email_password_reset.html:10
-#, fuzzy
-#| msgid "Your username, in case youve forgotten:"
 msgid "Your username, in case you’ve forgotten:"
 msgstr "Ihr Benutzername:"
 
 #: api/templates/email_quote_done.html:4
-#, fuzzy, python-format
-#| msgid "The quote for order n%(order_id)s has been completed."
+#, python-format
 msgid "The quote for order n°%(order_id)s has been completed."
 msgstr "Das Angebot für die Bestellung Nr. %(order_id)s wurde erstellt."
 
@@ -832,11 +827,13 @@ msgstr ""
 msgid ""
 "Please note that the client will not receive the data until you take action."
 msgstr ""
-"Bitte beachten Sie, dass der Kunde die Daten erst dann erhält, wenn Sie den Antrag bearbeiten"
+"Bitte beachten Sie, dass der Kunde die Daten erst dann erhält, wenn Sie den "
+"Antrag bearbeiten"
 
 #: api/templates/email_validation_needed.html:13
 msgid "If you believe this email was sent to you in error, please contact "
-msgstr "Wenn diese E-Mail irrtümlich an Sie gesendet wurde, wenden Sie sich bitte an "
+msgstr ""
+"Wenn diese E-Mail irrtümlich an Sie gesendet wurde, wenden Sie sich bitte an "
 
 #: api/templates/email_welcome_user.html:4
 msgid "Your account creation request is under review."
