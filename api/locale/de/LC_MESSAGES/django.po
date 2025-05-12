@@ -1,3 +1,18 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-12 11:03+0200\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
 #: api/admin.py:128
 msgid "Invoice contact does not belong to the client of this order!"
 msgstr ""
@@ -706,27 +721,31 @@ msgstr ""
 
 #: api/templates/email_admin.html:4
 msgid "Dear administrator,"
-msgstr ""
+msgstr "Lieber Administrator,"
 
 #: api/templates/email_admin.html:27
 msgid ""
 "This email was sent to you because you are an administrator of the Geoshop."
 msgstr ""
+"Diese e-Mail wurde Ihnen zugestellt, da Sie Administrator des GeoShops sind."
 
 #: api/templates/email_base_template.html:92
 msgid "Dear user,"
-msgstr ""
+msgstr "Lieber Anwender,"
 
 #: api/templates/email_base_template.html:103
 msgid ""
 "This is an automated email, please do not reply. For any question, feel free "
 "to contact us at"
 msgstr ""
+"Dies ist eine automatisierte e-Mail, bitte antworten Sie nicht direkt auf "
+"diese e-Mail. Bei Fragen kontaktieren Sie uns bitte unter:"
 
 #: api/templates/email_download_ready.html:4
-#, python-format
-msgid "The extraction for order n%(order_id)s has been completed. "
-msgstr ""
+#, fuzzy, python-format
+#| msgid "The extraction for order n%(order_id)s has been completed. "
+msgid "The extraction for order n°%(order_id)s has been completed. "
+msgstr "Die Daten für den Autrag n°%(order_id)s wurden bereit gestellt. "
 
 #: api/templates/email_download_ready.html:5
 msgid ""
@@ -734,10 +753,15 @@ msgid ""
 "Orders\" section\n"
 "or by clicking directly on this link: "
 msgstr ""
+"Öffnen Sie den GeoShop und laden Sie die bestellten Produkte im Abschnitt "
+"\"Meine Bestellungen\"\n"
+" oder durch Klick auf folgende Adresse: "
 
 #: api/templates/email_download_ready.html:10
 msgid "Please note that the download links are only available for 1 month."
 msgstr ""
+"Bitte beachten Sie das die bestellten Produkte nur während einem Monat "
+"herunter geladen werden können."
 
 #: api/templates/email_password_reset.html:4
 #, python-format
@@ -745,25 +769,32 @@ msgid ""
 "You're receiving this email because you requested a password reset for your "
 "user account at %(site_name)s."
 msgstr ""
+"Sie erhalten diese e-Mail, da Sie eine Passwort zurücksetzen Anfrage für "
+"Ihren Zugang bei %(site_name)s erstellt haben."
 
 #: api/templates/email_password_reset.html:6
 msgid "Please go to the following page and choose a new password:"
-msgstr ""
+msgstr "Bitte gehen Sie zu folgender Seite and wählen ein neues Passwort:"
 
 #: api/templates/email_password_reset.html:10
-msgid "Your username, in case youve forgotten:"
-msgstr ""
+#, fuzzy
+#| msgid "Your username, in case youve forgotten:"
+msgid "Your username, in case you’ve forgotten:"
+msgstr "Ihr Benutzername:"
 
 #: api/templates/email_quote_done.html:4
-#, python-format
-msgid "The quote for order n%(order_id)s has been completed."
-msgstr ""
+#, fuzzy, python-format
+#| msgid "The quote for order n%(order_id)s has been completed."
+msgid "The quote for order n°%(order_id)s has been completed."
+msgstr "Das Angebot für die Bestellung Nr. %(order_id)s wurde erstellt."
 
 #: api/templates/email_quote_done.html:5
 msgid ""
 "Log in to the Geoshop and confirm or cancel your order in the \"My Orders\" "
 "section.\""
 msgstr ""
+"Öffnen Sie den GeoShop und bestätigen oder stornieren Sie Ihre Bestellung im "
+"Abschnitt \\"
 
 #: api/templates/email_user_change.html:3
 msgid ""
@@ -775,16 +806,27 @@ msgid ""
 "          You will be notified by email once the updates are completed.  \n"
 "        </p>\n"
 msgstr ""
+"\n"
+"        <p>Ihre Änderung wurde an die Administratoren des Geoshops gesendet."
+"</p>\n"
+"        <p>\n"
+"          Diese wird geprüft und baldmöglichst übernommen.\n"
+"          Sie werden per e-Mail informiert, sobald die Änderung durchgeführt "
+"wurde.\n"
+"        </p>\n"
 
 #: api/templates/email_user_footer.html:4
 msgid "This email was sent to"
-msgstr ""
+msgstr "Diese e-Mail wird gesendet an"
 
 #: api/templates/email_validation_needed.html:6
 msgid ""
 "Your approval is required to process an order from the Geoshop. Click on "
 "this link to approve or reject the order:"
 msgstr ""
+"Ihre Zustimmung ist erforderlich zur Bearbeitung einer Bestellung im "
+"GeoShop. Klicken Sie auf die folgende Adresse, um die Bestellung zu "
+"validieren oder abzulehnen:"
 
 #: api/templates/email_validation_needed.html:12
 msgid ""
@@ -797,11 +839,11 @@ msgstr ""
 
 #: api/templates/email_welcome_user.html:4
 msgid "Your account creation request is under review."
-msgstr ""
+msgstr "Ihr Antrag zur Eröffnung eines Zugangs wird geprüft."
 
 #: api/templates/email_welcome_user.html:5
 msgid "You will receive an email when your registration is approved."
-msgstr ""
+msgstr "Sie erhalten eine e-Mail, sobald Ihr Antrag bearbeitet wurde."
 
 #: api/templates/metadata.html:15 api/templates/metadata_simple.html:10
 msgid "metadata_description"
