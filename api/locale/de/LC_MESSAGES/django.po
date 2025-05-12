@@ -832,10 +832,11 @@ msgstr ""
 msgid ""
 "Please note that the client will not receive the data until you take action."
 msgstr ""
+"Bitte beachten Sie, dass der Kunde die Daten erst dann erhält, wenn Sie den Antrag bearbeiten"
 
 #: api/templates/email_validation_needed.html:13
 msgid "If you believe this email was sent to you in error, please contact "
-msgstr ""
+msgstr "Wenn diese E-Mail irrtümlich an Sie gesendet wurde, wenden Sie sich bitte an "
 
 #: api/templates/email_welcome_user.html:4
 msgid "Your account creation request is under review."
@@ -903,11 +904,11 @@ msgstr ""
 
 #: api/views.py:605
 msgid "No object matches given id"
-msgstr ""
+msgstr "Kein Objekt für diese ID"
 
 #: api/views.py:623
 msgid "Zip file not found"
-msgstr ""
+msgstr "Datei nicht vorhanden"
 
 #: api/views.py:657
 msgid "Geoshop - User change request"
