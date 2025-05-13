@@ -582,7 +582,7 @@ msgstr ""
 
 #: api/models.py:793
 msgid "Geoshop - Download ready"
-msgstr ""
+msgstr "Geoshop - Ihre Bestellung steht zum Download bereit."
 
 #: api/models.py:833
 msgid "Calculated"
