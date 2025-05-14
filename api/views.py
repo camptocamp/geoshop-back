@@ -700,7 +700,9 @@ class OrderValidateView(views.APIView):
     def post(self, request):
         serializer = OrderSerializer(data=request.data, context={'request': request}, partial=True)
         serializer.is_valid(raise_exception=True)
-        return Response(data={
-            'excludedGeom':  serializer.validated_data['excludedGeom'].ewkt,
-            'geom': serializer.validated_data['geom'].ewkt
-        })
+        data = {}
+        if 'excludedGeom' in serializer.validated_data:
+            data['excludedGeom'] = serializer.validated_data['excludedGeom'].ewkt
+        if 'geom' in serializer.validated_data:
+            data['geom'] = serializer.validated_data['geom'].ewkt
+        return Response(data)
