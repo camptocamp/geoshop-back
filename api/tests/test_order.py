@@ -563,3 +563,83 @@ class OrderTests(APITestCase):
 
         self.assertEqual(len(order["excludedGeom"]["coordinates"]), 1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
+
+class OrderValidationTests(APITestCase):
+
+    def setUp(self):
+        self.config = BaseObjectsFactory(self.client)
+        self.order_data = {
+            'order_type': 'Privé',
+            'items': [],
+            'title': 'Test 1734',
+            'description': 'Nice order',
+            'geom': {
+                'type': 'Polygon',
+                'coordinates': [
+                    [
+                        [
+                            2528577.8382161376,
+                            1193422.4003930448
+                        ],
+                        [
+                            2542482.6542869355,
+                            1193422.4329014618
+                        ],
+                        [
+                            2542482.568523701,
+                            1199018.36469272
+                        ],
+                        [
+                            2528577.807487005,
+                            1199018.324372703
+                        ],
+                        [
+                            2528577.8382161376,
+                            1193422.4003930448
+                        ]
+                    ]
+                ]
+            },
+        }
+
+    def test_order_toolarge(self):
+        updateMaxOrderArea('Produit gratuit', 1000)
+        url = reverse('validate-order')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['items'] = [{ 'product': {'label': 'Produit gratuit'} }]
+        self.order_data['geom'] = {
+            'type': 'Polygon',
+            'coordinates': [
+                # 2545488 1203070, 2557441 1202601, 2557089 1210921, 2545605 1211390, 2545488 1203070
+                [[2545488, 1203070],
+                 [2557441, 1202601],
+                 [2557089, 1210921],
+                 [2545605, 1211390],
+                 [2545488, 1203070]]
+            ]}
+        response = self.client.post(url, self.order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
+        errorDetails = json.loads(response.content)
+        self.assertEqual(errorDetails['message'], ['Order area is too large'])
+        self.assertTrue(errorDetails['expected'][0].startswith('34558655.8'))
+        self.assertTrue(errorDetails['actual'][0].startswith('97442812.5'))
+
+    def test_order_fine(self):
+        updateMaxOrderArea('Produit gratuit', 1000000000)
+        url = reverse('validate-order')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        self.order_data['items'] = [{ 'product': {'label': 'Produit gratuit'} }]
+        self.order_data['geom'] = {
+            'type': 'Polygon',
+            'coordinates': [
+                [[2545488, 1203070],
+                 [2557441, 1202601],
+                 [2557089, 1210921],
+                 [2545605, 1211390],
+                 [2545488, 1203070]]
+            ]}
+        response = self.client.post(url, self.order_data, format='json')
+        responseData = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.assertEqual(responseData['geom'], 'SRID=4326;POLYGON ((2545488 1203070, 2557441 1202601, 2557089 1210921, 2545605 1211390, 2545488 1203070))')
+        self.assertEqual(responseData['excludedGeom'], 'SRID=2056;POLYGON ((2545605 1211390, 2557089 1210921, 2557441 1202601, 2545488 1203070, 2545605 1211390))')
