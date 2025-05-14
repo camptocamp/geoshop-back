@@ -1,5 +1,6 @@
 import mimetypes
 from pathlib import Path
+import shapely.geometry
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -688,3 +689,20 @@ class VerifyEmailView(views.APIView, ConfirmEmailView):
         confirmation = self.get_object()
         confirmation.confirm(self.request)
         return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
+
+class OrderValidateView(views.APIView):
+
+    allowed_methods = ('POST','OPTIONS','HEAD')
+    queryset = Product.objects.all()
+    serializer_class=OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = OrderSerializer(data=request.data, context={'request': request}, partial=True)
+        serializer.is_valid(raise_exception=True)
+        data = {}
+        if 'excludedGeom' in serializer.validated_data:
+            data['excludedGeom'] = serializer.validated_data['excludedGeom'].ewkt
+        if 'geom' in serializer.validated_data:
+            data['geom'] = serializer.validated_data['geom'].ewkt
+        return Response(data)

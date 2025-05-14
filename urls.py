@@ -89,6 +89,7 @@ urlpatterns = [
     path(f'{ROOTURL}docs/schema', SpectacularAPIView.as_view(), name='schema'),
     path(f'{ROOTURL}docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path(f'{ROOTURL}health/', include('health_check.urls')),
+    path(f'{ROOTURL}validate/order', views.OrderValidateView.as_view(), name='validate-order'),
 ] + static(settings.STATIC_URL,document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
 
 # Hiding Name/Password Token obtain link behind feature flags
