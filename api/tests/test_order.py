@@ -618,8 +618,8 @@ class OrderValidationTests(APITestCase):
                  [2545488, 1203070]]
             ]}
         response = self.client.post(url, self.order_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
-        errorDetails = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        errorDetails = json.loads(response.content)["error"]
         self.assertEqual(errorDetails['message'], ['Order area is too large'])
         self.assertTrue(errorDetails['expected'][0].startswith('34558655.8'))
         self.assertTrue(errorDetails['actual'][0].startswith('97442812.5'))
