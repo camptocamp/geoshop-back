@@ -1,9 +1,9 @@
 {% extends "email_base_template.html" %}
 {% load i18n %}
-{% block content %}
+{% block content %}{% blocktrans %}
         <p>Votre compte a été validé avec succès.</p>
         <p>Vous pouvez désormais commander sur le géoshop.</p>
-{% endblock %}
+{% endblocktrans %}{% endblock %}
 {% block footer %}
         {% include "email_user_footer.html"%}
 {% endblock %}
