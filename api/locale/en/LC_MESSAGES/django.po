@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-12 10:40+0200\n"
+"POT-Creation-Date: 2025-05-16 14:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -796,6 +796,13 @@ msgid ""
 "        </p>\n"
 msgstr ""
 
+#: api/templates/email_user_confirm.html:3
+msgid ""
+"\n"
+"        <p>Votre compte a été validé avec succès.</p>\n"
+"        <p>Vous pouvez désormais commander sur le géoshop.</p>\n"
+msgstr ""
+
 #: api/templates/email_user_footer.html:4
 msgid "This email was sent to"
 msgstr ""
@@ -839,66 +846,66 @@ msgstr ""
 msgid "Metadata"
 msgstr ""
 
-#: api/views.py:213
+#: api/views.py:214
 msgid "This orderitem cannot be deleted anymore."
 msgstr ""
 
-#: api/views.py:233
+#: api/views.py:234
 msgid "Zip does not exist"
 msgstr ""
 
-#: api/views.py:298
+#: api/views.py:299
 msgid "This order cannot be deleted anymore."
 msgstr ""
 
-#: api/views.py:345
+#: api/views.py:346
 msgid "Full zip is not ready"
 msgstr ""
 
-#: api/views.py:433
+#: api/views.py:434
 msgid "Password reset e-mail has been sent."
 msgstr ""
 
-#: api/views.py:460
+#: api/views.py:461
 msgid "Password has been reset with the new password."
 msgstr ""
 
-#: api/views.py:518
+#: api/views.py:519
 msgid "Geoshop - New user request"
 msgstr ""
 
-#: api/views.py:521
+#: api/views.py:522
 msgid "A new user account needs to be validated:"
 msgstr ""
 
-#: api/views.py:529
+#: api/views.py:530
 msgid "Geoshop - New account pending"
 msgstr ""
 
-#: api/views.py:535 api/views.py:673
+#: api/views.py:536 api/views.py:674
 msgid "Your data was successfully submitted"
 msgstr ""
 
-#: api/views.py:605
+#: api/views.py:606
 msgid "No object matches given id"
 msgstr ""
 
-#: api/views.py:623
+#: api/views.py:624
 msgid "Zip file not found"
 msgstr ""
 
-#: api/views.py:657
+#: api/views.py:658
 msgid "Geoshop - User change request"
 msgstr ""
 
-#: api/views.py:661
+#: api/views.py:662
 msgid "The user {} has requested some changes for his user profile."
 msgstr ""
 
-#: api/views.py:667
+#: api/views.py:668
 msgid "Geoshop - Your changes request"
 msgstr ""
 
-#: api/views.py:690
+#: api/views.py:691
 msgid "ok"
 msgstr ""
