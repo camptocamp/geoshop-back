@@ -758,7 +758,7 @@ msgstr ""
 #: api/templates/email_download_ready.html:10
 msgid "Please note that the download links are only available for 1 month."
 msgstr ""
-"Bitte beachten Sie das die bestellten Produkte nur während einem Monat "
+"Bitte beachten Sie, dass die bestellten Produkte nur während einem Monat "
 "herunter geladen werden können."
 
 #: api/templates/email_password_reset.html:4
