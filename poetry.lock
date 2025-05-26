@@ -394,14 +394,14 @@ django = ">=4.2"
 
 [[package]]
 name = "django-extended-ol"
-version = "1.0.0"
+version = "1.1.3"
 description = "An openlayers widget for Django with extended capabilities"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django_extended_ol-1.0.0-py3-none-any.whl", hash = "sha256:c696802f54c344ecf79531945abf7a569523991eed093c1dec40618625193c0f"},
-    {file = "django_extended_ol-1.0.0.tar.gz", hash = "sha256:588edc02c23b1d5b6dbd121db3512f8e65b301a9a98e5e5b09c04910aa1d6572"},
+    {file = "django_extended_ol-1.1.3-py3-none-any.whl", hash = "sha256:68d93d147f8a9d1c71ac89fd6c1175914fad6aa7f1fcd4cb068975e2f31f6484"},
+    {file = "django_extended_ol-1.1.3.tar.gz", hash = "sha256:124c77ab6723b9053216cd52d2b15bacd11e0925e9644b9014d59f832ee802b8"},
 ]
 
 [package.dependencies]
@@ -1376,4 +1376,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "8cb97d0596d86c36b87b909c59eebf5bc89bb2ac5af88c79750a1320495fa95d"
+content-hash = "447d51264b238f1006bddaf6d13cfb4298634834bc515bfbbdd393398fcede58"
