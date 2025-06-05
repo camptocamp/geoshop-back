@@ -356,9 +356,8 @@ class ExtractOrderView(views.APIView):
     """
     permission_classes = [ExtractGroupPermission]
 
-    @extend_schema(
-            responses=ExtractOrderSerializer
-    )
+    # def
+    @extend_schema(responses=ExtractOrderSerializer)
     def get(self, request, *args, **kwargs):
         # Start by getting orderitems that are PENDING and that will be extracted by current user
         order_items = OrderItem.objects.filter(
