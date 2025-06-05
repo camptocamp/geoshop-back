@@ -356,9 +356,8 @@ class ExtractOrderView(views.APIView):
     """
     permission_classes = [ExtractGroupPermission]
 
-    @extend_schema(
-            responses=ExtractOrderSerializer
-    )
+    # def
+    @extend_schema(responses=ExtractOrderSerializer)
     def get(self, request, *args, **kwargs):
         # Start by getting orderitems that are PENDING and that will be extracted by current user
         order_items = OrderItem.objects.filter(
@@ -613,6 +612,7 @@ class DownloadView(generics.RetrieveAPIView):
                 with open(file, 'rb') as result:
                     response = Response(
                         headers={
+                            'Content-Length': file.stat().st_size,
                             'Content-Disposition': f'attachment; filename="{file.name}"',
                             'Content-Type': actualType if actualType else 'application/octet-stream'
                         },

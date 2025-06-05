@@ -163,6 +163,13 @@ class OrderAdmin(CustomGeoModelAdmin):
         """
         This is the way to add custom buttons to admin
         """
+        if obj.extract_result.name:
+            obj.extract_result_size = obj.extract_result.size
+            obj.save()
+        for item in obj.items.all():
+            if item.extract_result.name:
+                item.extract_result_size = item.extract_result.size
+                item.save()
         if "_reset-extract" in request.POST:
             for item in obj.items.all():
                 item.status = OrderItem.OrderItemStatus.PENDING

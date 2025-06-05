@@ -69,6 +69,8 @@ class OrderTests(APITestCase):
             Order.OrderStatus.PARTIALLY_DELIVERED,
             "Check order status is partially delivered"
         )
+        item = OrderItem.objects.get(pk=order_item_id1)
+        self.assertEqual(item.extract_result_size, extract_file.size, "Extract size is correct")
 
         url = reverse('extract_orderitem', kwargs={'pk': order_item_id2})
         extract_file = SimpleUploadedFile("result2.zip", self.empty_zip_data, content_type="multipart/form-data")
@@ -79,6 +81,8 @@ class OrderTests(APITestCase):
             Order.OrderStatus.PROCESSED,
             "Check order status is processed"
         )
+        item = OrderItem.objects.get(pk=order_item_id1)
+        self.assertEqual(item.extract_result_size, extract_file.size, "Extract size updated")
         self.assertEqual(len(mail.outbox), 1, 'An email has been sent to client')
 
         # Download file by user
@@ -215,6 +219,10 @@ class OrderTests(APITestCase):
             Order.OrderStatus.PROCESSED,
             "Check order status is processed"
         )
+        item = OrderItem.objects.get(pk=order_item_id1)
+        self.assertEqual(item.extract_result_size, extract_file.size, "Extract size is correct")
+        item = OrderItem.objects.get(pk=order_item_id2)
+        self.assertEqual(item.extract_result_size, extract_file.size, "Extract size is correct")
         url = reverse('extract_order')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, response.content)
         self.assertEqual(len(mail.outbox), 1, 'An email has been sent to client')
