@@ -11,6 +11,7 @@ from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
 from django.utils import timezone
 from django.utils.html import mark_safe
+from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from djmoney.money import Money
@@ -789,8 +790,14 @@ class Order(models.Model):
                 else:
                     self.order_status = Order.OrderStatus.PROCESSED
                     self.date_processed = timezone.now()
+                    currentLanguage = translation.get_language()
+                    emailHeader = "Geoshop - Download ready"
+                    try:
+                        _(emailHeader)
+                    finally:
+                        translation.activate(currentLanguage)
                     send_geoshop_email(
-                        _("Geoshop - Download ready"),
+                        _(),
                         recipient=self.email_deliver or self.client.identity,
                         template_name="email_download_ready",
                         template_data={
