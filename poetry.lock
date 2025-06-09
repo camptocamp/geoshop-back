@@ -424,21 +424,22 @@ Django = ">=4.2"
 
 [[package]]
 name = "django-health-check"
-version = "3.18.3"
-description = "Run checks on services like databases, queue servers, celery processes, etc."
+version = "3.19.1"
+description = "Monitor the health of your Django app and its connected services."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "django_health_check-3.18.3-py2.py3-none-any.whl", hash = "sha256:f5f58762b80bdf7b12fad724761993d6e83540f97e2c95c42978f187e452fa07"},
-    {file = "django_health_check-3.18.3.tar.gz", hash = "sha256:18b75daca4551c69a43f804f9e41e23f5f5fb9efd06cf6a313b3d5031bb87bd0"},
+    {file = "django_health_check-3.19.1-py3-none-any.whl", hash = "sha256:558aa260102ae5c53a2925692e1b08fc1a9b181db3675b00a8e320e088a669db"},
+    {file = "django_health_check-3.19.1.tar.gz", hash = "sha256:f1e287190a15d5c2f53db67877a4360ed0256bf5f3d6773f0fe4903d052a6c14"},
 ]
 
 [package.dependencies]
-django = ">=2.2"
+Django = ">=4.2"
 
 [package.extras]
 docs = ["sphinx"]
+lint = ["ruff (==0.11.13)"]
 test = ["boto3", "celery", "django-storages", "pytest", "pytest-cov", "pytest-django", "redis"]
 
 [[package]]
@@ -1377,4 +1378,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "1608c6265a1fb5f2f6f761fa06aba864eda6e0addf142c559e54c7a2fb97c299"
+content-hash = "86003635d6b88582e0133b3c17480b52af3203b4d12f1e07e29f32c7e41ac432"
