@@ -23,7 +23,7 @@ from api.models import (
 )
 from django.contrib.gis.geos import Polygon
 from api.helpers import _zip_them_all
-from typing import TypeVar, Generic, Type
+from typing import TypeVar, Type
 from collections.abc import MutableMapping
 
 T = TypeVar("T", bound=models.Model)
@@ -80,6 +80,7 @@ class Command(BaseCommand):
             Product,
             label=label,
             defaults={
+                "product_status": Product.ProductStatus.PUBLISHED,
                 "metadata": self.getOrCreate(
                     Metadata,
                     id_name="metadata",
@@ -227,7 +228,7 @@ class Command(BaseCommand):
             )
         )
 
-        order_type_prive = self.getOrCreate(OrderType, name="Privé", defaults={})
+        order_type_prive = self.getOrCreate(OrderType, name="Private", defaults={})
         public = self.getOrCreate(OrderType, name="Public", defaults={})
 
         # Create orders
