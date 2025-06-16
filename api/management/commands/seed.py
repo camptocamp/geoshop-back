@@ -15,6 +15,7 @@ from api.models import (
     OrderItem,
     OrderType,
     Product,
+    ProductFormat,
     DataFormat,
     Identity,
     Metadata,
@@ -23,7 +24,7 @@ from api.models import (
 )
 from django.contrib.gis.geos import Polygon
 from api.helpers import _zip_them_all
-from typing import TypeVar, Type
+from typing import TypeVar, Generic, Type
 from collections.abc import MutableMapping
 
 T = TypeVar("T", bound=models.Model)
@@ -48,7 +49,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.ERROR(msg))
 
     def getOrCreate(
-        self, model: Type[T], defaults: MutableMapping[str, any] | None = ..., **kwargs
+        self, model: Type[T], defaults: MutableMapping[str, any] = {}, **kwargs
     ) -> T:
         (value, created) = model.objects.get_or_create(defaults, **kwargs)
         typeName = model.__name__
@@ -75,12 +76,12 @@ class Command(BaseCommand):
         self.success(f"Updated identity for user '{user.username}'")
         return user.identity
 
-    def addProduct(self, user: User, label: str) -> OrderType:
+    def addProduct(self, user: User, label: str, defaults: MutableMapping[str, any] = {}) -> OrderType:
         return self.getOrCreate(
             Product,
             label=label,
             defaults={
-                "product_status": Product.ProductStatus.PUBLISHED,
+                **{
                 "metadata": self.getOrCreate(
                     Metadata,
                     id_name="metadata",
@@ -94,6 +95,8 @@ class Command(BaseCommand):
                 ),
                 "provider": user,
             },
+            **defaults
+            }
         )
 
     def seed(self):
@@ -228,8 +231,8 @@ class Command(BaseCommand):
             )
         )
 
-        order_type_prive = self.getOrCreate(OrderType, name="Private", defaults={})
-        public = self.getOrCreate(OrderType, name="Public", defaults={})
+        order_type_prive = self.getOrCreate(OrderType, name="private", defaults={})
+        public = self.getOrCreate(OrderType, name="public", defaults={})
 
         # Create orders
         order1 = Order.objects.create(
@@ -309,18 +312,21 @@ class Command(BaseCommand):
         )
         order_quoted.save()
 
-        # Products
-        product1 = self.addProduct(mma, "MO - Cadastre complet")
-        product2 = self.addProduct(mma, "Maquette 3D")
-        product_deprecated = self.addProduct(
-            mma, "MO07 - Objets divers et éléments linéaires - linéaires"
-        )
+        # Data formats
+        data_format = self.getOrCreate(DataFormat, name="Geobat NE complet (DXF)", defaults={})
+        data_format_maquette = self.getOrCreate(DataFormat, name="3dm (Fichier Rhino)", defaults={})
 
-        data_format = self.getOrCreate(
-            DataFormat, name="Geobat NE complet (DXF)", defaults={}
-        )
-        data_format_maquette = self.getOrCreate(
-            DataFormat, name="3dm (Fichier Rhino)", defaults={}
+        # Products
+        product1 = self.addProduct(mma, "MO - Cadastre complet",
+                                   {"product_status": Product.ProductStatus.PUBLISHED})
+        self.getOrCreate(ProductFormat, product=product1, data_format=data_format)
+
+        product2 = self.addProduct(mma, "Maquette 3D",
+                                    {"product_status": Product.ProductStatus.PUBLISHED})
+        self.getOrCreate(ProductFormat, product=product2, data_format=data_format_maquette)
+        product_deprecated = self.addProduct(
+            mma, "MO07 - Objets divers et éléments linéaires - linéaires",
+            {"product_status": Product.ProductStatus.DEPRECATED}
         )
 
         for order_item in [
