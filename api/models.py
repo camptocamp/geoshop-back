@@ -794,11 +794,11 @@ class Order(models.Model):
                     currentLanguage = translation.get_language()
                     emailHeader = "Geoshop - Download ready"
                     try:
-                        _(emailHeader)
+                        emailHeader = _(emailHeader)
                     finally:
                         translation.activate(currentLanguage)
                     send_geoshop_email(
-                        _(),
+                        emailHeader,
                         recipient=self.email_deliver or self.client.identity,
                         template_name="email_download_ready",
                         template_data={
