@@ -1,6 +1,5 @@
 import uuid
 import zipfile
-import threading
 from pathlib import Path
 from multiprocessing import Process
 from django.conf import settings
