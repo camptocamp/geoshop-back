@@ -129,7 +129,7 @@ def zip_all_orderitems(order):
     Takes all zips'content from order items and makes one single zip of it
     calling _zip_them_all as a backgroud process.
     """
-    files_list_path = list(order.items.all().values_list('extract_result', flat=True))
+    itemFiles = [item for item in order.items.all() if item.extract_result.name]
 
     today = timezone.now()
     first_part = str(uuid.uuid4())[0:9]
@@ -138,8 +138,11 @@ def zip_all_orderitems(order):
         str(today.year), str(today.month),
         "{}{}.zip".format(first_part, str(order.id)))
     order.extract_result.name = zip_path.as_posix()
+    order.extract_result_size = sum(item.extract_result.size for item in itemFiles)
     full_zip_path = Path(settings.MEDIA_ROOT, zip_path)
 
-    back_process = Process(target=_zip_them_all, args=(full_zip_path, files_list_path))
+    back_process = Process(target=_zip_them_all, args=(full_zip_path, [
+        item.extract_result.name for item in itemFiles
+    ]))
     back_process.daemon = True
     back_process.start()

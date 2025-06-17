@@ -13,7 +13,6 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from djmoney.contrib.django_rest_framework import MoneyField
 
-from rest_framework import relations
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -519,6 +518,7 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
     Orderitem serializer for extract. Allows to upload file of orderitem.
     """
     extract_result = serializers.FileField(required=False)
+    extract_result_size = serializers.IntegerField(required=False)
     product = ProductExtractSerializer(read_only=True)
     data_format = serializers.StringRelatedField(read_only=True)
     is_rejected = serializers.BooleanField(required=False)
@@ -543,6 +543,8 @@ class ExtractOrderItemSerializer(OrderItemSerializer):
             instance.status = OrderItem.OrderItemStatus.REJECTED
         if instance.extract_result.name != '':
             instance.status = OrderItem.OrderItemStatus.PROCESSED
+        if instance.extract_result:
+            instance.extract_result_size = instance.extract_result.size
         instance.save()
         status = instance.order.next_status_on_extract_input()
         if status == Order.OrderStatus.PROCESSED:

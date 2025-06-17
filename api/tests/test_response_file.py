@@ -78,6 +78,7 @@ class TestResponseFile(APITestCase):
     def testSendOrderFileSuccess(self):
         url = reverse("download_by_uuid", kwargs={"guid": ORDER_EXISTS_UUID})
         resp = self.client.get(url)
+        self.assertEqual("11", resp.headers["Content-length"])
         self.assertEqual(TMP_CONTENT, str(resp.content, "utf8"))
 
     def testSendOrderNotFound(self):
@@ -95,6 +96,7 @@ class TestResponseFile(APITestCase):
     def testSendItemFileSuccess(self):
         url = reverse("download_by_uuid", kwargs={"guid": ITEM_EXISTS_UUID})
         resp = self.client.get(url)
+        self.assertEqual("11", resp.headers["Content-length"])
         self.assertEqual(TMP_CONTENT[::-1], str(resp.content, "utf8"))
 
     def testSendItemNotFound(self):
