@@ -743,7 +743,7 @@ msgstr ""
 #: api/templates/email_download_ready.html:4
 #, python-format
 msgid "The extraction for order n°%(order_id)s has been completed. "
-msgstr "Die Daten für den Autrag n°%(order_id)s wurden bereit gestellt. "
+msgstr "Die Daten für den Auftrag n°%(order_id)s wurden bereit gestellt. "
 
 #: api/templates/email_download_ready.html:5
 msgid ""
