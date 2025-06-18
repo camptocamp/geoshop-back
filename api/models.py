@@ -11,7 +11,6 @@ from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
 from django.utils import timezone
 from django.utils.html import mark_safe
-from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from djmoney.money import Money
@@ -649,7 +648,7 @@ class Order(models.Model):
 
     def ask_price(self):
         send_geoshop_email(
-            _("Geoshop - Quote requested"),
+            "Geoshop - Quote requested",
             template_name="email_admin",
             template_data={
                 "messages": [_("A new quote has been requested:")],
@@ -658,6 +657,7 @@ class Order(models.Model):
                     _("link"): reverse("admin:api_order_change", args=[self.id]),
                 },
             },
+            language=self.client.identity.language
         )
 
     def set_price(self):
@@ -689,7 +689,7 @@ class Order(models.Model):
             self.order_status = self.OrderStatus.QUOTE_DONE
             self.save()
             send_geoshop_email(
-                _("Geoshop - Quote has been done"),
+                "Geoshop - Quote has been done",
                 recipient=self.email_deliver or self.client.identity,
                 template_name="email_quote_done",
                 template_data={
@@ -791,14 +791,8 @@ class Order(models.Model):
                 else:
                     self.order_status = Order.OrderStatus.PROCESSED
                     self.date_processed = timezone.now()
-                    currentLanguage = translation.get_language()
-                    emailHeader = "Geoshop - Download ready"
-                    try:
-                        emailHeader = _("Geoshop - Download ready")
-                    finally:
-                        translation.activate(currentLanguage)
                     send_geoshop_email(
-                        emailHeader,
+                        "Geoshop - Download ready",
                         recipient=self.email_deliver or self.client.identity,
                         template_name="email_download_ready",
                         template_data={
@@ -1021,7 +1015,7 @@ class OrderItem(models.Model):
             .first()
         )
         send_geoshop_email(
-            _("Geoshop - Validation requested"),
+            "Geoshop - Validation requested",
             recipient=validator.contact_person,
             template_name="email_validation_needed",
             template_data={
@@ -1031,6 +1025,7 @@ class OrderItem(models.Model):
                 "what": "orderitem",
                 "token": self.token,
             },
+            language=self.order.client.identity.language,
         )
 
 
