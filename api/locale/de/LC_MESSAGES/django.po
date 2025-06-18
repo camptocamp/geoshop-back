@@ -934,5 +934,3 @@ msgstr ""
 msgid "ok"
 msgstr ""
 
-#~ msgid "Geoshop - Download ready"
-#~ msgstr "Geoshop - Ihre Bestellung steht zum Download bereit."
