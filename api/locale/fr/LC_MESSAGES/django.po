@@ -956,4 +956,3 @@ msgstr "Geoshop - Votre demande de modification"
 #: api/views.py:691
 msgid "ok"
 msgstr "ok"
-

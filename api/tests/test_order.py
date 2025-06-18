@@ -2,7 +2,6 @@ import json
 
 from django.urls import reverse
 from django.core import mail
-from django.test import override_settings
 
 from math import isclose
 from django.contrib.gis.geos import Polygon
