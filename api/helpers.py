@@ -1,6 +1,5 @@
 import uuid
 import zipfile
-import threading
 from pathlib import Path
 from multiprocessing import Process
 from django.conf import settings
@@ -8,6 +7,7 @@ from django.core.mail import send_mail
 from django.template.loader import get_template, render_to_string
 from django.utils import timezone, translation
 from django.utils.deconstruct import deconstructible
+from django.utils.translation import gettext as _
 
 LANG = settings.LANGUAGE_CODE
 
@@ -62,6 +62,8 @@ def send_geoshop_email(subject, message='', recipient=None, template_name=None, 
     try:
         if language:
           translation.activate(language)
+        if subject:
+          subject = _(subject)
         if template_name:
             if template_data is None:
                 template_data = {'messages': [message]}
