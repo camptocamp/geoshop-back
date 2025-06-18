@@ -933,3 +933,6 @@ msgstr ""
 #: api/views.py:691
 msgid "ok"
 msgstr ""
+
+#~ msgid "Geoshop - Download ready"
+#~ msgstr "Geoshop - Ihre Bestellung steht zum Download bereit."
