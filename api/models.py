@@ -794,7 +794,7 @@ class Order(models.Model):
                     currentLanguage = translation.get_language()
                     emailHeader = "Geoshop - Download ready"
                     try:
-                        emailHeader = _(emailHeader)
+                        emailHeader = _("Geoshop - Download ready")
                     finally:
                         translation.activate(currentLanguage)
                     send_geoshop_email(
