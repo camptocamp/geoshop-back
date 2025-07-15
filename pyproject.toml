@@ -52,7 +52,7 @@ whitenoise = "^6.9.0"
 Django = "^5.2"
 mozilla-django-oidc = "^4.0.1"
 Authlib = "^1.6.0"
-django-extended-ol = "^1.0.0"
+django-extended-ol = "^1.1.4"
 shapely = "^2.1.1"
 
 [build-system]
