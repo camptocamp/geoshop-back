@@ -46,6 +46,19 @@ class Command(BaseCommand):
             extract_user.identity.company_name = 'ACME'
             extract_user.save()
 
+    def configureEcho(self):
+        if "ECHO_USER_PASSWORD" not in os.environ:
+            logger.warning("Not creating echo user, password not defined")
+            return
+        echo_group = Group.objects.get_or_create(name='echo')[0]
+        echo_user = UserModel.objects.get_or_create(
+            username='echo',
+            password=os.environ['ECHO_USER_PASSWORD'])[0]
+        if not echo_user.groups.filter(name='echo').exists():
+            echo_user.groups.add(echo_group)
+            echo_user.save()
+
+
     def configureCounters(self):
         output = io.StringIO()
         call_command("sqlsequencereset", "api", stdout=output, no_color=True)
@@ -59,7 +72,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logger.info("Configuring admin user")
         self.configureAdmin()
-        logger.info("Configuring extract user")
+        logger.info("Configuring system user for extract: external_provider")
         self.configureExtract()
+        logger.info("Configuring system user for echo: echo")
+        self.configureEcho()
         logger.info("Configuring autoincrement counters")
         self.configureCounters()
