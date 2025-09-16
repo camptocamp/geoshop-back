@@ -329,8 +329,6 @@ class Command(BaseCommand):
             {"product_status": Product.ProductStatus.DEPRECATED}
         )
 
-        for i in range(30):
-            self.addProduct(mma, f"{i} Placeholder product", {"product_status": Product.ProductStatus.PUBLISHED})
         for order_item in [
             OrderItem.objects.create(order=order1, product=product1),
             OrderItem.objects.create(order=order1, product=product2),
