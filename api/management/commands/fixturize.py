@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from api.models import Order
+from api.models import DataFormat, Metadata, Order, Pricing, Product, ProductFormat
 
 UserModel = get_user_model()
 logger = logging.getLogger(__name__)
@@ -47,16 +47,32 @@ class Command(BaseCommand):
             extract_user.save()
 
     def configureEcho(self):
-        if "ECHO_USER_PASSWORD" not in os.environ:
-            logger.warning("Not creating echo user, password not defined")
+        if "ECHO_USERNAME" not in os.environ:
+            logger.warning("Not creating echo user, username not set")
+        if "ECHO_DEFAULT_PASSWORD" not in os.environ:
+            logger.warning("Not creating echo user, password not set")
             return
-        echo_group = Group.objects.get_or_create(name='echo')[0]
-        echo_user = UserModel.objects.get_or_create(
-            username='echo',
-            password=os.environ['ECHO_USER_PASSWORD'])[0]
-        if not echo_user.groups.filter(name='echo').exists():
-            echo_user.groups.add(echo_group)
+        username=os.environ["ECHO_USERNAME"]
+        password=os.environ["ECHO_DEFAULT_PASSWORD"]
+        if not UserModel.objects.filter(username=username).exists():
+            UserModel.objects.create_user(username=username, password=password)
+        echo_user=UserModel.objects.get(username=username)
+        if not echo_user.groups.filter(name=f"{username}_group").exists():
+            echo_user.groups.add(Group.objects.get_or_create(name=f"{username}_group")[0])
             echo_user.save()
+        if not Product.objects.filter(label=f"{username}_product").exists():
+            echo_product = Product.objects.create(
+                label=f"{username}_product",
+                product_status=Product.ProductStatus.DRAFT,
+                pricing=Pricing.objects.get_or_create(
+                    name="Free", pricing_type=Pricing.PricingType.FREE)[0],
+                provider=UserModel.objects.get(username='external_provider'),
+                metadata=Metadata.objects.get_or_create(
+                    id_name=username, name=username, modified_user_id=echo_user.id)[0]
+            )
+            ProductFormat.objects.create(
+                product=echo_product,
+                data_format=DataFormat.objects.get_or_create(name=f"{username}_format")[0])
 
 
     def configureCounters(self):
