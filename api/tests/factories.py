@@ -22,7 +22,7 @@ class BaseObjectsFactory:
 
     def __init__(self, webclient=None):
         # Creates admin account and Extract group with permissions
-        management.call_command('fixturize')
+        management.call_command('fixturize', "skip_counter_check")
         self.user_private = UserModel.objects.create_user(
             username=self.private_username,
             password=self.password
