@@ -21,7 +21,7 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument('skip_counter_check')
+        parser.add_argument('--skip_counter_check', nargs="?", default=False)
 
     def configureAdmin(self):
         admin_user = UserModel.objects.get(username=os.environ.get('ADMIN_USERNAME', 'admin'))
@@ -97,7 +97,7 @@ class Command(BaseCommand):
         self.configureExtract()
         logger.info("Configuring system user for echo: echo")
         self.configureEcho()
-        if "skip_counter_check" in options:
+        if options["skip_counter_check"]:
             logger.info("Skipping counter check")
         else:
             logger.info("Configuring autoincrement counters")
