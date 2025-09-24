@@ -37,4 +37,4 @@ class MetadataTests(APITestCase):
         url = reverse('metadata-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data['count'], 2, 'The two metadatas are visible')
+        self.assertEqual(response.data['count'], 3, 'The two metadatas are visible')
