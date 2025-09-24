@@ -57,7 +57,7 @@ class CopyrightViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows Copyright to be viewed.
     """
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
     queryset = Copyright.objects.all()
     serializer_class = CopyrightSerializer
 
@@ -108,7 +108,7 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
 
 
 class DataFormatViewSet(viewsets.ReadOnlyModelViewSet):
@@ -117,7 +117,7 @@ class DataFormatViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = DataFormat.objects.all()
     serializer_class = DataFormatSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
 
 
 class IdentityViewSet(viewsets.ReadOnlyModelViewSet):
@@ -133,7 +133,7 @@ class IdentityViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['email']
     filter_backends = [filters.SearchFilter]
     serializer_class = MetadataIdentitySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
 
     def get_queryset(self):
         user = self.request.user
@@ -183,11 +183,11 @@ class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
 
 class MetadataContactViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows MetadataContact to be viewed.
+    API endpoint that allows public metadata contacts to be viewed.
     """
     queryset = MetadataContact.objects.all()
     serializer_class = MetadataContactSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
 
 class MultiSerializerMixin():
     serializers = {
@@ -246,7 +246,7 @@ class OrderTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = OrderType.objects.all()
     serializer_class = OrderTypeSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
 
 
 class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
@@ -472,7 +472,7 @@ class ProductFormatViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = ProductFormat.objects.all()
     serializer_class = ProductFormatSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
 
 
 class ProductViewSet(MultiSerializerMixin, viewsets.ReadOnlyModelViewSet):
@@ -493,7 +493,7 @@ class ProductViewSet(MultiSerializerMixin, viewsets.ReadOnlyModelViewSet):
         'list': ProductDigestSerializer,
     }
     ts_field = 'ts'
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
 
     def get_queryset(self):
         return self.querysets.get(self.action, self.querysets['default'])
@@ -505,7 +505,7 @@ class PricingViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Pricing.objects.all()
     serializer_class = PricingSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
 
 
 class RegisterView(generics.CreateAPIView):
