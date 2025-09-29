@@ -126,3 +126,8 @@ class OidcAuthTests(APITestCase):
             },
             identity,
         )
+
+    # def test_noauth_401(self):
+    #     url = reverse("validate-order")
+    #     response = self.client.get(url, {"format": "json"})
+    #     self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED, response.content)
