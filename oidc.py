@@ -11,6 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
+from rest_framework.request import Request
 from api.models import Identity
 
 UserModel = get_user_model()
@@ -111,11 +112,8 @@ class FrontendAuthentication(View):
 
 class PermissionBackend(OIDCAuthenticationBackend):
 
-    def authenticate_header(self, request):
-        if "Authorization" not in request.headers:
-            return None
-        token = request.headers["Authorization"].replace("Bearer ", "")
-        return token
+    def authenticate_header(self, request: Request) -> str:
+        return 'Bearer realm="api"'
 
     def create_user(self, claims):
         user = self.UserModel.objects.create_user(username=claims.get("email"))
