@@ -19,6 +19,10 @@ class Command(BaseCommand):
     Creates extract user and group
     Creates internal group
     """
+
+    def add_arguments(self, parser):
+        parser.add_argument("--skip_counter_check", nargs="?", type=bool, default=False)
+
     def configureAdmin(self):
         admin_user = UserModel.objects.get(username=os.environ.get('ADMIN_USERNAME', 'admin'))
         admin_user.set_password(os.environ['ADMIN_PASSWORD'])
@@ -92,5 +96,8 @@ class Command(BaseCommand):
         self.configureExtract()
         logger.info("Configuring system user for echo: echo")
         self.configureEcho()
-        logger.info("Configuring autoincrement counters")
-        self.configureCounters()
+        if options["skip_counter_check"]:
+          logger.info("Skipping configuring autoincrement counters (requested)")
+        else:
+          logger.info("Configuring autoincrement counters")
+          self.configureCounters()
