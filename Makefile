@@ -24,7 +24,7 @@ push_ghcr: ## Push docker image to GHCR
 
 .PHONY: test
 test: ## Run tests
-	docker compose exec -T api python manage.py test -v 2 --force-color --noinput api.tests.test_auth.OidcAuthTests.test_oidc_createuser
+	docker compose exec -T api python manage.py test -v 2 --force-color --noinput
 
 .PHONY: prepare_env
 prepare_env: destroy_env build ## Prepare Docker environment
