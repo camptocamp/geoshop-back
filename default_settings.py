@@ -258,6 +258,8 @@ for host in ALLOWED_HOSTS:
     CSRF_TRUSTED_ORIGINS.append(f'http://{host}')
     CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
 
+CORS_ALLOWED_ORIGINS = os.environ['CORS_ALLOWED_ORIGINS'].split(',') if 'CORS_ALLOWED_ORIGINS' in os.environ else []
+
 CORS_ORIGIN_WHITELIST = [
     os.environ["FRONT_PROTOCOL"] + '://' + os.environ["FRONT_URL"],
 ]
@@ -354,6 +356,7 @@ if check_oidc():
     OIDC_OP_USER_ENDPOINT = discovery_info["userinfo_endpoint"]
     OIDC_OP_JWKS_ENDPOINT = discovery_info["jwks_uri"]
 
+    OIDC_REDIRECT_ALLOWED_HOSTS = os.environ["OIDC_REDIRECT_ALLOWED_HOST"].split(",")
     LOGIN_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/callback"
     LOGOUT_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/"
     LOGIN_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/authenticate"
