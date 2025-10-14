@@ -65,7 +65,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'headers.middleware.Middleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -260,6 +260,7 @@ for host in ALLOWED_HOSTS:
     CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
 
 CORS_ALLOWED_ORIGINS = os.environ['CORS_ALLOWED_ORIGINS'].split(',') if 'CORS_ALLOWED_ORIGINS' in os.environ else []
+CORS_ALLOWED_ORIGIN_REGEXES = os.environ['CORS_ALLOWED_ORIGIN_REGEXES'].split(',') if 'CORS_ALLOWED_ORIGIN_REGEXES' in os.environ else []
 
 CORS_ORIGIN_WHITELIST = [
     os.environ["FRONT_PROTOCOL"] + '://' + os.environ["FRONT_URL"],
