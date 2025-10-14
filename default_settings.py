@@ -358,7 +358,7 @@ if check_oidc():
     OIDC_OP_USER_ENDPOINT = discovery_info["userinfo_endpoint"]
     OIDC_OP_JWKS_ENDPOINT = discovery_info["jwks_uri"]
 
-    OIDC_REDIRECT_ALLOWED_HOSTS = os.environ["OIDC_REDIRECT_ALLOWED_HOST"].split(",")
+    OIDC_REDIRECT_ALLOWED_HOSTS = os.environ["OIDC_REDIRECT_ALLOWED_HOST"].split(",") if "OIDC_REDIRECT_ALLOWED_HOST" in os.environ else []
     LOGIN_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/callback"
     LOGOUT_REDIRECT_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/"
     LOGIN_URL = os.environ.get("OIDC_REDIRECT_BASE_URL") + "/oidc/authenticate"
