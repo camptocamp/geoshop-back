@@ -54,6 +54,7 @@ mozilla-django-oidc = "^4.0.1"
 Authlib = "^1.6.5"
 django-extended-ol = "^1.0.0"
 shapely = "^2.1.2"
+django-pgtrigger = "^4.15.4"
 
 [build-system]
 requires = ["poetry-core>=1.6.0"]
