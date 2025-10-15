@@ -27,8 +27,8 @@ test: ## Run tests
 	docker compose exec -T api python manage.py test -v 2 --force-color --noinput
 
 .PHONY: prepare_env
-prepare_env: destroy_env build ## Prepare Docker environment
-	docker compose up -d
+prepare_env: destroy_env ## Prepare Docker environment
+	docker compose up --build -d
 	until [ "$$(docker inspect -f '{{.State.Health.Status}}' geoshop-back-api-1)" = "healthy" ]; do \
 		echo "Waiting for api..."; \
 		sleep 1; \
