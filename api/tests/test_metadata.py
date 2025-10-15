@@ -20,7 +20,7 @@ class MetadataTests(APITestCase):
         url = reverse('metadata-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data['count'], 1, 'Only one public metadata is visible')
+        self.assertEqual(response.data['count'], 2, 'The two metadatas are visible')
 
     def test_view_private(self):
         self.client.login(
@@ -37,4 +37,4 @@ class MetadataTests(APITestCase):
         url = reverse('metadata-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.data['count'], 2, 'The two metadatas are visible')
+        self.assertEqual(response.data['count'], 3, 'The three metadatas are visible')

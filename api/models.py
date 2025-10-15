@@ -263,7 +263,7 @@ class Metadata(models.Model):
         triggers = [
             pgtrigger.Trigger(
                 name="update_search_vector_on_change",
-                operation=(pgtrigger.Update | pgtrigger.Insert),
+                operation=pgtrigger.Update,
                 when=pgtrigger.After,
                 func="""
                     IF EXISTS
@@ -537,7 +537,7 @@ class Product(models.Model):
             pgtrigger.Trigger(
                 name="update_search_vector_on_change",
                 operation=(pgtrigger.Update | pgtrigger.Insert),
-                when=pgtrigger.After,
+                when=pgtrigger.Before,
                 declare=[("description", "TEXT")],
                 func="""
                     SELECT description_long INTO description FROM metadata WHERE id = NEW.metadata_id;
