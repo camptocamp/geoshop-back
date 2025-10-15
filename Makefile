@@ -7,7 +7,7 @@ export DOCKER_BUILDKIT=1
 
 .PHONY: build
 build: ## Build docker image
-	docker build --tag=camptocamp/geoshop-api:$(VERSION) \
+	docker build --no-cache --tag=camptocamp/geoshop-api:$(VERSION) \
 		--build-arg=VERSION=$(VERSION) .
 	docker tag camptocamp/geoshop-api:$(VERSION) camptocamp/geoshop-api:$(DOCKER_TAG)
 
