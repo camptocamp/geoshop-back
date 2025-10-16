@@ -2,11 +2,13 @@ import io
 import os
 import logging
 from django.db import connection
+from django.db.models import OuterRef, Subquery, Value
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.search import SearchVector
 from api.models import DataFormat, Metadata, Order, Pricing, Product, ProductFormat
 
 UserModel = get_user_model()
@@ -89,6 +91,14 @@ class Command(BaseCommand):
 
         output.close()
 
+    def refreshSearchIndex(self):
+        for p in Product.objects.all():
+            description = Value(p.metadata.description_long)
+            p.ts = (SearchVector("label", config='french') + SearchVector(description, config='french') +
+                    SearchVector("label", config='german') + SearchVector(description, config='german') +
+                    SearchVector("label", config='italian') + SearchVector(description, config='italian'))
+            p.save()
+
     def handle(self, *args, **options):
         logger.info("Configuring admin user")
         self.configureAdmin()
@@ -101,3 +111,5 @@ class Command(BaseCommand):
         else:
           logger.info("Configuring autoincrement counters")
           self.configureCounters()
+        logger.info("Updating search index")
+        self.refreshSearchIndex()
