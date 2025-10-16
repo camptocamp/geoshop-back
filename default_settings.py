@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'health_check.db',
     'health_check.contrib.migrations',
     'django_extended_ol',
+    'pgtrigger',
 ]
 
 MIDDLEWARE = [

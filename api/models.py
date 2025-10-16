@@ -16,6 +16,8 @@ from django.urls import reverse
 from djmoney.money import Money
 from djmoney.models.fields import MoneyField
 
+import pgtrigger
+
 from .pricing import ProductPriceCalculator
 from .helpers import RandomFileName, send_geoshop_email
 
@@ -257,6 +259,29 @@ class Metadata(models.Model):
                 "view_internal",
                 _('Can view metadata with accessibility set to "internal"'),
             )
+        ]
+        triggers = [
+            pgtrigger.Trigger(
+                name="update_search_vector_on_change",
+                operation=pgtrigger.Update,
+                when=pgtrigger.After,
+                func="""
+                    IF EXISTS
+                        ( SELECT 1
+                        FROM   information_schema.tables
+                        WHERE  table_schema = CURRENT_SCHEMA()
+                        AND    table_name = 'product'
+                        )
+                    THEN
+                        UPDATE product
+                        SET ts = to_tsvector('french', label || ' ' || NEW.description_long) ||
+                                to_tsvector('german', label || ' ' || NEW.description_long) ||
+                                to_tsvector('italian', label || ' ' || NEW.description_long)
+                        WHERE metadata_id = NEW.id;
+                    END IF ;
+                    RETURN NEW;
+                """,
+            ),
         ]
 
     def __str__(self):
@@ -508,6 +533,21 @@ class Product(models.Model):
         ordering = ["order"]
         # https://www.postgresql.org/docs/10/gin-intro.html
         indexes = [GinIndex(fields=["ts"])]
+        triggers = [
+            pgtrigger.Trigger(
+                name="update_search_vector_on_change",
+                operation=(pgtrigger.Update | pgtrigger.Insert),
+                when=pgtrigger.Before,
+                declare=[("description", "TEXT")],
+                func="""
+                    SELECT description_long INTO description FROM metadata WHERE id = NEW.metadata_id;
+                    NEW.ts := to_tsvector('french', NEW.label || ' ' || description) ||
+                            to_tsvector('german', NEW.label || ' ' || description) ||
+                            to_tsvector('italian', NEW.label || ' ' || description);
+                    RETURN NEW;
+                """,
+            ),
+        ]
 
     def __str__(self):
         return self.label
