@@ -457,6 +457,11 @@ class OrderSerializer(serializers.ModelSerializer):
         return instance
 
 
+class UntypedOrderSerializer(OrderSerializer):
+    order_type = None
+    class Meta(OrderSerializer.Meta):
+        exclude = ['order_type']
+
 class PublicOrderSerializer(OrderSerializer):
     """
     Meant to be accessed by token
