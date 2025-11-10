@@ -605,6 +605,7 @@ class OrderValidationTests(APITestCase):
         updateMaxOrderArea('Produit gratuit', 1000)
         url = reverse('validate-order')
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        del self.order_data['order_type']
         self.order_data['items'] = [{ 'product': {'label': 'Produit gratuit'} }]
         self.order_data['geom'] = {
             'type': 'Polygon',
@@ -637,6 +638,7 @@ class OrderValidationTests(APITestCase):
                  [2545605, 1211390],
                  [2545488, 1203070]]
             ]}
+        del self.order_data['order_type']
         response = self.client.post(url, self.order_data, format='json')
         responseData = response.json()
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)

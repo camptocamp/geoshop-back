@@ -36,7 +36,7 @@ from .serializers import (
     PasswordResetSerializer, PasswordResetConfirmSerializer,
     PricingSerializer, ProductSerializer, ProductDigestSerializer, PublicOrderSerializer,
     ProductFormatSerializer, RegisterSerializer, UserChangeSerializer,
-    VerifyEmailSerializer, ValidationSerializer)
+    VerifyEmailSerializer, ValidationSerializer, UntypedOrderSerializer)
 
 from .helpers import send_geoshop_email
 
@@ -694,11 +694,11 @@ class OrderValidateView(views.APIView):
 
     allowed_methods = ('POST','OPTIONS','HEAD')
     queryset = Product.objects.all()
-    serializer_class=OrderSerializer
+    serializer_class=UntypedOrderSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        serializer = OrderSerializer(data=request.data, context={'request': request}, partial=True)
+        serializer = UntypedOrderSerializer(data=request.data, context={'request': request}, partial=True)
         data = {
             "valid": serializer.is_valid(raise_exception=False),
         }
