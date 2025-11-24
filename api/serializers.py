@@ -37,6 +37,10 @@ class WKTPolygonField(serializers.Field):
     Polygons are serialized to POLYGON((Long, Lat)) notation
     """
 
+    def __init__(self, srid):
+        super().__init__()
+        self.srid = srid
+
     def to_representation(self, value) -> str:
         if isinstance(value, dict) or value is None:
             return value
@@ -50,7 +54,7 @@ class WKTPolygonField(serializers.Field):
             new_value = new_value.buffer(0.5)
             new_value = new_value.simplify(0.2, preserve_topology=False)
             wkt_w.precision = 6
-        new_value.transform(4326)
+        new_value.transform(self.srid)  # transform to default srid
 
         # number of decimals
 
@@ -568,7 +572,7 @@ class ExtractOrderSerializer(serializers.ModelSerializer):
         help_text='Input the translated string value, for example "Privé"')
     client = UserIdentitySerializer()
     invoice_contact = IdentitySerializer()
-    geom = WKTPolygonField()
+    geom = WKTPolygonField(srid=settings.DEFAULT_SRID)
     geom_srid = serializers.IntegerField()
     geom_area = serializers.FloatField()
 
