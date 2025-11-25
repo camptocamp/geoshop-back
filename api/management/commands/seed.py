@@ -86,6 +86,7 @@ class Command(BaseCommand):
                     Metadata,
                     id_name="metadata",
                     name="metadata",
+                    description_long="Long metadata description",
                     defaults={"modified_user_id": user.id},
                 ),
                 "pricing": self.getOrCreate(
