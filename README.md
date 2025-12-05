@@ -2,9 +2,10 @@
 
 ## Requirements
 
-* PostgreSQL >= 11 + PostGIS
-* Python >= 3.9
+* PostgreSQL >= 17 + PostGIS
+* Python >= 3.13
 * GDAL
+* gettext
 
 ## Getting started
 
@@ -20,7 +21,7 @@ cp .env.sample .env
 
 ### Database
 
-Create a `geoshop` user if not existing yet, set your password according to your `env.local`:
+Create a `geoshop` user if not existing yet, set your password according to your `.env`:
 
 ```sql
 CREATE ROLE geoshop WITH LOGIN PASSWORD <password>;
