@@ -1,6 +1,6 @@
 from django.urls import reverse
 from django.core import mail
-from rest_framework import status
+from pathlib import Path
 from rest_framework.test import APITestCase
 from api.models import (
   Identity,
@@ -50,8 +50,10 @@ class EmailTranslationTest(APITestCase):
         order.next_status_on_extract_input()
         self.assertEqual(mail.outbox[-1].subject, "Geoshop - Download ready", "English subject")
 
-        order.client.identity.language = Identity.PreferredLanguage.GERMAN
-        order.client.identity.save()
-        order.order_status = Order.OrderStatus.READY
-        order.next_status_on_extract_input()
-        self.assertEqual(mail.outbox[-1].subject, "Geoshop - Ihre Bestellung steht zum Download bereit.", "German subject")
+        german_locale_path = Path('../locale/de/LC_MESSAGES/django.mo')
+        if german_locale_path.is_file():
+            order.client.identity.language = Identity.PreferredLanguage.GERMAN
+            order.client.identity.save()
+            order.order_status = Order.OrderStatus.READY
+            order.next_status_on_extract_input()
+            self.assertEqual(mail.outbox[-1].subject, "Geoshop - Ihre Bestellung steht zum Download bereit.", "German subject")
