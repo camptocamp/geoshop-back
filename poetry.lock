@@ -486,14 +486,14 @@ test = ["django-stubs", "mixer", "mypy", "pytest (>=8.2,<8.3)", "pytest-cov", "p
 
 [[package]]
 name = "django-pgtrigger"
-version = "4.16.0"
+version = "4.17.0"
 description = "Postgres trigger support integrated with Django models."
 optional = false
 python-versions = "<4,>=3.10.0"
 groups = ["main"]
 files = [
-    {file = "django_pgtrigger-4.16.0-py3-none-any.whl", hash = "sha256:0e11c81b680d1114da419dcf0e511b400acdb5d43915bf2f2d17e70f3a91694b"},
-    {file = "django_pgtrigger-4.16.0.tar.gz", hash = "sha256:67128491bfbf1c34f9753061440149f774a5c1e2335be321703eb401abc226b3"},
+    {file = "django_pgtrigger-4.17.0-py3-none-any.whl", hash = "sha256:06048cdeb57e20987fd0bf7dd673512a1413a08868eea248d70dbb970e967175"},
+    {file = "django_pgtrigger-4.17.0.tar.gz", hash = "sha256:55d297a756b5b6a8e0c533d3323fda1589c699e7d14aa3fff7fa7d774c46363c"},
 ]
 
 [package.dependencies]
@@ -1447,4 +1447,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "4c6b51a41d96631d7d42ec0ac3e5b3902fe135a5dc889bbabd72cf187a365639"
+content-hash = "571802ffd78a29371c94cad191353d84799074526981623df65d353863763f02"
