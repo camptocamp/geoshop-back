@@ -1,5 +1,6 @@
 from django.urls import reverse
 from django.core import mail
+from django.test import override_settings
 from pathlib import Path
 from rest_framework.test import APITestCase
 from api.models import (
@@ -10,6 +11,8 @@ from api.models import (
 )
 from api.tests.factories import BaseObjectsFactory
 
+
+@override_settings(LANGUAGE_CODE='en')
 class EmailTranslationTest(APITestCase):
 
     def setUp(self):
