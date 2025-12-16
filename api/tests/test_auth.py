@@ -1,6 +1,8 @@
 import os
 import json
 import requests
+import unittest
+from django.conf import settings
 from unittest import mock
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -57,6 +59,7 @@ class AuthViewsTests(APITestCase):
         self.assertEqual(response.data["username"], self.username, "Gets his username")
 
 
+@unittest.skipUnless(settings.FEATURE_FLAGS.get("oidc"), "OIDC tests disabled in settings")
 class OidcAuthTests(APITestCase):
 
     def setUp(self):
