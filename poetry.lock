@@ -450,23 +450,18 @@ Django = ">=4.2"
 
 [[package]]
 name = "django-health-check"
-version = "3.20.0"
+version = "3.20.7"
 description = "Monitor the health of your Django app and its connected services."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django_health_check-3.20.0-py3-none-any.whl", hash = "sha256:bcb2b8f36f463cead0564a028345c5b17e2a2d18e9cc88ecd611b13a26521926"},
-    {file = "django_health_check-3.20.0.tar.gz", hash = "sha256:cd69ac5facf73fe7241d9492d939b57bd20e24f46c4edea91e6a900bf22c2d8e"},
+    {file = "django_health_check-3.20.7-py3-none-any.whl", hash = "sha256:21488972bf96dea9c12117206ad27a68ff9d418675c45d6688671a950e6aae1d"},
+    {file = "django_health_check-3.20.7.tar.gz", hash = "sha256:4ee43b96cd60f77aae1ba97841b403b02c625e74d50135a9d7164c777125e0f3"},
 ]
 
 [package.dependencies]
 Django = ">=4.2"
-
-[package.extras]
-docs = ["sphinx"]
-lint = ["ruff (==0.11.13)"]
-test = ["boto3", "celery", "django-storages", "pytest", "pytest-cov", "pytest-django", "redis"]
 
 [[package]]
 name = "django-money"
@@ -1452,4 +1447,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "e200f2c39f278989985ec83575855cad136034c206ce1e3a7bfa9768bdd0c3dc"
+content-hash = "101cb4e1fbf02be83f066bd227327881ea99e2886ad8f896f2989542d0220e37"
