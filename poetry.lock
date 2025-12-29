@@ -450,14 +450,14 @@ Django = ">=4.2"
 
 [[package]]
 name = "django-health-check"
-version = "3.20.7"
+version = "3.20.8"
 description = "Monitor the health of your Django app and its connected services."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django_health_check-3.20.7-py3-none-any.whl", hash = "sha256:21488972bf96dea9c12117206ad27a68ff9d418675c45d6688671a950e6aae1d"},
-    {file = "django_health_check-3.20.7.tar.gz", hash = "sha256:4ee43b96cd60f77aae1ba97841b403b02c625e74d50135a9d7164c777125e0f3"},
+    {file = "django_health_check-3.20.8-py3-none-any.whl", hash = "sha256:89f06fd3ecfefb13a8444cbc49508c76f1f49c816624026f720a28e0e67a458c"},
+    {file = "django_health_check-3.20.8.tar.gz", hash = "sha256:bbb7286af4b4e2079d262eeb3e68014c8980f8fcfbd295bca1ec31cbf827b83c"},
 ]
 
 [package.dependencies]
@@ -1447,4 +1447,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "a4f7851f09565de9d7a162ad7d6f7bb032585fabad451fcd0024826f353f8247"
+content-hash = "0a5974dfa204ba0946944db6b2d2ad893c8bed7bd9b25dd6e3d4ab19fd80ecea"
