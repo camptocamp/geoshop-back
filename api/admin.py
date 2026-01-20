@@ -194,7 +194,6 @@ class OrderAdmin(CustomGeoModelAdmin):
             if item.extract_result.name:
                 item.extract_result_size = item.extract_result.size
                 item.save()
-
         return super().response_change(request, obj)
 
 class ProductOwnershipAdmin(CustomGeoModelAdmin):
