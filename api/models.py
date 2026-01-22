@@ -154,7 +154,9 @@ class Identity(AbstractIdentity):
         _("language"),
         max_length=10,
         choices=PreferredLanguage.choices,
-        default=PreferredLanguage.GERMAN,
+        default=PreferredLanguage(
+            settings.LANGUAGE_CODE.upper() if settings.LANGUAGE_CODE.upper() in PreferredLanguage.values else 'DE'
+        ),
         null=True,
     )
     contract_accepted = models.DateField(_("contract_accepted"), null=True, blank=True)

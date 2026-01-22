@@ -2,6 +2,7 @@ import json
 
 from django.urls import reverse
 from django.core import mail
+from django.test import override_settings
 
 from math import isclose
 from django.contrib.gis.geos import Polygon
@@ -34,6 +35,8 @@ def areasEqual(geomA, geomB, srid: int = 2056) -> bool:
             isclose(uniAB, polyA.area) and isclose(uniAB, polyB.area) and
             isclose(polyA.difference(polyB).area, 0))
 
+
+@override_settings(LANGUAGE_CODE='en')
 class OrderTests(APITestCase):
     """
     Test Orders
@@ -563,6 +566,8 @@ class OrderTests(APITestCase):
         self.assertEqual(len(order["excludedGeom"]["coordinates"]), 1)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.content)
 
+
+@override_settings(LANGUAGE_CODE='en')
 class OrderValidationTests(APITestCase):
 
     def setUp(self):
