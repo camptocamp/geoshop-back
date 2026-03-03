@@ -1,6 +1,7 @@
 import os
 import json
 from django.conf import settings
+from django.test import override_settings
 import tempfile
 from uuid import uuid4
 from django.urls import reverse
@@ -22,6 +23,7 @@ ITEM_NOTFOUND_UUID = str(uuid4())
 TMP_CONTENT="Hello world"
 
 
+@override_settings(LANGUAGE_CODE='en')
 class TestResponseFile(APITestCase):
     """
     Test sending extract result files
