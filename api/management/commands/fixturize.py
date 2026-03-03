@@ -74,21 +74,21 @@ class Command(BaseCommand):
                     name="Free", pricing_type=Pricing.PricingType.FREE)[0],
                 provider=UserModel.objects.get(username='external_provider'),
                 metadata=Metadata.objects.get_or_create(
-                    id_name=username, name=username, modified_user_id=echo_user.id)[0]
+                    id_name=username,
+                    name=username,
+                    modified_user_id=echo_user.id,
+                    accessibility=Metadata.MetadataAccessibility.INTERNAL)[0]
             )
             ProductFormat.objects.create(
                 product=echo_product,
                 data_format=DataFormat.objects.get_or_create(name=f"{username}_format")[0])
 
-
     def configureCounters(self):
         output = io.StringIO()
         call_command("sqlsequencereset", "api", stdout=output, no_color=True)
         sql = output.getvalue()
-
         with connection.cursor() as cursor:
             cursor.execute(sql)
-
         output.close()
 
     def refreshSearchIndex(self):

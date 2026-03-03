@@ -154,7 +154,7 @@ class Identity(AbstractIdentity):
         _("language"),
         max_length=10,
         choices=PreferredLanguage.choices,
-        default=PreferredLanguage.GERMAN,
+        default=PreferredLanguage(settings.LANGUAGE_CODE.upper() if settings.LANGUAGE_CODE.upper() in PreferredLanguage.values else 'DE'),
         null=True,
     )
     contract_accepted = models.DateField(_("contract_accepted"), null=True, blank=True)
@@ -672,7 +672,7 @@ class Order(models.Model):
     date_downloaded = models.DateTimeField(_("date_downloaded"), blank=True, null=True)
     date_processed = models.DateTimeField(_("date_processed"), blank=True, null=True)
     extract_result = models.FileField(upload_to="extract", null=True, blank=True)
-    extract_result_size = models.IntegerField(_("extract_result_size"), null=True, blank=True)
+    extract_result_size = models.BigIntegerField(_("extract_result_size"), null=True, blank=True)
     download_guid = models.UUIDField(_("download_guid"), null=True, blank=True)
 
     class Meta:
@@ -931,7 +931,7 @@ class OrderItem(models.Model):
     extract_result = models.FileField(
         upload_to=RandomFileName("extract"), null=True, blank=True
     )
-    extract_result_size = models.IntegerField(_("extract_result_size"), null=True, blank=True)
+    extract_result_size = models.BigIntegerField(_("extract_result_size"), null=True, blank=True)
     comment = models.TextField(_("comment"), null=True, blank=True)
     token = models.CharField(_("token"), max_length=256, null=True, blank=True)
     download_guid = models.UUIDField(_("download_guid"), null=True, blank=True, unique=True)

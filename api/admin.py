@@ -163,17 +163,12 @@ class OrderAdmin(CustomGeoModelAdmin):
         """
         This is the way to add custom buttons to admin
         """
-        if obj.extract_result.name:
-            obj.extract_result_size = obj.extract_result.size
-            obj.save()
-        for item in obj.items.all():
-            if item.extract_result.name:
-                item.extract_result_size = item.extract_result.size
-                item.save()
         if "_reset-extract" in request.POST:
             for item in obj.items.all():
+                item.extract_result = None
                 item.status = OrderItem.OrderItemStatus.PENDING
                 item.save()
+            obj.extract_result = None
             obj.order_status = Order.OrderStatus.READY
             obj.save()
             self.message_user(
@@ -195,6 +190,15 @@ class OrderAdmin(CustomGeoModelAdmin):
                     _("Order prices cannot be calculated! Client will not be notified!"), messages.ERROR)
             redirect_url = request.path
             return HttpResponseRedirect(redirect_url)
+
+        if obj.extract_result.name:
+            obj.extract_result_size = obj.extract_result.size
+            obj.save()
+        for item in obj.items.all():
+            if item.extract_result.name:
+                item.extract_result_size = item.extract_result.size
+                item.save()
+        
         return super().response_change(request, obj)
 
 class ProductOwnershipAdmin(CustomGeoModelAdmin):
@@ -202,7 +206,7 @@ class ProductOwnershipAdmin(CustomGeoModelAdmin):
 
 class ProductOwnershipInline(admin.TabularInline):
     model = ProductOwnership
-    extra = 1
+    extra = 0
 
 class ProductAdmin(CustomGeoModelAdmin):
     save_as = True

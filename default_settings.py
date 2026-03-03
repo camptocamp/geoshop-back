@@ -21,8 +21,8 @@ DEBUG = False
 # Only for windows dev mode without docker
 if os.name == 'nt' and os.environ.get('DEBUG'):
     DEBUG = True
-    GDAL_LIBRARY_PATH = 'C:/OSGeo4W/bin/gdal302'
-    GEOS_LIBRARY_PATH = 'C:/OSGeo4W/bin/geos_c'
+    GDAL_LIBRARY_PATH = os.environ.get('GDAL_LIBRARY_PATH', 'C:/OSGeo4W/bin/gdal302')
+    GEOS_LIBRARY_PATH = os.environ.get('GEOS_LIBRARY_PATH', 'C:/OSGeo4W/bin/geos_c')
 
 ALLOWED_HOSTS = os.environ["ALLOWED_HOST"].split(",")
 
@@ -216,7 +216,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,
