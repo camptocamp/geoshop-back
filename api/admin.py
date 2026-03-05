@@ -202,7 +202,7 @@ class ProductOwnershipAdmin(CustomGeoModelAdmin):
 
 class ProductOwnershipInline(admin.TabularInline):
     model = ProductOwnership
-    extra = 1
+    extra = 0
 
 class ProductAdmin(CustomGeoModelAdmin):
     save_as = True
