@@ -194,6 +194,7 @@ class OrderAdmin(CustomGeoModelAdmin):
             if item.extract_result.name:
                 item.extract_result_size = item.extract_result.size
                 item.save()
+
         return super().response_change(request, obj)
 
 class ProductOwnershipAdmin(CustomGeoModelAdmin):
@@ -278,7 +279,6 @@ class UserAdmin(BaseUserAdmin):
                     _("User is not active yet! Client will not be notified!"), messages.ERROR)
             redirect_url = request.path
             return HttpResponseRedirect(redirect_url)
-
         return super().response_change(request, obj)
 
 admin.site.unregister(UserModel)

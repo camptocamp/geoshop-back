@@ -183,6 +183,7 @@ class MetadataContactViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MetadataContact.objects.all()
     serializer_class = MetadataContactSerializer
 
+
 class MultiSerializerMixin():
     serializers = {
         'default': None,
