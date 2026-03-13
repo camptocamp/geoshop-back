@@ -2,7 +2,7 @@ import io
 import os
 import logging
 from django.db import connection
-from django.db.models import OuterRef, Subquery, Value
+from django.db.models import Value
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model

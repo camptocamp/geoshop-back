@@ -1,6 +1,5 @@
 import mimetypes
 from pathlib import Path
-import shapely.geometry
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -179,7 +178,7 @@ class MetadataViewSet(viewsets.ReadOnlyModelViewSet):
 
 class MetadataContactViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows MetadataContact to be viewed.
+    API endpoint that allows public metadata contacts to be viewed.
     """
     queryset = MetadataContact.objects.all()
     serializer_class = MetadataContactSerializer
