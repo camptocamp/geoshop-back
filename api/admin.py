@@ -1,6 +1,3 @@
-from pathlib import Path
-import os
-
 from django import forms
 from django.conf import settings
 from django.contrib import messages
@@ -10,7 +7,6 @@ from django.contrib.gis import admin
 from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 from django_extended_ol.forms.widgets import WMTSWidget
-from django.contrib.auth.models import Group
 
 from .helpers import send_geoshop_email
 from .models import (
@@ -163,17 +159,12 @@ class OrderAdmin(CustomGeoModelAdmin):
         """
         This is the way to add custom buttons to admin
         """
-        if obj.extract_result.name:
-            obj.extract_result_size = obj.extract_result.size
-            obj.save()
-        for item in obj.items.all():
-            if item.extract_result.name:
-                item.extract_result_size = item.extract_result.size
-                item.save()
         if "_reset-extract" in request.POST:
             for item in obj.items.all():
+                item.extract_result = None
                 item.status = OrderItem.OrderItemStatus.PENDING
                 item.save()
+            obj.extract_result = None
             obj.order_status = Order.OrderStatus.READY
             obj.save()
             self.message_user(
@@ -195,6 +186,15 @@ class OrderAdmin(CustomGeoModelAdmin):
                     _("Order prices cannot be calculated! Client will not be notified!"), messages.ERROR)
             redirect_url = request.path
             return HttpResponseRedirect(redirect_url)
+
+        if obj.extract_result.name:
+            obj.extract_result_size = obj.extract_result.size
+            obj.save()
+        for item in obj.items.all():
+            if item.extract_result.name:
+                item.extract_result_size = item.extract_result.size
+                item.save()
+
         return super().response_change(request, obj)
 
 class ProductOwnershipAdmin(CustomGeoModelAdmin):
