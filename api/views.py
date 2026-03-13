@@ -133,7 +133,7 @@ class IdentityViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['email']
     filter_backends = [filters.SearchFilter]
     serializer_class = MetadataIdentitySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         user = self.request.user
