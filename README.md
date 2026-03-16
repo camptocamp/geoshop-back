@@ -88,6 +88,12 @@ python manage.py runserver
 python manage.py test
 ```
 
+## Make translations strings
+
+```shell
+django-admin makemessages -l de --no-location
+```
+
 # OIDC authentication
 
 ## Glossary
