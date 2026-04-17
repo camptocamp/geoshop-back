@@ -322,8 +322,12 @@ class Command(BaseCommand):
                                    {"product_status": Product.ProductStatus.PUBLISHED})
         self.getOrCreate(ProductFormat, product=product1, data_format=data_format)
 
-        product2 = self.addProduct(mma, "Maquette 3D",
-                                    {"product_status": Product.ProductStatus.PUBLISHED})
+        product2 = self.addProduct(mma, "Maquette 3D", {
+            "product_status": Product.ProductStatus.PUBLISHED,
+            "pricing": self.getOrCreate(
+                Pricing, name="Paid", defaults={"pricing_type": Pricing.PricingType.SINGLE}
+             )
+        })
         self.getOrCreate(ProductFormat, product=product2, data_format=data_format_maquette)
         product_deprecated = self.addProduct(
             mma, "MO07 - Objets divers et éléments linéaires - linéaires",
