@@ -215,7 +215,12 @@ class Metadata(models.Model):
         max_length=30,
         choices=MetadataAccessibility.choices,
         default=MetadataAccessibility.PUBLIC,
-    )
+        help_text=_("""<li><b>Public</b>: data can be downloaded without restrictions.</li>
+<li><b>Approval needed</b>: The contact of this metadata with <i>is validator?</i> set
+  to true will have to validate this product for extraction</li>
+<li><b>Not accessible</b>: The metadata is public, everybody knows the data exists but it's
+  not possible to order it (unless you explicitly create a product).</li>
+<li><b>Internal</b>: The metadata is not published.</li>"""))
     scale = models.CharField(_("scale"), max_length=50, blank=True)
     geocat_link = models.CharField(_("geocat_link"), max_length=2000, blank=True)
     legend_link = models.CharField(_("legend_link"), max_length=2000, blank=True)
