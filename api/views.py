@@ -63,6 +63,7 @@ class CopyrightViewSet(viewsets.ReadOnlyModelViewSet):
 class ContactViewSet(mixins.CreateModelMixin,
                      mixins.RetrieveModelMixin,
                      mixins.DestroyModelMixin,
+                     mixins.UpdateModelMixin,
                      mixins.ListModelMixin,
                      viewsets.GenericViewSet):
     """
