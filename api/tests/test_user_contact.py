@@ -88,5 +88,12 @@ class UserContacts(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         url = response.data['results'][0]['url']
 
-        response = self.client.patch(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED, 'PATCH not allowed')
+        new_data = {
+            'first_name': "New first name",
+            'last_name': "New last name"
+        }
+        response = self.client.patch(url, new_data, format='json')
+        self.assertTrue(not data.items() <= response.data.items(), 'Check contact is returned on patch')
+
+        fromdb = self.client.get(url, format='json')
+        self.assertTrue(new_data.items() <= fromdb.data.items(), 'Check contact is updated')
