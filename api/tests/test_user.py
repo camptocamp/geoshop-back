@@ -2,7 +2,9 @@ import os
 
 from django.urls import reverse
 from django.core import mail
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 from api.models import UserChange
@@ -92,7 +94,8 @@ class UserChangeTests(APITestCase):
         change_user = UserChange.objects.filter(last_name='i_got_married').first()
         self.assertEqual(change_user.city, data['city'], 'Check if the city in the DB is the same')
 
-    def test_change_approve(self):
+    @override_settings(ALLOW_IDENTITY_AUTOAPPROVE=False)
+    def test_change_approve_manually(self):
         """
         Tests approval of the user change request
         """
@@ -106,7 +109,31 @@ class UserChangeTests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         self.client.post(url, data, format='json')
         change_user = UserChange.objects.filter(last_name='new_last_name').first()
+        identity_before = UserModel.objects.get(id=change_user.client.id).identity
+        self.assertEqual(identity_before.last_name, data['last_name'], 'Check if the user has NOT been updated')
+
         change_user.approve()
+        updated_identity = UserModel.objects.get(id=change_user.client.id).identity
+        self.assertEqual(updated_identity.last_name, data['last_name'], 'Check if the user has been updated')
+        self.assertEqual(updated_identity.street, data['street'], 'Check if the user has been updated')
+        self.assertEqual(updated_identity.city, data['city'], 'Check if the user has been updated')
+
+    @override_settings(ALLOW_IDENTITY_AUTOAPPROVE=True)
+    def test_change_approve_automatic(self):
+        """
+        Tests automatic approval of the user change request
+        """
+        settings.ALLOW_IDENTITY_AUTOAPPROVE = True
+        url = reverse('auth_change_user')
+        data = {
+            'last_name': 'new_last_name',
+            'street': 'new street name',
+            'city': 'new city',
+            'this_is_fake': ')DELETE * FROM public;('
+        }
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
+        self.client.post(url, data, format='json')
+        change_user = UserChange.objects.filter(last_name='new_last_name').first()
         updated_identity = UserModel.objects.get(id=change_user.client.id).identity
         self.assertEqual(updated_identity.last_name, data['last_name'], 'Check if the user has been updated')
         self.assertEqual(updated_identity.street, data['street'], 'Check if the user has been updated')
