@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-27 16:57+0200\n"
+"POT-Creation-Date: 2026-04-28 16:43+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -181,11 +181,11 @@ msgstr ""
 msgid "user"
 msgstr "utilisateur"
 
-#: api/models.py:142 api/models.py:1136
+#: api/models.py:142 api/models.py:1139
 msgid "ide_number"
 msgstr "Numéro IDE"
 
-#: api/models.py:149 api/models.py:1143
+#: api/models.py:149 api/models.py:1146
 msgid "IDE number is not valid"
 msgstr "Le numéro IDE n'est pas valable"
 
@@ -556,7 +556,7 @@ msgstr "total avec TVA"
 msgid "excludedGeom"
 msgstr ""
 
-#: api/models.py:653 api/models.py:1134
+#: api/models.py:653 api/models.py:1136
 msgid "client"
 msgstr "client"
 
@@ -684,7 +684,7 @@ msgstr "traitement manuel"
 msgid "product_format"
 msgstr "Relation format - produit"
 
-#: api/models.py:1150
+#: api/models.py:1153
 msgid "user_change"
 msgstr "changement d'un utilisateur"
 
@@ -931,7 +931,7 @@ msgstr "Un nouveau compte utilisateur est en attente de validation."
 msgid "Geoshop - New account pending"
 msgstr "Geoshop - Nouveau compte en attente"
 
-#: api/views.py:535 api/views.py:673
+#: api/views.py:535 api/views.py:676
 msgid "Your data was successfully submitted"
 msgstr "Vos données ont été correctement soumises"
 
@@ -955,6 +955,10 @@ msgstr "{} a fait une demande de modification de son profil."
 msgid "Geoshop - Your changes request"
 msgstr "Geoshop - Votre demande de modification"
 
-#: api/views.py:690
+#: api/views.py:675
+msgid "Your data was successfully updated"
+msgstr "Vos données ont été correctement soumises"
+
+#: api/views.py:693
 msgid "ok"
 msgstr "ok"

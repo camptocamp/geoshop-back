@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-27 16:57+0200\n"
+"POT-Creation-Date: 2026-04-28 16:43+0200\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -169,11 +169,11 @@ msgstr ""
 msgid "user"
 msgstr ""
 
-#: api/models.py:142 api/models.py:1136
+#: api/models.py:142 api/models.py:1139
 msgid "ide_number"
 msgstr ""
 
-#: api/models.py:149 api/models.py:1143
+#: api/models.py:149 api/models.py:1146
 msgid "IDE number is not valid"
 msgstr ""
 
@@ -546,7 +546,7 @@ msgstr ""
 msgid "excludedGeom"
 msgstr ""
 
-#: api/models.py:653 api/models.py:1134
+#: api/models.py:653 api/models.py:1136
 msgid "client"
 msgstr ""
 
@@ -670,7 +670,7 @@ msgstr ""
 msgid "product_format"
 msgstr ""
 
-#: api/models.py:1150
+#: api/models.py:1153
 msgid "user_change"
 msgstr ""
 
@@ -916,9 +916,9 @@ msgstr ""
 msgid "Geoshop - New account pending"
 msgstr ""
 
-#: api/views.py:535 api/views.py:673
+#: api/views.py:535 api/views.py:676
 msgid "Your data was successfully submitted"
-msgstr ""
+msgstr "Ihre Daten wurden erfolgreich übermittelt"
 
 #: api/views.py:605
 msgid "No object matches given id"
@@ -940,7 +940,11 @@ msgstr ""
 msgid "Geoshop - Your changes request"
 msgstr ""
 
-#: api/views.py:690
+#: api/views.py:675
+msgid "Your data was successfully updated"
+msgstr "Ihre Daten wurden erfolgreich aktualisiert"
+
+#: api/views.py:693
 msgid "ok"
 msgstr ""
 
