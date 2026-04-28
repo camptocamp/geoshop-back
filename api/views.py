@@ -670,7 +670,6 @@ class UserChangeView(generics.CreateAPIView):
             template_name='email_user_change',
             template_data=UserIdentitySerializer(base_user).data
         )
-
         return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
 
 

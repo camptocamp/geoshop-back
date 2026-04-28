@@ -22,7 +22,8 @@ from .models import (
     Pricing,
     Product,
     ProductFormat,
-    ProductOwnership)
+    ProductOwnership,
+    UserChange)
 
 UserModel = get_user_model()
 
@@ -281,8 +282,36 @@ class UserAdmin(BaseUserAdmin):
             return HttpResponseRedirect(redirect_url)
         return super().response_change(request, obj)
 
+
+class UserChangeAdmin(CustomModelAdmin):
+    model = UserChange
+    change_form_template = 'admin/api/user_update_form.html'
+
+    _excluded_fields = ['id', 'belongs_to']
+
+    def response_change(self, request, obj):
+        if "_approve-changes" not in request.POST:
+            return super().response_change(request, obj)
+        contact = obj.client.identity
+        fields_to_copy = [
+            f.name for f in contact._meta.get_fields()
+            if f.concrete and not f.primary_key and (f.name not in self._excluded_fields)
+        ]
+        update_data = {
+            field: getattr(obj, field)
+            for field in fields_to_copy
+            if hasattr(obj, field)
+        }
+        for field, value in update_data.items():
+            setattr(contact, field, value)
+        contact.full_clean()
+        contact.save()
+
+        return super().response_change(request, obj)
+
 admin.site.unregister(UserModel)
 admin.site.register(UserModel, UserAdmin)
+admin.site.register(UserChange, UserChangeAdmin)
 
 admin.site.register(Copyright)
 admin.site.register(Document, DocumentAdmin)
