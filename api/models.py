@@ -1131,7 +1131,10 @@ class UserChange(AbstractIdentity):
     Stores temporary data in order to proceed user profile change requests.
     """
 
+    _excluded_fields = ['id', 'belongs_to']
+
     client = models.ForeignKey(UserModel, models.CASCADE, verbose_name=_("client"))
+    date_created = models.DateTimeField(auto_now=True)
     ide_id = models.CharField(
         _("ide_number"),
         max_length=15,
@@ -1148,3 +1151,19 @@ class UserChange(AbstractIdentity):
     class Meta:
         db_table = "user_change"
         verbose_name = _("user_change")
+
+    def approve(self):
+        contact = self.client.identity
+        fields_to_copy = [
+            f.name for f in contact._meta.get_fields()
+            if f.concrete and not f.primary_key and (f.name not in self._excluded_fields)
+        ]
+        update_data = {
+            field: getattr(self, field)
+            for field in fields_to_copy
+            if hasattr(self, field)
+        }
+        for field, value in update_data.items():
+            setattr(contact, field, value)
+        contact.full_clean()
+        contact.save()

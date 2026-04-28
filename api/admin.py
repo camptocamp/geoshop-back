@@ -285,28 +285,14 @@ class UserAdmin(BaseUserAdmin):
 
 class UserChangeAdmin(CustomModelAdmin):
     model = UserChange
+    list_display = ['client', 'last_name', 'date_created']
+    readonly_fields = ('date_created',)
     change_form_template = 'admin/api/user_update_form.html'
-
-    _excluded_fields = ['id', 'belongs_to']
 
     def response_change(self, request, obj):
         if "_approve-changes" not in request.POST:
             return super().response_change(request, obj)
-        contact = obj.client.identity
-        fields_to_copy = [
-            f.name for f in contact._meta.get_fields()
-            if f.concrete and not f.primary_key and (f.name not in self._excluded_fields)
-        ]
-        update_data = {
-            field: getattr(obj, field)
-            for field in fields_to_copy
-            if hasattr(obj, field)
-        }
-        for field, value in update_data.items():
-            setattr(contact, field, value)
-        contact.full_clean()
-        contact.save()
-
+        obj.approve()
         return super().response_change(request, obj)
 
 admin.site.unregister(UserModel)
