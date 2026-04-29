@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-17 18:40+0200\n"
+"POT-Creation-Date: 2026-04-28 16:43+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,43 +17,43 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: api/admin.py:128
+#: api/admin.py:125
 msgid "Invoice contact does not belong to the client of this order!"
 msgstr ""
 
-#: api/admin.py:181
+#: api/admin.py:173
 msgid "All the items have been submitted to Extract again."
 msgstr ""
 
-#: api/admin.py:191
+#: api/admin.py:183
 msgid "Quote has been successfully done and an email has been sent to client"
 msgstr ""
 
-#: api/admin.py:195
+#: api/admin.py:187
 msgid "Order prices cannot be calculated! Client will not be notified!"
 msgstr ""
 
-#: api/admin.py:242
+#: api/admin.py:243
 msgid "Permissions"
 msgstr ""
 
-#: api/admin.py:245
+#: api/admin.py:246
 msgid "Important dates"
 msgstr ""
 
-#: api/admin.py:263
+#: api/admin.py:264
 msgid "Registration confirmation"
 msgstr ""
 
-#: api/admin.py:267
+#: api/admin.py:268
 msgid "Your account has been registered successfully."
 msgstr ""
 
-#: api/admin.py:275
+#: api/admin.py:276
 msgid "User is registered and an email has been sent to client"
 msgstr ""
 
-#: api/admin.py:279
+#: api/admin.py:280
 msgid "User is not active yet! Client will not be notified!"
 msgstr ""
 
@@ -65,611 +65,607 @@ msgstr ""
 msgid "A search term."
 msgstr ""
 
-#: api/models.py:33
+#: api/models.py:34
 msgid "first_name"
 msgstr ""
 
-#: api/models.py:34
+#: api/models.py:35
 msgid "last_name"
 msgstr ""
 
-#: api/models.py:35
+#: api/models.py:36
 msgid "email"
 msgstr ""
 
-#: api/models.py:36
+#: api/models.py:37
 msgid "street"
 msgstr ""
 
-#: api/models.py:37
+#: api/models.py:38
 msgid "street2"
 msgstr ""
 
-#: api/models.py:38
+#: api/models.py:39
 msgid "postcode"
 msgstr ""
 
-#: api/models.py:39
+#: api/models.py:40
 msgid "city"
 msgstr ""
 
-#: api/models.py:40
+#: api/models.py:41
 msgid "country"
 msgstr ""
 
-#: api/models.py:41
+#: api/models.py:42
 msgid "company_name"
 msgstr ""
 
-#: api/models.py:42
+#: api/models.py:43
 msgid "phone"
 msgstr ""
 
-#: api/models.py:60
+#: api/models.py:61
 msgid "belongs_to"
 msgstr ""
 
-#: api/models.py:62 api/models.py:139
+#: api/models.py:63 api/models.py:140
 msgid "sap_id"
 msgstr ""
 
-#: api/models.py:63 api/models.py:161
+#: api/models.py:64 api/models.py:164
 msgid "subscribed"
 msgstr ""
 
-#: api/models.py:64
+#: api/models.py:65
 msgid "is_active"
 msgstr ""
 
-#: api/models.py:68
+#: api/models.py:69
 msgid "contact"
 msgstr ""
 
-#: api/models.py:76 api/models.py:228
+#: api/models.py:77 api/models.py:236
 msgid "copyright"
 msgstr ""
 
-#: api/models.py:87 api/models.py:101 api/models.py:112 api/models.py:197
-#: api/models.py:339 api/models.py:407
+#: api/models.py:88 api/models.py:102 api/models.py:113 api/models.py:200
+#: api/models.py:370 api/models.py:438
 msgid "name"
 msgstr ""
 
-#: api/models.py:89 api/models.py:658
+#: api/models.py:90 api/models.py:704
 msgid "link"
 msgstr ""
 
-#: api/models.py:89
+#: api/models.py:90
 msgid "Please complete the above URL"
 msgstr ""
 
-#: api/models.py:94
+#: api/models.py:95
 msgid "document"
 msgstr ""
 
-#: api/models.py:105 api/models.py:864 api/models.py:1076
+#: api/models.py:106 api/models.py:905 api/models.py:1118
 msgid "data_format"
 msgstr ""
 
-#: api/models.py:116
+#: api/models.py:117
 msgid "order type"
 msgstr ""
 
-#: api/models.py:117
+#: api/models.py:118
 msgid "order types"
 msgstr ""
 
-#: api/models.py:128
+#: api/models.py:129
 msgid "English"
 msgstr ""
 
-#: api/models.py:129
+#: api/models.py:130
 msgid "German"
 msgstr ""
 
-#: api/models.py:130
+#: api/models.py:131
 msgid "French"
 msgstr ""
 
-#: api/models.py:135
+#: api/models.py:136
 msgid "user"
 msgstr ""
 
-#: api/models.py:141 api/models.py:1094
+#: api/models.py:142 api/models.py:1139
 msgid "ide_number"
 msgstr ""
 
-#: api/models.py:148 api/models.py:1101
+#: api/models.py:149 api/models.py:1146
 msgid "IDE number is not valid"
 msgstr ""
 
-#: api/models.py:153
+#: api/models.py:154
 msgid "language"
 msgstr ""
 
-#: api/models.py:159
+#: api/models.py:162
 msgid "contract_accepted"
 msgstr ""
 
-#: api/models.py:160
+#: api/models.py:163
 msgid "is_public"
 msgstr ""
 
-#: api/models.py:162
+#: api/models.py:165
 msgid "birthday"
 msgstr ""
 
-#: api/models.py:166
+#: api/models.py:169
 msgid "identity"
 msgstr ""
 
-#: api/models.py:174
+#: api/models.py:177
 msgid "notation"
 msgstr ""
 
-#: api/models.py:175
+#: api/models.py:178
 msgid "description_fr"
 msgstr ""
 
-#: api/models.py:179
+#: api/models.py:182
 msgid "metadata_category_ech"
 msgstr ""
 
-#: api/models.py:191
+#: api/models.py:194
 msgid "Public"
 msgstr ""
 
-#: api/models.py:192
+#: api/models.py:195
 msgid "Approval needed"
 msgstr ""
 
-#: api/models.py:193
+#: api/models.py:196
 msgid "Not accessible"
 msgstr ""
 
-#: api/models.py:194
+#: api/models.py:197
 msgid "Internal"
 msgstr ""
 
-#: api/models.py:196
+#: api/models.py:199
 msgid "id_name"
 msgstr ""
 
-#: api/models.py:201
+#: api/models.py:204
 msgid "ech_category"
 msgstr ""
 
-#: api/models.py:205
+#: api/models.py:208
 msgid "description_long"
 msgstr ""
 
-#: api/models.py:206
+#: api/models.py:209
 msgid "genealogy"
 msgstr ""
 
-#: api/models.py:208
+#: api/models.py:211
 msgid "datasource"
 msgstr ""
 
-#: api/models.py:211
+#: api/models.py:214
 msgid "accessibility"
 msgstr ""
 
-#: api/models.py:216
+#: api/models.py:218
+msgid ""
+"<li><b>Public</b>: data can be downloaded without restrictions.</li>\n"
+"<li><b>Approval needed</b>: The contact of this metadata with <i>is "
+"validator?</i> set\n"
+"  to true will have to validate this product for extraction</li>\n"
+"<li><b>Not accessible</b>: The metadata is public, everybody knows the data "
+"exists but it's\n"
+"  not possible to order it (unless you explicitly create a product).</li>\n"
+"<li><b>Internal</b>: The metadata is not published.</li>"
+msgstr ""
+
+#: api/models.py:224
 msgid "scale"
 msgstr ""
 
-#: api/models.py:217
+#: api/models.py:225
 msgid "geocat_link"
 msgstr ""
 
-#: api/models.py:218
+#: api/models.py:226
 msgid "legend_link"
 msgstr ""
 
-#: api/models.py:220
+#: api/models.py:228
 msgid "image_link"
 msgstr ""
 
-#: api/models.py:225
+#: api/models.py:233
 msgid "wms_link"
 msgstr ""
 
-#: api/models.py:226
+#: api/models.py:234
 msgid "geoportal_link"
 msgstr ""
 
-#: api/models.py:231
+#: api/models.py:239
 msgid "documents"
 msgstr ""
 
-#: api/models.py:235 api/templates/metadata.html:57
+#: api/models.py:243 api/templates/metadata.html:57
 msgid "contact_persons"
 msgstr ""
 
-#: api/models.py:243
+#: api/models.py:251
 msgid "modified_user"
 msgstr ""
 
-#: api/models.py:247 api/templates/metadata.html:38
+#: api/models.py:255 api/templates/metadata.html:38
 #: api/templates/metadata_simple.html:23
 msgid "data_last_update_date"
 msgstr ""
 
-#: api/models.py:250 api/templates/metadata.html:48
+#: api/models.py:258 api/templates/metadata.html:48
 #: api/templates/metadata_simple.html:33
 msgid "update_frequency"
 msgstr ""
 
-#: api/models.py:255 api/models.py:300 api/models.py:454
+#: api/models.py:263 api/models.py:331 api/models.py:485
 msgid "metadata"
 msgstr ""
 
-#: api/models.py:259
+#: api/models.py:267
 msgid "Can view metadata with accessibility set to \"internal\""
 msgstr ""
 
-#: api/models.py:283 api/templates/metadata.html:97
+#: api/models.py:314 api/templates/metadata.html:97
 msgid "legend"
 msgstr ""
 
-#: api/models.py:292
+#: api/models.py:323
 msgid "image"
 msgstr ""
 
-#: api/models.py:304
+#: api/models.py:335
 msgid "contact_person"
 msgstr ""
 
-#: api/models.py:307
+#: api/models.py:338
 msgid "role"
 msgstr ""
 
-#: api/models.py:307
+#: api/models.py:338
 msgid "Manager"
 msgstr ""
 
-#: api/models.py:308
+#: api/models.py:339
 msgid "is_validator"
 msgstr ""
 
-#: api/models.py:312
+#: api/models.py:343
 msgid "metadata_contact"
 msgstr ""
 
-#: api/models.py:329
+#: api/models.py:360
 msgid "Free"
 msgstr ""
 
-#: api/models.py:330
+#: api/models.py:361
 msgid "Single"
 msgstr ""
 
-#: api/models.py:331
+#: api/models.py:362
 msgid "By number of objects"
 msgstr ""
 
-#: api/models.py:332
+#: api/models.py:363
 msgid "By area"
 msgstr ""
 
-#: api/models.py:333
+#: api/models.py:364
 msgid "From a pricing layer"
 msgstr ""
 
-#: api/models.py:335
+#: api/models.py:366
 msgid "From children products of this group"
 msgstr ""
 
-#: api/models.py:337
+#: api/models.py:368
 msgid "Manual"
 msgstr ""
 
-#: api/models.py:341
+#: api/models.py:372
 msgid "pricing_type"
 msgstr ""
 
-#: api/models.py:344 api/models.py:890
+#: api/models.py:375 api/models.py:931
 msgid "base_fee"
 msgstr ""
 
-#: api/models.py:352
+#: api/models.py:383
 msgid "min_price"
 msgstr ""
 
-#: api/models.py:360
+#: api/models.py:391
 msgid "max_price"
 msgstr ""
 
-#: api/models.py:368
+#: api/models.py:399
 msgid "unit_price"
 msgstr ""
 
-#: api/models.py:378 api/models.py:417 api/models.py:489
+#: api/models.py:409 api/models.py:448 api/models.py:520
 msgid "pricing"
 msgstr ""
 
-#: api/models.py:409 api/models.py:882
+#: api/models.py:440 api/models.py:923
 msgid "price"
 msgstr ""
 
-#: api/models.py:415 api/models.py:501 api/models.py:535 api/models.py:603
+#: api/models.py:446 api/models.py:532 api/models.py:581 api/models.py:649
 msgid "geom"
 msgstr ""
 
-#: api/models.py:422
+#: api/models.py:453
 msgid "pricing_layer"
 msgstr ""
 
-#: api/models.py:444 api/models.py:548
+#: api/models.py:475 api/models.py:594
 msgid "Draft"
 msgstr ""
 
-#: api/models.py:445
+#: api/models.py:476
 msgid "Published"
 msgstr ""
 
-#: api/models.py:447
+#: api/models.py:478
 msgid "Published only in group"
 msgstr ""
 
-#: api/models.py:449
+#: api/models.py:480
 msgid "Deprecated"
 msgstr ""
 
-#: api/models.py:459
+#: api/models.py:490
 msgid "label"
 msgstr ""
 
-#: api/models.py:465
+#: api/models.py:496
 msgid "Label contains forbidden characters"
 msgstr ""
 
-#: api/models.py:470
+#: api/models.py:501
 msgid "product_status"
 msgstr ""
 
-#: api/models.py:478
+#: api/models.py:509
 msgid "group"
 msgstr ""
 
-#: api/models.py:486
+#: api/models.py:517
 msgid "provider"
 msgstr ""
 
-#: api/models.py:490
+#: api/models.py:521
 msgid "free_when_subscribed"
 msgstr ""
 
-#: api/models.py:491
+#: api/models.py:522
 msgid "order_index"
 msgstr ""
 
-#: api/models.py:493
+#: api/models.py:524
 msgid "thumbnail_link"
 msgstr ""
 
-#: api/models.py:499
+#: api/models.py:530
 msgid "max_order_area"
 msgstr ""
 
-#: api/models.py:508 api/models.py:532 api/models.py:861 api/models.py:1060
-#: api/models.py:1072
+#: api/models.py:539 api/models.py:578 api/models.py:902 api/models.py:1102
+#: api/models.py:1114
 msgid "product"
 msgstr ""
 
-#: api/models.py:525
+#: api/models.py:571
 msgid "thumbnail"
 msgstr ""
 
-#: api/models.py:529
+#: api/models.py:575
 msgid "user_group"
 msgstr ""
 
-#: api/models.py:549 api/models.py:840 api/models.py:846
+#: api/models.py:595 api/models.py:881 api/models.py:887
 msgid "Pending"
 msgstr ""
 
-#: api/models.py:550
+#: api/models.py:596
 msgid "Quote done"
 msgstr ""
 
-#: api/models.py:551
+#: api/models.py:597
 msgid "Ready"
 msgstr ""
 
-#: api/models.py:552 api/models.py:847
+#: api/models.py:598 api/models.py:888
 msgid "In extract"
 msgstr ""
 
-#: api/models.py:553
+#: api/models.py:599
 msgid "Partially delivered"
 msgstr ""
 
-#: api/models.py:554 api/models.py:848
+#: api/models.py:600 api/models.py:889
 msgid "Processed"
 msgstr ""
 
-#: api/models.py:555 api/models.py:849
+#: api/models.py:601 api/models.py:890
 msgid "Archived"
 msgstr ""
 
-#: api/models.py:556 api/models.py:850
+#: api/models.py:602 api/models.py:891
 msgid "Rejected"
 msgstr ""
 
-#: api/models.py:559
+#: api/models.py:605
 msgid "title"
 msgstr ""
 
-#: api/models.py:564
+#: api/models.py:610
 msgid "Title contains forbidden characters"
 msgstr ""
 
-#: api/models.py:570
+#: api/models.py:616
 msgid "description"
 msgstr ""
 
-#: api/models.py:572
+#: api/models.py:618
 msgid "processing_fee"
 msgstr ""
 
-#: api/models.py:580
+#: api/models.py:626
 msgid "total_without_vat"
 msgstr ""
 
-#: api/models.py:588
+#: api/models.py:634
 msgid "part_vat"
 msgstr ""
 
-#: api/models.py:596
+#: api/models.py:642
 msgid "total_with_vat"
 msgstr ""
 
-#: api/models.py:604
+#: api/models.py:650
 msgid "excludedGeom"
 msgstr ""
 
-#: api/models.py:607 api/models.py:1092
+#: api/models.py:653 api/models.py:1136
 msgid "client"
 msgstr ""
 
-#: api/models.py:612
+#: api/models.py:658
 msgid "invoice_contact"
 msgstr ""
 
-#: api/models.py:618
+#: api/models.py:664
 msgid "invoice_reference"
 msgstr ""
 
-#: api/models.py:621
+#: api/models.py:667
 msgid "email_deliver"
 msgstr ""
 
-#: api/models.py:624
+#: api/models.py:670
 msgid "order_type"
 msgstr ""
 
-#: api/models.py:627
+#: api/models.py:673
 msgid "order_status"
 msgstr ""
 
-#: api/models.py:632
+#: api/models.py:678
 msgid "date_ordered"
 msgstr ""
 
-#: api/models.py:633
+#: api/models.py:679
 msgid "date_downloaded"
 msgstr ""
 
-#: api/models.py:634
+#: api/models.py:680
 msgid "date_processed"
 msgstr ""
 
-#: api/models.py:636 api/models.py:900
+#: api/models.py:682 api/models.py:941
 msgid "extract_result_size"
 msgstr ""
 
-#: api/models.py:637 api/models.py:903
+#: api/models.py:683 api/models.py:944
 msgid "download_guid"
 msgstr ""
 
-#: api/models.py:642 api/models.py:657 api/models.py:856 api/serializers.py:384
+#: api/models.py:688 api/models.py:703 api/models.py:897 api/serializers.py:384
 msgid "order"
 msgstr ""
 
-#: api/models.py:652
-msgid "Geoshop - Quote requested"
-msgstr ""
-
-#: api/models.py:655
+#: api/models.py:701
 msgid "A new quote has been requested:"
 msgstr ""
 
-#: api/models.py:692
-msgid "Geoshop - Quote has been done"
-msgstr ""
-
-#: api/models.py:797
-msgid "Geoshop - Download ready"
-msgstr ""
-
-#: api/models.py:841
+#: api/models.py:882
 msgid "Calculated"
 msgstr ""
 
-#: api/models.py:842
+#: api/models.py:883
 msgid "Imported"
 msgstr ""
 
-#: api/models.py:845
+#: api/models.py:886
 msgid "Validation pending"
 msgstr ""
 
-#: api/models.py:866
+#: api/models.py:907
 msgid "srid"
 msgstr ""
 
-#: api/models.py:867
+#: api/models.py:908
 msgid "last_download"
 msgstr ""
 
-#: api/models.py:868
+#: api/models.py:909
 msgid "validation_date"
 msgstr ""
 
-#: api/models.py:870
+#: api/models.py:911
 msgid "price_status"
 msgstr ""
 
-#: api/models.py:876
+#: api/models.py:917
 msgid "status"
 msgstr ""
 
-#: api/models.py:901
+#: api/models.py:942
 msgid "comment"
 msgstr ""
 
-#: api/models.py:902
+#: api/models.py:943
 msgid "token"
 msgstr ""
 
-#: api/models.py:907
+#: api/models.py:948
 msgid "order_item"
 msgstr ""
 
-#: api/models.py:1024
-msgid "Geoshop - Validation requested"
-msgstr ""
-
-#: api/models.py:1051
+#: api/models.py:1093
 msgid "db_name"
 msgstr ""
 
-#: api/models.py:1052
+#: api/models.py:1094
 msgid "export_name"
 msgstr ""
 
-#: api/models.py:1054
+#: api/models.py:1096
 msgid "field_type"
 msgstr ""
 
-#: api/models.py:1057
+#: api/models.py:1099
 msgid "field_length"
 msgstr ""
 
-#: api/models.py:1065
+#: api/models.py:1107
 msgid "product_field"
 msgstr ""
 
-#: api/models.py:1079
+#: api/models.py:1121
 msgid "is_manual"
 msgstr ""
 
-#: api/models.py:1084
+#: api/models.py:1126
 msgid "product_format"
 msgstr ""
 
-#: api/models.py:1108
+#: api/models.py:1153
 msgid "user_change"
 msgstr ""
 
@@ -711,7 +707,7 @@ msgstr ""
 msgid "A new order has been submitted and its geometry is invalid:"
 msgstr ""
 
-#: api/serializers.py:702
+#: api/serializers.py:707
 msgid "The two password fields didn't match."
 msgstr ""
 
@@ -725,6 +721,10 @@ msgstr ""
 
 #: api/templates/admin/api/user_change_form.html:7
 msgid "Send confirmation email to client"
+msgstr ""
+
+#: api/templates/admin/api/user_update_form.html:7
+msgid "Approve changes"
 msgstr ""
 
 #: api/templates/email_admin.html:4
@@ -885,7 +885,7 @@ msgstr ""
 msgid "Geoshop - New account pending"
 msgstr ""
 
-#: api/views.py:535 api/views.py:674
+#: api/views.py:535 api/views.py:676
 msgid "Your data was successfully submitted"
 msgstr ""
 
@@ -909,6 +909,10 @@ msgstr ""
 msgid "Geoshop - Your changes request"
 msgstr ""
 
-#: api/views.py:691
+#: api/views.py:675
+msgid "Your data was successfully updated"
+msgstr ""
+
+#: api/views.py:693
 msgid "ok"
 msgstr ""

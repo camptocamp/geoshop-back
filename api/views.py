@@ -643,7 +643,7 @@ class UserChangeView(generics.CreateAPIView):
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        proposal = serializer.save()
         base_user = UserModel.objects.get(pk=request.user.id)
 
         changes = {}
@@ -670,7 +670,9 @@ class UserChangeView(generics.CreateAPIView):
             template_name='email_user_change',
             template_data=UserIdentitySerializer(base_user).data
         )
-
+        if settings.ALLOW_IDENTITY_AUTOAPPROVE:
+            proposal.approve()
+            return Response({'detail': _('Your data was successfully updated')}, status=status.HTTP_200_OK)
         return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
 
 

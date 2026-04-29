@@ -22,7 +22,8 @@ from .models import (
     Pricing,
     Product,
     ProductFormat,
-    ProductOwnership)
+    ProductOwnership,
+    UserChange)
 
 UserModel = get_user_model()
 
@@ -281,8 +282,22 @@ class UserAdmin(BaseUserAdmin):
             return HttpResponseRedirect(redirect_url)
         return super().response_change(request, obj)
 
+
+class UserChangeAdmin(CustomModelAdmin):
+    model = UserChange
+    list_display = ['client', 'last_name', 'date_created']
+    readonly_fields = ('date_created',)
+    change_form_template = 'admin/api/user_update_form.html'
+
+    def response_change(self, request, obj):
+        if "_approve-changes" not in request.POST:
+            return super().response_change(request, obj)
+        obj.approve()
+        return super().response_change(request, obj)
+
 admin.site.unregister(UserModel)
 admin.site.register(UserModel, UserAdmin)
+admin.site.register(UserChange, UserChangeAdmin)
 
 admin.site.register(Copyright)
 admin.site.register(Document, DocumentAdmin)
