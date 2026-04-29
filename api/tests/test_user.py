@@ -110,7 +110,7 @@ class UserChangeTests(APITestCase):
         self.client.post(url, data, format='json')
         change_user = UserChange.objects.filter(last_name='new_last_name').first()
         identity_before = UserModel.objects.get(id=change_user.client.id).identity
-        self.assertEqual(identity_before.last_name, data['last_name'], 'Check if the user has NOT been updated')
+        self.assertNotEqual(identity_before.last_name, data['last_name'], 'Check if the user has NOT been updated')
 
         change_user.approve()
         updated_identity = UserModel.objects.get(id=change_user.client.id).identity
