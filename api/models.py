@@ -1134,7 +1134,7 @@ class UserChange(AbstractIdentity):
     _excluded_fields = ['id', 'belongs_to']
 
     client = models.ForeignKey(UserModel, models.CASCADE, verbose_name=_("client"))
-    date_created = models.DateTimeField(auto_now=True)
+    date_created = models.DateTimeField(auto_now_add=True)
     ide_id = models.CharField(
         _("ide_number"),
         max_length=15,

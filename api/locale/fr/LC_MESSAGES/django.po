@@ -957,7 +957,7 @@ msgstr "Geoshop - Votre demande de modification"
 
 #: api/views.py:675
 msgid "Your data was successfully updated"
-msgstr "Vos données ont été correctement soumises"
+msgstr "Vos données ont été correctement mises à jour"
 
 #: api/views.py:693
 msgid "ok"

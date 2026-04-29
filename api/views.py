@@ -670,8 +670,8 @@ class UserChangeView(generics.CreateAPIView):
             template_name='email_user_change',
             template_data=UserIdentitySerializer(base_user).data
         )
-        proposal.approve()
         if settings.ALLOW_IDENTITY_AUTOAPPROVE:
+            proposal.approve()
             return Response({'detail': _('Your data was successfully updated')}, status=status.HTTP_200_OK)
         return Response({'detail': _('Your data was successfully submitted')}, status=status.HTTP_200_OK)
 

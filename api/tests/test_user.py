@@ -123,7 +123,6 @@ class UserChangeTests(APITestCase):
         """
         Tests automatic approval of the user change request
         """
-        settings.ALLOW_IDENTITY_AUTOAPPROVE = True
         url = reverse('auth_change_user')
         data = {
             'last_name': 'new_last_name',
