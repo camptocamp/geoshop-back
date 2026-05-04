@@ -820,7 +820,7 @@ class Order(models.Model):
             Order.OrderStatus.PARTIALLY_DELIVERED,
         ]
         if self.order_status not in previous_accepted_status:
-            raise Exception("Order has an inappropriate status after input")
+            raise Exception(f"Order has an inappropriate status after input: {self.order_status} not in {previous_accepted_status}")
         items_statuses = set(self.items.all().values_list("status", flat=True))
 
         if (
@@ -907,6 +907,8 @@ class OrderItem(models.Model):
     srid = models.IntegerField(_("srid"), default=settings.DEFAULT_SRID)
     last_download = models.DateTimeField(_("last_download"), blank=True, null=True)
     validation_date = models.DateTimeField(_("validation_date"), blank=True, null=True)
+    validation_reason = models.CharField(_("validation_reason"), max_length=2048, blank=True, null=True)
+
     price_status = models.CharField(
         _("price_status"),
         max_length=20,

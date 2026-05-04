@@ -577,6 +577,7 @@ class OrderItemByTokenView(generics.RetrieveAPIView):
         validation_serializer.is_valid()
         is_validated = validation_serializer.validated_data['is_validated']
         item.validation_date = timezone.now()
+        item.validation_reason = validation_serializer.validated_data.get('validation_reason', '')
 
         if is_validated:
             item.status = OrderItem.OrderItemStatus.PENDING
