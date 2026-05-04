@@ -439,13 +439,15 @@ class OrderTests(APITestCase):
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         data = {
-            "is_validated": True
+            "is_validated": True,
+            "validation_reason": "Validation reason"
         }
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         order = Order.objects.get(pk=order_id)
-        item = order.items.first()
+        item = order.items.filter(token=item.token).first()
         self.assertEqual(OrderItem.OrderItemStatus.PENDING, item.status, 'Item is ready for extraction')
+        self.assertEqual("Validation reason", item.validation_reason, 'Validation reason is set')
 
     def test_order_item_validation(self):
         """

@@ -738,6 +738,7 @@ class UserChangeSerializer(serializers.ModelSerializer):
 
 class ValidationSerializer(serializers.Serializer):
     is_validated = serializers.BooleanField()
+    validation_reason = serializers.CharField(required=False, allow_blank=True)
 
 
 class VerifyEmailSerializer(serializers.Serializer):
