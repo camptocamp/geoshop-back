@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
-from api.models import UserChange
+from api.models import UserChange, AbstractIdentity
 
 UserModel = get_user_model()
 
@@ -35,6 +35,7 @@ class UserChangeTests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue('access' in resp.data)
         self.token = resp.data['access']
+        mail.outbox = []
 
     def test_user_create_private(self):
         url = reverse('auth_register')
@@ -99,6 +100,8 @@ class UserChangeTests(APITestCase):
         """
         Tests approval of the user change request
         """
+        self.user.identity.email = 'admin@example.com'
+        self.user.identity.save()
         url = reverse('auth_change_user')
         data = {
             'last_name': 'new_last_name',
@@ -117,6 +120,7 @@ class UserChangeTests(APITestCase):
         self.assertEqual(updated_identity.last_name, data['last_name'], 'Check if the user has been updated')
         self.assertEqual(updated_identity.street, data['street'], 'Check if the user has been updated')
         self.assertEqual(updated_identity.city, data['city'], 'Check if the user has been updated')
+        self.assertEqual(len(mail.outbox), 2, 'An email has been sent to admins and to the new user')
 
     @override_settings(ALLOW_IDENTITY_AUTOAPPROVE=True)
     def test_change_approve_automatic(self):
@@ -128,6 +132,7 @@ class UserChangeTests(APITestCase):
             'last_name': 'new_last_name',
             'street': 'new street name',
             'city': 'new city',
+            'email': 'admin@example.com',
             'this_is_fake': ')DELETE * FROM public;('
         }
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
@@ -137,3 +142,4 @@ class UserChangeTests(APITestCase):
         self.assertEqual(updated_identity.last_name, data['last_name'], 'Check if the user has been updated')
         self.assertEqual(updated_identity.street, data['street'], 'Check if the user has been updated')
         self.assertEqual(updated_identity.city, data['city'], 'Check if the user has been updated')
+        self.assertEqual(len(mail.outbox), 0, 'No email has been sent')
