@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 16:43+0200\n"
+"POT-Creation-Date: 2026-05-07 14:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -153,7 +153,7 @@ msgstr "Veuillez compléter l'URL ci-dessus"
 msgid "document"
 msgstr "document"
 
-#: api/models.py:106 api/models.py:905 api/models.py:1118
+#: api/models.py:106 api/models.py:905 api/models.py:1120
 msgid "data_format"
 msgstr "format du produit"
 
@@ -181,11 +181,11 @@ msgstr ""
 msgid "user"
 msgstr "utilisateur"
 
-#: api/models.py:142 api/models.py:1139
+#: api/models.py:142 api/models.py:1141
 msgid "ide_number"
 msgstr "Numéro IDE"
 
-#: api/models.py:149 api/models.py:1146
+#: api/models.py:149 api/models.py:1148
 msgid "IDE number is not valid"
 msgstr "Le numéro IDE n'est pas valable"
 
@@ -395,7 +395,7 @@ msgstr "traitement manuel"
 msgid "pricing_type"
 msgstr "type de tarification"
 
-#: api/models.py:375 api/models.py:931
+#: api/models.py:375 api/models.py:933
 msgid "base_fee"
 msgstr "taxe de base"
 
@@ -415,7 +415,7 @@ msgstr "prix unitaire"
 msgid "pricing"
 msgstr "tarification"
 
-#: api/models.py:440 api/models.py:923
+#: api/models.py:440 api/models.py:925
 msgid "price"
 msgstr "prix"
 
@@ -479,8 +479,8 @@ msgstr "lien vers l'aperçu"
 msgid "max_order_area"
 msgstr "Aire maximale de commande"
 
-#: api/models.py:539 api/models.py:578 api/models.py:902 api/models.py:1102
-#: api/models.py:1114
+#: api/models.py:539 api/models.py:578 api/models.py:902 api/models.py:1104
+#: api/models.py:1116
 msgid "product"
 msgstr "produit"
 
@@ -556,7 +556,7 @@ msgstr "total avec TVA"
 msgid "excludedGeom"
 msgstr ""
 
-#: api/models.py:653 api/models.py:1136
+#: api/models.py:653 api/models.py:1138
 msgid "client"
 msgstr "client"
 
@@ -592,11 +592,11 @@ msgstr "date de téléchargement"
 msgid "date_processed"
 msgstr "date de traitement"
 
-#: api/models.py:682 api/models.py:941
+#: api/models.py:682 api/models.py:943
 msgid "extract_result_size"
 msgstr ""
 
-#: api/models.py:683 api/models.py:944
+#: api/models.py:683 api/models.py:946
 msgid "download_guid"
 msgstr "GUID de téléchargement"
 
@@ -636,55 +636,61 @@ msgstr "date du dernier téléchargement"
 msgid "validation_date"
 msgstr "Date de validation"
 
-#: api/models.py:911
+#: api/models.py:910
+#, fuzzy
+#| msgid "validation_date"
+msgid "validation_reason"
+msgstr "Date de validation"
+
+#: api/models.py:913
 msgid "price_status"
 msgstr "statut du prix"
 
-#: api/models.py:917
+#: api/models.py:919
 msgid "status"
 msgstr "statut"
 
-#: api/models.py:942
+#: api/models.py:944
 msgid "comment"
 msgstr "Remarques"
 
-#: api/models.py:943
+#: api/models.py:945
 msgid "token"
 msgstr "jeton"
 
-#: api/models.py:948
+#: api/models.py:950
 msgid "order_item"
 msgstr "produit commandé"
 
-#: api/models.py:1093
+#: api/models.py:1095
 msgid "db_name"
 msgstr "nom de la bd"
 
-#: api/models.py:1094
+#: api/models.py:1096
 msgid "export_name"
 msgstr "nom d'export"
 
-#: api/models.py:1096
+#: api/models.py:1098
 msgid "field_type"
 msgstr "type de champ"
 
-#: api/models.py:1099
+#: api/models.py:1101
 msgid "field_length"
 msgstr "longueur du champ"
 
-#: api/models.py:1107
+#: api/models.py:1109
 msgid "product_field"
 msgstr "attribut"
 
-#: api/models.py:1121
+#: api/models.py:1123
 msgid "is_manual"
 msgstr "traitement manuel"
 
-#: api/models.py:1126
+#: api/models.py:1128
 msgid "product_format"
 msgstr "Relation format - produit"
 
-#: api/models.py:1153
+#: api/models.py:1155
 msgid "user_change"
 msgstr "changement d'un utilisateur"
 
@@ -789,6 +795,22 @@ msgid "Please note that the download links are only available for 1 month."
 msgstr ""
 "Veuillez prendre note que les liens de téléchargement ne sont disponibles "
 "que pendant 1 mois."
+
+#: api/templates/email_item_validation.html:5
+msgid "The order item \"%(item_id)s - %(item_title)s\" for order n°%(order_id)s has been"
+msgstr "L'article de commande \"%(item_id)s - %(item_title)s\" de la commande n° %(order_id)s a été"
+
+#: api/templates/email_item_validation.html:6
+msgid "approved"
+msgstr "approuvé"
+
+#: api/templates/email_item_validation.html:6
+msgid "declined"
+msgstr "refusé"
+
+#: api/templates/email_item_validation.html:8
+msgid "Log in to the Geoshop and check the \"My Orders\" section.\""
+msgstr "Connectez-vous à Geoshop et consultez la section \"Mes commandes\"."
 
 #: api/templates/email_password_reset.html:4
 #, python-format
@@ -931,34 +953,44 @@ msgstr "Un nouveau compte utilisateur est en attente de validation."
 msgid "Geoshop - New account pending"
 msgstr "Geoshop - Nouveau compte en attente"
 
-#: api/views.py:535 api/views.py:676
+#: api/views.py:535 api/views.py:687
 msgid "Your data was successfully submitted"
 msgstr "Vos données ont été correctement soumises"
 
-#: api/views.py:605
+#: api/views.py:591
+msgid "Geoshop - Order item approved"
+msgstr ""
+
+#: api/views.py:591
+#, fuzzy
+#| msgid "Geoshop - User change request"
+msgid "Geoshop - Order item rejected"
+msgstr "Geoshop - Demande de modifications de la part d'un utilisateur"
+
+#: api/views.py:616
 msgid "No object matches given id"
 msgstr "Aucun objet trouvé pour cet id"
 
-#: api/views.py:624
+#: api/views.py:635
 msgid "Zip file not found"
 msgstr "Le fichier zip n'a pas été trouvé"
 
-#: api/views.py:658
+#: api/views.py:669
 msgid "Geoshop - User change request"
 msgstr "Geoshop - Demande de modifications de la part d'un utilisateur"
 
-#: api/views.py:662
+#: api/views.py:673
 msgid "The user {} has requested some changes for his user profile."
 msgstr "{} a fait une demande de modification de son profil."
 
-#: api/views.py:668
+#: api/views.py:679
 msgid "Geoshop - Your changes request"
 msgstr "Geoshop - Votre demande de modification"
 
-#: api/views.py:675
+#: api/views.py:686
 msgid "Your data was successfully updated"
 msgstr "Vos données ont été correctement mises à jour"
 
-#: api/views.py:693
+#: api/views.py:704
 msgid "ok"
 msgstr "ok"
