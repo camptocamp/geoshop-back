@@ -781,7 +781,7 @@ msgstr "rifiutato"
 
 #: api/templates/email_item_validation.html:8
 msgid "Log in to the Geoshop and check the \"My Orders\" section.\""
-msgstr "Accedi al Geoshop e controlla la sezione "I miei ordini"."
+msgstr "Accedi al Geoshop e controlla la sezione \"I miei ordini\"."
 
 #: api/templates/email_password_reset.html:4
 #, python-format

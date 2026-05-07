@@ -783,7 +783,7 @@ msgstr ""
 
 #: api/templates/email_item_validation.html:5
 msgid "The order item \"%(item_id)s - %(item_title)s\" for order n°%(order_id)s has been"
-msgstr "Der Bestellposten "%(item_id)s - %(item_title)s" für die Bestellung Nr. %(order_id)s wurde"
+msgstr "Der Bestellposten \"%(item_id)s - %(item_title)s\" für die Bestellung Nr. %(order_id)s wurde"
 
 #: api/templates/email_item_validation.html:6
 msgid "approved"
