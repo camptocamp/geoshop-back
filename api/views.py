@@ -587,6 +587,16 @@ class OrderItemByTokenView(generics.RetrieveAPIView):
             item.save()
             item.order.next_status_on_extract_input()
             item.order.save()
+        send_geoshop_email(
+                _('Geoshop - Order item approved') if is_validated else _('Geoshop - Order item rejected'),
+                recipient=item.order.client.identity,
+                template_name='email_item_validation',
+                template_data={
+                    'order_id': item.order.id,
+                    'item_id': item.id,
+                    'item_title': item.order.title,
+                    'is_validated': is_validated
+                })
         return Response(status=status.HTTP_202_ACCEPTED)
 
 class DownloadView(generics.RetrieveAPIView):

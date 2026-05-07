@@ -1,0 +1,11 @@
+{% extends "email_base_template.html" %}
+{% load i18n %}
+{% block content %}
+        <p>
+            {% blocktrans %}The order item "{{ item_id }} - {{ item_title }}" for order n°{{ order_id }} has been{% endblocktrans %}
+            {% if is_validated %}{% translate "approved" %}{% else %}{% translate "declined" %}{% endif %}.
+        </p>
+        <p>{% blocktrans %}Log in to the Geoshop and check the "My Orders" section."{% endblocktrans %}</p>
+{% endblock %}
+{% block footer %}
+{% endblock %}
