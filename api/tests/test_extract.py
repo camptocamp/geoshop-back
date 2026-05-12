@@ -83,6 +83,9 @@ class OrderTests(APITestCase):
         )
         item = OrderItem.objects.get(pk=order_item_id1)
         self.assertEqual(item.extract_result_size, extract_file.size, "Extract size updated")
+        for i, m in enumerate(mail.outbox):
+            with open(f"/tmp/mail{i}.html", "w") as f:
+                f.write(m.body)
         self.assertEqual(len(mail.outbox), 1, 'An email has been sent to client')
 
         # Download file by user
@@ -167,6 +170,7 @@ class OrderTests(APITestCase):
             Order.OrderStatus.REJECTED,
             "Check order status is rejected"
         )
+        self.assertEqual(len(mail.outbox), 2, 'A notification email has been sent to client')
 
 
     def multi_extract_user_order(self):
