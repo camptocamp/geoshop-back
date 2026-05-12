@@ -1,9 +1,9 @@
 {% extends "email_base_template.html" %}
 {% load i18n %}
 {% block content %}
-<p>{% blocktrans %}A status of an order item n°{{ item_id }} for order n°{{ order_id }} has changed to {{ status }}{% endblocktrans %}</p>
+<p>{% blocktrans %}A status of an order item n°{{ item_id }} for order n°{{ order_id }} is now {{ status }}{% endblocktrans %}</p>
 {% if comment %}
-<p>{% blocktrans %}Operator's comment:{% endblocktrans %}</p>
+<p>{% blocktrans %}Operator's comment{% endblocktrans %}:</p>
 <blockquote>{{ comment }}</blockquote>
 {% endif %}
 {% endblock %}

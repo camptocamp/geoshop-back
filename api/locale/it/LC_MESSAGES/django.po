@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-07 14:58+0200\n"
+"POT-Creation-Date: 2026-05-12 17:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -582,6 +582,18 @@ msgstr ""
 
 #, python-format
 msgid ""
+"A status of an order item n°%(item_id)s for order n°%(order_id)s is now "
+"%(status)s"
+msgstr ""
+"Lo stato di un articolo d'ordine n°%(item_id)s per l'ordine n°%(order_id)s è "
+"ora %(status)s"
+
+#, python-format
+msgid "Operator's comment"
+msgstr "Commento dell'operatore"
+
+#, python-format
+msgid ""
 "The order item \"%(item_id)s - %(item_title)s\" for order n°%(order_id)s has "
 "been"
 msgstr ""
@@ -677,6 +689,9 @@ msgid "This order cannot be deleted anymore."
 msgstr ""
 
 msgid "Full zip is not ready"
+msgstr ""
+
+msgid "Geoshop - Order item updated"
 msgstr ""
 
 msgid "Password reset e-mail has been sent."
