@@ -24,7 +24,7 @@ from allauth.account.views import ConfirmEmailView
 from .models import (
     Contact, Copyright, Document, DataFormat, Identity, Metadata, MetadataContact,
     Order, OrderItem, OrderType, Pricing, Product,
-    ProductFormat, UserChange)
+    ProductFormat, UserChange, AbstractIdentity)
 
 from .serializers import (
     ContactSerializer, CopyrightSerializer, DocumentSerializer, DataFormatSerializer,
@@ -404,12 +404,23 @@ class ExtractOrderItemView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         """Allows to upload a file and destroys existing one or cancel orderitem"""
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            instance = self.get_object()
-            serializer.update(instance, serializer.validated_data)
-            return Response(status=status.HTTP_202_ACCEPTED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        instance = self.get_object()
+        serializer.update(instance, serializer.validated_data)
+        if instance.status == OrderItem.OrderItemStatus.REJECTED:
+            send_geoshop_email(
+                _('Geoshop - Order item updated'),
+                recipient=instance.order.client.identity,
+                template_name='email_item_updated',
+                template_data={
+                    'item_id': instance.id,
+                    'order_id': instance.order.id,
+                    'comment': instance.comment,
+                    'status': instance.status
+                }
+            )
+        return Response(status=status.HTTP_202_ACCEPTED)
 
 # Copy from dj-rest-auth
 class PasswordResetView(generics.GenericAPIView):
