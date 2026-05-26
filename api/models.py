@@ -2,6 +2,7 @@ import logging
 import secrets
 import uuid
 from django.conf import settings
+from django.contrib.gis.db.models.functions import Intersection, Area
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import MultiPolygon, Polygon
@@ -257,6 +258,12 @@ class Metadata(models.Model):
     update_frequency = models.CharField(
         _("update_frequency"), max_length=50, blank=True
     )
+    use_largest_area_validation = models.BooleanField(
+        _("use largest area validation"),
+        default=False,
+        help_text=_("If checked, validation is requested only from the DMO (data management office) "
+                    "having the largest area overlap with the requested area.")
+    )
 
     class Meta:
         db_table = "metadata"
@@ -446,6 +453,14 @@ class PricingGeometry(models.Model):
     geom = models.GeometryField(_("geom"), srid=settings.DEFAULT_SRID)
     pricing = models.ForeignKey(
         Pricing, models.CASCADE, verbose_name=_("pricing"), null=True
+    )
+    validator = models.ForeignKey(
+        'Contact',
+        models.SET_NULL,
+        verbose_name=_("validator"),
+        null=True,
+        blank=True,
+        help_text=_("The DMO responsible for validation and invoicing in this area.")
     )
 
     class Meta:
@@ -1058,24 +1073,52 @@ class OrderItem(models.Model):
         """
         self.token = secrets.token_urlsafe(32)
         self.status = OrderItem.OrderItemStatus.VALIDATION_PENDING
-        validator = (
-            MetadataContact.objects.filter(metadata=self.product.metadata)
-            .order_by("-is_validator")
-            .first()
-        )
-        send_geoshop_email(
-            "Geoshop - Validation requested",
-            recipient=validator.contact_person,
-            template_name="email_validation_needed",
-            template_data={
-                "front_url": "{}://{}{}".format(
-                    settings.FRONT_PROTOCOL, settings.FRONT_URL, settings.FRONT_HREF
-                ),
-                "what": "orderitem",
-                "token": self.token,
-            },
-            language=self.order.client.identity.language,
-        )
+
+        validator_email: str | None = None
+
+        # Check if the "largest area" logic is enabled for this product
+        if self.product.metadata.use_largest_area_validation:
+            if self.product.pricing.pricing_type == Pricing.PricingType.FROM_PRICING_LAYER:
+                # Find the PricingGeometry with the largest intersection area with the order
+                largest_zone: PricingGeometry | None = (
+                    PricingGeometry.objects.filter(
+                        pricing=self.product.pricing,
+                        geom__intersects=self.order.geom
+                    )
+                    .annotate(intersection_area=Area(Intersection('geom', self.order.geom)))
+                    .order_by('-intersection_area')
+                    .first()
+                )
+
+                if largest_zone and largest_zone.validator:
+                    validator_email = largest_zone.validator.email
+
+        if not validator_email:
+            default_validator: MetadataContact | None = (
+                MetadataContact.objects.filter(metadata=self.product.metadata)
+                .order_by("-is_validator")
+                .first()
+            )
+            if default_validator:
+                validator_email = default_validator.contact_person.email
+
+        # Send the email to the identified validator
+        if validator_email:
+            send_geoshop_email(
+                "Geoshop - Validation requested",
+                recipient=validator_email,
+                template_name="email_validation_needed",
+                template_data={
+                    "front_url": "{}://{}{}".format(
+                        settings.FRONT_PROTOCOL, settings.FRONT_URL, settings.FRONT_HREF
+                    ),
+                    "what": "orderitem",
+                    "token": self.token,
+                },
+                language=self.order.client.identity.language,
+            )
+        else:
+            raise ValueError("No validator email found for product ", self.product.metadata.name)
 
 
 class ProductField(models.Model):
