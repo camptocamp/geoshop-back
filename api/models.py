@@ -1,6 +1,8 @@
 import logging
 import secrets
 import uuid
+from typing import List
+
 from django.conf import settings
 from django.contrib.gis.db.models.functions import Intersection, Area
 from django.core.validators import RegexValidator
@@ -10,6 +12,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -258,12 +261,6 @@ class Metadata(models.Model):
     update_frequency = models.CharField(
         _("update_frequency"), max_length=50, blank=True
     )
-    use_largest_area_validation = models.BooleanField(
-        _("use largest area validation"),
-        default=False,
-        help_text=_("If checked, validation is requested only from the DMO (data management office) "
-                    "having the largest area overlap with the requested area.")
-    )
 
     class Meta:
         db_table = "metadata"
@@ -454,14 +451,6 @@ class PricingGeometry(models.Model):
     pricing = models.ForeignKey(
         Pricing, models.CASCADE, verbose_name=_("pricing"), null=True
     )
-    validator = models.ForeignKey(
-        'Contact',
-        models.SET_NULL,
-        verbose_name=_("validator"),
-        null=True,
-        blank=True,
-        help_text=_("The DMO responsible for validation and invoicing in this area.")
-    )
 
     class Meta:
         db_table = "pricing_layer"
@@ -547,6 +536,12 @@ class Product(models.Model):
         _("geom"),
         srid=settings.DEFAULT_SRID,
         default=MultiPolygon(Polygon.from_bbox(bbox)),
+    )
+    use_largest_area_validation = models.BooleanField(
+        _("use largest area validation"),
+        default=False,
+        help_text=_("If checked, validation is requested only from the DMO (data management office) "
+                    "having the largest area overlap with the requested perimeter.")
     )
 
     class Meta:
@@ -794,20 +789,77 @@ class Order(models.Model):
 
     def _expand_product_groups(self):
         """
-        When an OrderItem is a group of products, the OrderItem is deleted from cart and
+        When an OrderItem is a group of products and the respective product's flag
+        `use_largest_area_validation` is True, the OrderItem is deleted from the cart and
         is replaced with one OrderItem for each product inside the group by calling
         _flatten_groups.
         """
         items = self.items.all()
         for item in items:
+            if item.product.use_largest_area_validation:
+                continue
             # if ordered product is a group (if product has children)
             if item.product.products.exists():
                 self._flatten_groups(item.product, item.data_format)
                 item.delete()
 
+    def _find_product_with_largest_overlap_recursively(self, product_group: Product) -> Product | None:
+        """
+        Recursively finds the `Product` with the largest overlap with the `Order` geometry
+        by checking all products in the group and their children.
+
+        If a child product itself represents a product group, its child products
+        are evaluated recursively until a leaf product is reached.
+        """
+        candidate: Product | None = None
+        candidate_overlap: float | None = None
+        child_products: List[Product] = list(
+            product_group.products.prefetch_related("products").all()
+        )
+        for child_product in child_products:
+            nested_products: List[Product] = list(child_product.products.all())
+            if nested_products:
+                child_product = self._find_product_with_largest_overlap_recursively(child_product)
+            if child_product is None:
+                continue
+            if not child_product.geom.intersects(self.geom):
+                continue
+            child_product_overlap: float = child_product.geom.intersection(self.geom).area
+            if candidate_overlap is None or candidate_overlap < child_product_overlap:
+                candidate = child_product
+                candidate_overlap = child_product_overlap
+        return candidate
+
+    def _resolve_grouped_order_items_by_overlap(self):
+        """
+        Iterates through all `OrderItem`s in the `Order`. If an `OrderItem` represents
+        a group of products and the product's flag `use_largest_area_validation` is True,
+        the item is replaced with the product from the group whose geometry has the largest
+        overlap with the order geometry.
+
+        Products within a group are resolved by recursively finding the product with the largest overlap.
+        """
+        order_items: QuerySet[OrderItem] = self.items.all()
+        for order_item in order_items:
+            if not order_item.product.use_largest_area_validation:
+                continue
+            nested_products: List[Product] = list(order_item.product.products.all())
+            if not nested_products:
+                continue
+            product_with_largest_overlap: Product | None = (
+                self._find_product_with_largest_overlap_recursively(order_item.product))
+            if product_with_largest_overlap is None:
+                continue
+            new_order_item: OrderItem = OrderItem(
+                order=self, product=product_with_largest_overlap
+            )
+            new_order_item.save()
+            order_item.delete()
+
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""
         self._expand_product_groups()
+        self._resolve_grouped_order_items_by_overlap()
         items = self.items.all()
         self.date_ordered = timezone.now()
         self.download_guid = uuid.uuid4()
@@ -1073,52 +1125,24 @@ class OrderItem(models.Model):
         """
         self.token = secrets.token_urlsafe(32)
         self.status = OrderItem.OrderItemStatus.VALIDATION_PENDING
-
-        validator_email: str | None = None
-
-        # Check if the "largest area" logic is enabled for this product
-        if self.product.metadata.use_largest_area_validation:
-            if self.product.pricing.pricing_type == Pricing.PricingType.FROM_PRICING_LAYER:
-                # Find the PricingGeometry with the largest intersection area with the order
-                largest_zone: PricingGeometry | None = (
-                    PricingGeometry.objects.filter(
-                        pricing=self.product.pricing,
-                        geom__intersects=self.order.geom
-                    )
-                    .annotate(intersection_area=Area(Intersection('geom', self.order.geom)))
-                    .order_by('-intersection_area')
-                    .first()
-                )
-
-                if largest_zone and largest_zone.validator:
-                    validator_email = largest_zone.validator.email
-
-        if not validator_email:
-            default_validator: MetadataContact | None = (
-                MetadataContact.objects.filter(metadata=self.product.metadata)
-                .order_by("-is_validator")
-                .first()
-            )
-            if default_validator:
-                validator_email = default_validator.contact_person.email
-
-        # Send the email to the identified validator
-        if validator_email:
-            send_geoshop_email(
-                "Geoshop - Validation requested",
-                recipient=validator_email,
-                template_name="email_validation_needed",
-                template_data={
-                    "front_url": "{}://{}{}".format(
-                        settings.FRONT_PROTOCOL, settings.FRONT_URL, settings.FRONT_HREF
-                    ),
-                    "what": "orderitem",
-                    "token": self.token,
-                },
-                language=self.order.client.identity.language,
-            )
-        else:
-            raise ValueError("No validator email found for product ", self.product.metadata.name)
+        validator = (
+            MetadataContact.objects.filter(metadata=self.product.metadata)
+            .order_by("-is_validator")
+            .first()
+        )
+        send_geoshop_email(
+            "Geoshop - Validation requested",
+            recipient=validator.contact_person,
+            template_name="email_validation_needed",
+            template_data={
+                "front_url": "{}://{}{}".format(
+                    settings.FRONT_PROTOCOL, settings.FRONT_URL, settings.FRONT_HREF
+                ),
+                "what": "orderitem",
+                "token": self.token,
+            },
+            language=self.order.client.identity.language,
+        )
 
 
 class ProductField(models.Model):
