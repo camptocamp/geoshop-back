@@ -4,7 +4,6 @@ import uuid
 from typing import List
 
 from django.conf import settings
-from django.contrib.gis.db.models.functions import Intersection, Area
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import MultiPolygon, Polygon
