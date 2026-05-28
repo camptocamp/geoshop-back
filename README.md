@@ -41,7 +41,7 @@ python manage.py runserver
 
 ```
 
-Now, go to [http://localhost:8000](http://localhost:8000) and log in with ```admin```, ```Test123```
+Now, go to [http://localhost:8000](http://localhost:8000) and log in with ```admin```, ```Test1234```
 
 To use it with frontend, see the [OIDC authentication](#oidc-authentication) part.
 
@@ -78,7 +78,6 @@ OIDC_OP_BASE_URL = "..." # Your Zitadel instance url (something like https://geo
 OIDC_REDIRECT_BASE_URL = "http://localhost:8000" # Where the service lives, different for local server or docker container
 ZITADEL_PROJECT = "..."
 OIDC_RP_CLIENT_ID = "..." # Zitadel Client ID
-OIDC_RP_CLIENT_SECRET = "..." # Not needed in PKCE mode
 ```
 
 ### Extended description
