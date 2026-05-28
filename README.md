@@ -7,91 +7,55 @@
 * GDAL
 * gettext
 
-## Getting started
+## Quick start
 
-Fork and clone this repository. Make a copy of `default_settings.py` and `.env.sample` file and adapt it to your environment settings:
-
-```powershell
-cp default_settings.py settings.py
+In a container:
+```bash
 cp .env.sample .env
+sed -i 's/PGHOST=localhost/PGHOST=db/g' .env
+
+docker compose up -d
+docker compose exec api bash -c "python manage.py seed"
 ```
 
-`.env` will vary depending on the environements you're targetting.
-`settings.py` will get the specific config of your project.
+Without a container:
+```bash
+cp .env.sample .env
+sed -i 's/PGHOST=db/PGHOST=localhost/g' .env
+cp -vn default_settings.py settings.py
+docker compose up -d db
 
-### Database
+# Start a virtual environment
+python -m venv .venv
+source .venv/bin/activate
+pip install poetry
+poetry install --no-root
 
-Create a `geoshop` user if not existing yet, set your password according to your `.env`:
+python manage.py migrate
+python manage.py collectstatic
+python manage.py compilemessages --locale=de
+python manage.py fixturize
+python manage.py seed
 
-```sql
-CREATE ROLE geoshop WITH LOGIN PASSWORD <password>;
+python manage.py runserver
+
 ```
 
-Then, set up a database:
+Now, go to [http://localhost:8000](http://localhost:8000) and log in with ```admin```, ```Test123```
 
-```sql
-CREATE DATABASE geoshop OWNER geoshop;
-REVOKE ALL ON DATABASE geoshop FROM PUBLIC;
-```
+To use it with frontend, see the [OIDC authentication](#oidc-authentication) part.
 
-Then connect to the geoshop database and create extensions:
-
-```sql
-CREATE EXTENSION postgis;
-CREATE EXTENSION unaccent;
-CREATE EXTENSION "uuid-ossp";
-CREATE SCHEMA geoshop AUTHORIZATION geoshop;
-
--- TODO: Only if french is needed
-CREATE TEXT SEARCH CONFIGURATION fr (COPY = simple);
-ALTER TEXT SEARCH CONFIGURATION fr ALTER MAPPING FOR hword, hword_part, word
-WITH unaccent, simple;
-```
-
-Now that the database is ready, you can start backend either with Docker or not.
-
-### Testing data
+### Testing
 
 ```bash
 python manage.py seed
-```
-
-Will seed your database with testing users, contracts and other sample data.
-
-### Run dev server without docker on Windows
-
-You'll need to configure 3 paths to your GDAL installation according to `.env.sample`.
-
-Then, we're going to:
-
- * Run migrations
- * Collect static files for the admin interface
- * Generate translations for your langage
- * Add minimal users to database
-
-```shell
-python manage.py migrate
-python manage.py collectstatic
-python manage.py compilemessages --locale=fr
-python manage.py fixturize
-```
-
-Finally, you can run the server:
-
-```shell
-python manage.py runserver
-```
-
-## Run tests
-
-```shell
 python manage.py test
 ```
 
 ## Make translations strings
 
 ```shell
-django-admin makemessages -l de --no-location
+django-admin makemessages -a --no-location
 ```
 
 # OIDC authentication
@@ -164,7 +128,7 @@ AUTHENTICATION_BACKENDS = (
 
 Zitadel roles and their Geoshop equivalents:
 
-| Zitadel role      | Geoshop       |
-| ----------------- | ------------- |
-| admin             | superuser     |
-| staff             | staff         |
+| Zitadel role | Geoshop   |
+| ------------ | --------- |
+| admin        | superuser |
+| staff        | staff     |
