@@ -113,7 +113,7 @@ AUTHENTICATION_BACKENDS = (
 
 ## Zitadel side
 
-*[Zitadel Django Tutorial](https://zitadel.com/docs/sdk-examples/python-django)*
+*[Zitadel Django Tutorial](https://zitadel.com/docs/sdk-examples/django)*
 
 ### An overview
 
