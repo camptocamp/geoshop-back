@@ -1,6 +1,8 @@
 import logging
 import secrets
 import uuid
+from typing import List
+
 from django.conf import settings
 from django.core.validators import RegexValidator
 from django.contrib.gis.db import models
@@ -9,6 +11,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.contrib.postgres.search import SearchVectorField
 from django.contrib.postgres.indexes import GinIndex, BTreeIndex
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -533,6 +536,12 @@ class Product(models.Model):
         srid=settings.DEFAULT_SRID,
         default=MultiPolygon(Polygon.from_bbox(bbox)),
     )
+    use_largest_area_validation = models.BooleanField(
+        _("use largest area validation"),
+        default=False,
+        help_text=_("If checked, validation is requested only from the DMO (data management office) "
+                    "having the largest area overlap with the requested perimeter.")
+    )
 
     class Meta:
         db_table = "product"
@@ -779,20 +788,77 @@ class Order(models.Model):
 
     def _expand_product_groups(self):
         """
-        When an OrderItem is a group of products, the OrderItem is deleted from cart and
+        When an OrderItem is a group of products and the respective product's flag
+        `use_largest_area_validation` is True, the OrderItem is deleted from the cart and
         is replaced with one OrderItem for each product inside the group by calling
         _flatten_groups.
         """
         items = self.items.all()
         for item in items:
+            if item.product.use_largest_area_validation:
+                continue
             # if ordered product is a group (if product has children)
             if item.product.products.exists():
                 self._flatten_groups(item.product, item.data_format)
                 item.delete()
 
+    def _find_product_with_largest_overlap_recursively(self, product_group: Product) -> Product | None:
+        """
+        Recursively finds the `Product` with the largest overlap with the `Order` geometry
+        by checking all products in the group and their children.
+
+        If a child product itself represents a product group, its child products
+        are evaluated recursively until a leaf product is reached.
+        """
+        candidate: Product | None = None
+        candidate_overlap: float | None = None
+        child_products: List[Product] = list(
+            product_group.products.prefetch_related("products").all()
+        )
+        for child_product in child_products:
+            nested_products: List[Product] = list(child_product.products.all())
+            if nested_products:
+                child_product = self._find_product_with_largest_overlap_recursively(child_product)
+            if child_product is None:
+                continue
+            if not child_product.geom.intersects(self.geom):
+                continue
+            child_product_overlap: float = child_product.geom.intersection(self.geom).area
+            if candidate_overlap is None or candidate_overlap < child_product_overlap:
+                candidate = child_product
+                candidate_overlap = child_product_overlap
+        return candidate
+
+    def _resolve_grouped_order_items_by_overlap(self):
+        """
+        Iterates through all `OrderItem`s in the `Order`. If an `OrderItem` represents
+        a group of products and the product's flag `use_largest_area_validation` is True,
+        the item is replaced with the product from the group whose geometry has the largest
+        overlap with the order geometry.
+
+        Products within a group are resolved by recursively finding the product with the largest overlap.
+        """
+        order_items: QuerySet[OrderItem] = self.items.all()
+        for order_item in order_items:
+            if not order_item.product.use_largest_area_validation:
+                continue
+            nested_products: List[Product] = list(order_item.product.products.all())
+            if not nested_products:
+                continue
+            product_with_largest_overlap: Product | None = (
+                self._find_product_with_largest_overlap_recursively(order_item.product))
+            if product_with_largest_overlap is None:
+                continue
+            new_order_item: OrderItem = OrderItem(
+                order=self, product=product_with_largest_overlap
+            )
+            new_order_item.save()
+            order_item.delete()
+
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""
         self._expand_product_groups()
+        self._resolve_grouped_order_items_by_overlap()
         items = self.items.all()
         self.date_ordered = timezone.now()
         self.download_guid = uuid.uuid4()

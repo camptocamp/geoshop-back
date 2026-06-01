@@ -5,7 +5,7 @@ from django.core import mail
 from django.test import override_settings
 
 from math import isclose
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, MultiPolygon
 
 from djmoney.money import Money
 from rest_framework import status
@@ -653,3 +653,77 @@ class OrderValidationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(responseData['geom'], 'SRID=4326;POLYGON ((2545488 1203070, 2557441 1202601, 2557089 1210921, 2545605 1211390, 2545488 1203070))')
         self.assertEqual(responseData['excludedGeom'], 'SRID=2056;POLYGON ((2545605 1211390, 2557089 1210921, 2557441 1202601, 2545488 1203070, 2545605 1211390))')
+
+    def test_largest_area_validation_for_grouped_products(self):
+        # 1. Set up child products with specific geometries
+        geom_a = MultiPolygon(Polygon.from_bbox((0, 0, 10, 10)))
+        child_a = Product.objects.create(
+            label="Child A",
+            pricing=self.config.pricings['free'],
+            metadata=self.config.public_metadata,
+            product_status=Product.ProductStatus.PUBLISHED,
+            provider=self.config.provider,
+            geom=geom_a
+        )
+
+        geom_b = MultiPolygon(Polygon.from_bbox((20, 0, 30, 10)))
+        child_b = Product.objects.create(
+            label="Child B",
+            pricing=self.config.pricings['free'],
+            metadata=self.config.public_metadata,
+            product_status=Product.ProductStatus.PUBLISHED,
+            provider=self.config.provider,
+            geom=geom_b
+        )
+
+        # 2. Set up a parent product group
+        parent_group = Product.objects.create(
+            label="Parent Group",
+            pricing=self.config.pricings['free'],
+            metadata=self.config.public_metadata,
+            product_status=Product.ProductStatus.PUBLISHED,
+            provider=self.config.provider,
+            use_largest_area_validation=True
+        )
+        child_a.group = parent_group
+        child_a.save()
+        child_b.group = parent_group
+        child_b.save()
+
+        # 3. Create an order with a geometry that overlaps more with Child B
+        order_geom = Polygon.from_bbox((8, 0, 28, 10))
+
+        url = reverse('order-list')
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
+        order_data = self.order_data.copy()
+        order_data['geom'] = json.loads(order_geom.geojson)
+
+        response = self.client.post(url, order_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        order_id = response.data['id']
+
+        # 4. Add the parent group product to the order
+        item_data = {
+            "items": [{
+                "product": {"label": "Parent Group"},
+                "data_format": "DXF"
+            }]
+        }
+        url_detail = reverse('order-detail', kwargs={'pk': order_id})
+        self.client.patch(url_detail, item_data, format='json')
+
+        # 5. Confirm the order to trigger the resolution logic
+        url_confirm = reverse('order-confirm', kwargs={'pk': order_id})
+        response = self.client.get(url_confirm, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+        # 6. Verify that the OrderItem for 'Parent Group' was replaced by 'Child B'
+        order: Order = Order.objects.get(pk=order_id)
+        self.assertEqual(order.items.count(), 1)
+        resolved_item = order.items.first()
+
+        if resolved_item is None:
+            self.fail("Expected OrderItem to be resolved but none found")
+
+        self.assertEqual(resolved_item.product.label, "Child B")
+        self.assertEqual(resolved_item.product.id, child_b.id)
