@@ -319,20 +319,26 @@ class Command(BaseCommand):
 
         # Products
         product1 = self.addProduct(mma, "MO - Cadastre complet",
-                                   {"product_status": Product.ProductStatus.PUBLISHED})
+                                   {
+                                       "product_status": Product.ProductStatus.PUBLISHED,
+                                       "provider": extractUser,
+                                })
         self.getOrCreate(ProductFormat, product=product1, data_format=data_format)
 
         product2 = self.addProduct(mma, "Maquette 3D", {
             "product_status": Product.ProductStatus.PUBLISHED,
             "pricing": self.getOrCreate(
-                Pricing, name="Paid", defaults={"pricing_type": Pricing.PricingType.SINGLE}
-             )
+                Pricing, name="Paid", defaults={"pricing_type": Pricing.PricingType.SINGLE
+            }),
+            "provider": extractUser,
         })
         self.getOrCreate(ProductFormat, product=product2, data_format=data_format_maquette)
         product_deprecated = self.addProduct(
             mma, "MO07 - Objets divers et éléments linéaires - linéaires",
-            {"product_status": Product.ProductStatus.DEPRECATED}
-        )
+            defaults = {
+                "product_status": Product.ProductStatus.DEPRECATED,
+                "provider": extractUser,
+            })
 
         for order_item in [
             OrderItem.objects.create(order=order1, product=product1),
