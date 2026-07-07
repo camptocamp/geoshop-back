@@ -690,6 +690,11 @@ class OrderValidationTests(APITestCase):
         child_b.group = parent_group
         child_b.save()
 
+        ProductFormat.objects.bulk_create([
+            ProductFormat(product=child_a, data_format=self.config.formats['dxf']),
+            ProductFormat(product=child_b, data_format=self.config.formats['dxf']),
+        ])
+
         # 3. Create an order with a geometry that overlaps more with Child B
         order_geom = Polygon.from_bbox((8, 0, 28, 10))
 
@@ -710,7 +715,8 @@ class OrderValidationTests(APITestCase):
             }]
         }
         url_detail = reverse('order-detail', kwargs={'pk': order_id})
-        self.client.patch(url_detail, item_data, format='json')
+        response = self.client.patch(url_detail, item_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # 5. Confirm the order to trigger the resolution logic
         url_confirm = reverse('order-confirm', kwargs={'pk': order_id})
