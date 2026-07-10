@@ -450,6 +450,8 @@ class OrderTests(APITestCase):
         self.assertEqual("Validation reason", item.validation_reason, 'Validation reason is set')
         self.assertTrue("approved" in mail.outbox[2].subject)
         self.assertEqual(len(mail.outbox), 3, '123123')
+        for i in items:
+            self.assertEqual(i.price_status, OrderItem.PricingStatus.CALCULATED)
 
     def test_order_item_validation(self):
         """
@@ -655,7 +657,6 @@ class OrderValidationTests(APITestCase):
         self.assertEqual(responseData['excludedGeom'], 'SRID=2056;POLYGON ((2545605 1211390, 2557089 1210921, 2557441 1202601, 2545488 1203070, 2545605 1211390))')
 
     def test_largest_area_validation_for_grouped_products(self):
-        # 1. Set up child products with specific geometries
         geom_a = MultiPolygon(Polygon.from_bbox((0, 0, 10, 10)))
         child_a = Product.objects.create(
             label="Child A",
@@ -663,7 +664,8 @@ class OrderValidationTests(APITestCase):
             metadata=self.config.public_metadata,
             product_status=Product.ProductStatus.PUBLISHED,
             provider=self.config.provider,
-            geom=geom_a
+            geom=geom_a,
+            use_largest_area_validation=True
         )
 
         geom_b = MultiPolygon(Polygon.from_bbox((20, 0, 30, 10)))
@@ -673,10 +675,10 @@ class OrderValidationTests(APITestCase):
             metadata=self.config.public_metadata,
             product_status=Product.ProductStatus.PUBLISHED,
             provider=self.config.provider,
-            geom=geom_b
+            geom=geom_b,
+            use_largest_area_validation=True
         )
 
-        # 2. Set up a parent product group
         parent_group = Product.objects.create(
             label="Parent Group",
             pricing=self.config.pricings['free'],
@@ -695,7 +697,7 @@ class OrderValidationTests(APITestCase):
             ProductFormat(product=child_b, data_format=self.config.formats['dxf']),
         ])
 
-        # 3. Create an order with a geometry that overlaps more with Child B
+        # Create an order with a geometry that overlaps more with Child B
         order_geom = Polygon.from_bbox((8, 0, 28, 10))
 
         url = reverse('order-list')
@@ -707,7 +709,6 @@ class OrderValidationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         order_id = response.data['id']
 
-        # 4. Add the parent group product to the order
         item_data = {
             "items": [{
                 "product": {"label": "Parent Group"},
@@ -718,18 +719,17 @@ class OrderValidationTests(APITestCase):
         response = self.client.patch(url_detail, item_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
-        # 5. Confirm the order to trigger the resolution logic
         url_confirm = reverse('order-confirm', kwargs={'pk': order_id})
         response = self.client.get(url_confirm, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
-        # 6. Verify that the OrderItem for 'Parent Group' was replaced by 'Child B'
         order: Order = Order.objects.get(pk=order_id)
         self.assertEqual(order.items.count(), 1)
-        resolved_item = order.items.first()
+        resolved_item: OrderItem | None = order.items.first()
 
         if resolved_item is None:
             self.fail("Expected OrderItem to be resolved but none found")
 
         self.assertEqual(resolved_item.product.label, "Child B")
         self.assertEqual(resolved_item.product.id, child_b.id)
+        self.assertEqual(resolved_item.price_status, OrderItem.PricingStatus.CALCULATED)
