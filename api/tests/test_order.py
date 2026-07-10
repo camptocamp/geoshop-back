@@ -450,7 +450,7 @@ class OrderTests(APITestCase):
         self.assertEqual("Validation reason", item.validation_reason, 'Validation reason is set')
         self.assertTrue("approved" in mail.outbox[2].subject)
         self.assertEqual(len(mail.outbox), 3, '123123')
-        for i in items:
+        for i in order.items.all():
             self.assertEqual(i.price_status, OrderItem.PricingStatus.CALCULATED)
 
     def test_order_item_validation(self):
