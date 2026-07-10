@@ -758,6 +758,7 @@ class Order(models.Model):
         return price_is_set
 
     def _create_order_item(self, product: Product, data_format: DataFormat):
+        LOGGER.info("Creating OrderItem for Product %s", product.label)
         new_order_item: OrderItem = OrderItem(
             order=self, product=product, data_format=data_format
         )
@@ -784,6 +785,7 @@ class Order(models.Model):
         for child_product in group_of_products.products.all():
             # if child_product is a group, recurse
             if child_product.products.exists():
+                LOGGER.info("Child product %s is a group, expanding product group", child_product)
                 self._flatten_groups(child_product, data_format)
                 continue
 
@@ -801,11 +803,15 @@ class Order(models.Model):
         items = self.items.all()
         for item in items:
             if item.product.use_largest_area_validation:
+                LOGGER.info("Skipping order item with product %s because use_largest_area_validation is TRUE", item.product)
                 continue
             # if the ordered product is a group (i.e., if the product has children)
             if item.product.products.exists():
+                LOGGER.info("Ordered product %s is a group, expanding product group", item.product)
                 self._flatten_groups(item.product, item.data_format)
                 item.delete()
+            else:
+                LOGGER.info("Ordered product %s is not a group", item.product)
 
     def _find_product_with_largest_overlap_recursively(self, product_group: Product) -> Product | None:
         """
@@ -819,6 +825,10 @@ class Order(models.Model):
         candidate_overlap: float | None = None
         child_products: List[Product] = list(
             product_group.products.prefetch_related("products").all()
+        )
+        LOGGER.info(
+            "Group product %s has %s child products, finding child with largest overlap recursively"
+            , product_group, len(child_products)
         )
         for child_product in child_products:
             nested_products: List[Product] = list(child_product.products.all())
@@ -849,10 +859,15 @@ class Order(models.Model):
                 continue
             nested_products: List[Product] = list(order_item.product.products.all())
             if not nested_products:
+                LOGGER.info("No nested products found for OrderItem with Product %s", order_item.product.label)
                 continue
             product_with_largest_overlap: Product | None = (
                 self._find_product_with_largest_overlap_recursively(order_item.product))
             if product_with_largest_overlap is None:
+                LOGGER.warning(
+                    "No product with largest overlap found for OrderItem with Product %s",
+                    order_item.product.label
+                )
                 continue
             self._create_order_item(product_with_largest_overlap, order_item.data_format)
             order_item.delete()
@@ -867,16 +882,23 @@ class Order(models.Model):
         has_all_prices_calculated = True
         for item in items:
             if item.price_status == OrderItem.PricingStatus.PENDING:
+                LOGGER.info("OrderItem for Product %s has price_status PENDING", item.product.label)
                 has_all_prices_calculated = has_all_prices_calculated and False
             if (
                 item.product.metadata.accessibility
                 == Metadata.MetadataAccessibility.APPROVAL_NEEDED
             ):
+                LOGGER.info(
+                    "OrderItem for Product %s has metadata accessibility APPROVAL_NEEDED, initializing validation",
+                    item.product.label
+                )
                 item.ask_validation()
                 item.save()
         if has_all_prices_calculated:
+            LOGGER.info("All OrderItems have a price, setting order status to READY")
             self.order_status = Order.OrderStatus.READY
         else:
+            LOGGER.warning("Not all OrderItems have a price, setting order status to PENDING")
             self.ask_price()
             self.order_status = Order.OrderStatus.PENDING
 
