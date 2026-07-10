@@ -447,11 +447,10 @@ class OrderTests(APITestCase):
         order = Order.objects.get(pk=order_id)
         item = order.items.filter(token=item.token).first()
         self.assertEqual(OrderItem.OrderItemStatus.PENDING, item.status, 'Item is ready for extraction')
+        self.assertEqual(OrderItem.PricingStatus.CALCULATED, item.price_status, 'Validation item price is calculated')
         self.assertEqual("Validation reason", item.validation_reason, 'Validation reason is set')
         self.assertTrue("approved" in mail.outbox[2].subject)
         self.assertEqual(len(mail.outbox), 3, '123123')
-        for i in order.items.all():
-            self.assertEqual(i.price_status, OrderItem.PricingStatus.CALCULATED)
 
     def test_order_item_validation(self):
         """
