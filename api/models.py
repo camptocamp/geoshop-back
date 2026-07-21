@@ -603,12 +603,16 @@ class Order(models.Model):
         DRAFT = "DRAFT", _("Draft")
         PENDING = "PENDING", _("Pending")
         QUOTE_DONE = "QUOTE_DONE", _("Quote done")
+        AWAITING_PAYMENT = "AWAITING_PAYMENT", _("Awaiting payment")
+        PAYMENT_FAILED = "PAYMENT_FAILED", _("Payment failed")
+        PAID = "PAID", _("Paid")
         READY = "READY", _("Ready")
         IN_EXTRACT = "IN_EXTRACT", _("In extract")
         PARTIALLY_DELIVERED = "PARTIALLY_DELIVERED", _("Partially delivered")
         PROCESSED = "PROCESSED", _("Processed")
         ARCHIVED = "ARCHIVED", _("Archived")
         REJECTED = "REJECTED", _("Rejected")
+        REFUNDED = "REFUNDED", _("Refunded")
 
     title = models.CharField(
         _("title"),
@@ -960,6 +964,97 @@ class Order(models.Model):
 
     def __str__(self):
         return "%s - %s" % (self.id, self.title)
+
+
+class Payment(models.Model):
+    """
+    A single payment attempt for an Order.
+
+    The Order (and this project) stays the source of truth for the order itself; the payment
+    provider is authoritative for the money transfer. This row is our mirror of the provider's payment
+    state plus the links needed to reconcile the two, keyed by our own ``merchant_reference``.
+    No card data is ever stored here (hosted payment page => PCI SAQ-A).
+    """
+
+    class PaymentStatus(models.TextChoices):
+        CREATED = "CREATED", _("Created")  # row exists, buyer not yet redirected
+        PENDING = "PENDING", _("Pending")  # redirected, awaiting provider outcome
+        AUTHORIZED = "AUTHORIZED", _("Authorized")  # funds held, not captured
+        SETTLED = "SETTLED", _("Settled")  # money captured => order can proceed
+        FAILED = "FAILED", _("Failed")
+        CANCELED = "CANCELED", _("Canceled")
+        REFUNDED = "REFUNDED", _("Refunded")
+
+    order = models.ForeignKey(
+        Order,
+        models.PROTECT,
+        related_name="payments",
+        verbose_name=_("order"),
+    )
+    # Our stable anchor: generated here, sent to the provider, and used to match webhooks back.
+    merchant_reference = models.UUIDField(
+        _("merchant_reference"), default=uuid.uuid4, unique=True, editable=False
+    )
+    # Idempotency: a retried "create payment" with the same key returns this row instead of charging again.
+    idempotency_key = models.CharField(_("idempotency_key"), max_length=64, unique=True)
+    provider = models.CharField(_("provider"), max_length=32)
+    # The provider's own id, known only once the session is created.
+    provider_transaction_id = models.CharField(
+        _("provider_transaction_id"), max_length=255, blank=True
+    )
+    status = models.CharField(
+        _("status"),
+        max_length=20,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.CREATED,
+    )
+    # Snapshot of what was charged, independent of later edits to the order.
+    amount = MoneyField(
+        _("amount"),
+        max_digits=14,
+        decimal_places=2,
+        default_currency=settings.DEFAULT_CURRENCY,
+    )
+    created_at = models.DateTimeField(_("created_at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated_at"), auto_now=True)
+
+    class Meta:
+        db_table = "payment"
+        ordering = ["-created_at"]
+        verbose_name = _("payment")
+        verbose_name_plural = _("payments")
+
+    def __str__(self):
+        return "%s - %s (%s)" % (self.id, self.merchant_reference, self.status)
+
+
+class PaymentEvent(models.Model):
+    """
+    Append-only (rows are never updated) trail of the raw messages a provider sent about a Payment. 
+    ``provider_event_id`` is the dedup (deduplication) key: an event id already seen is acknowledged
+    but not reprocessed, so a duplicated webhook takes effect exactly once.
+    """
+
+    payment = models.ForeignKey(
+        Payment,
+        models.CASCADE,
+        related_name="events",
+        verbose_name=_("payment"),
+    )
+    provider_event_id = models.CharField(
+        _("provider_event_id"), max_length=255, unique=True
+    )
+    raw_payload = models.JSONField(_("raw_payload"))
+    received_at = models.DateTimeField(_("received_at"), auto_now_add=True)
+
+    class Meta:
+        db_table = "payment_event"
+        ordering = ["received_at"]
+        verbose_name = _("payment event")
+        verbose_name_plural = _("payment events")
+
+    def __str__(self):
+        return "%s - %s" % (self.payment_id, self.provider_event_id)
 
 
 class OrderItem(models.Model):
