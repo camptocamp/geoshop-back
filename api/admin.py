@@ -19,6 +19,8 @@ from .models import (
     MetadataContact,
     Order,
     OrderItem,
+    Payment,
+    PaymentEvent,
     Pricing,
     Product,
     ProductFormat,
@@ -295,6 +297,33 @@ class UserChangeAdmin(CustomModelAdmin):
         obj.approve()
         return super().response_change(request, obj)
 
+class PaymentEventInline(admin.TabularInline):
+    model = PaymentEvent
+    extra = 0
+    can_delete = False
+    fields = ('provider_event_id', 'raw_payload', 'received_at')
+    readonly_fields = fields
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class PaymentAdmin(CustomModelAdmin):
+    """Payments mirror the provider's state and must not be hand-edited: view-only."""
+    model = Payment
+    list_display = ['id', 'order', 'provider', 'status', 'amount', 'created_at']
+    list_filter = ['provider', 'status']
+    search_fields = ['merchant_reference', 'provider_transaction_id', 'order__id']
+    readonly_fields = (
+        'order', 'merchant_reference', 'idempotency_key', 'provider',
+        'provider_transaction_id', 'status', 'amount', 'created_at', 'updated_at',
+    )
+    inlines = [PaymentEventInline]
+
+    def has_add_permission(self, request):
+        return False
+
+
 admin.site.unregister(UserModel)
 admin.site.register(UserModel, UserAdmin)
 admin.site.register(UserChange, UserChangeAdmin)
@@ -308,6 +337,7 @@ admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(MetadataContact, MetadataContactAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem)
+admin.site.register(Payment, PaymentAdmin)
 admin.site.register(Pricing, PricingAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(ProductFormat)
