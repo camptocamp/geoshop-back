@@ -53,7 +53,19 @@ not the code we write.
   interface before the client's final choice, since none of the work is throwaway.
 - **First implementation:** start with **PostFinance Checkout** so we have a concrete provider to
   test against end-to-end. It will be implemented **using the official PostFinance Python SDK**,
-  in its own adapter file **`api/payments/postfinance.py`**, behind the `PaymentProvider` port.
+  in the flat module **`api/payments.py`** (a single file next to the app's other modules, not a
+  package — matches this app's one-module-per-concern convention).
+- **Auto-capture (2026-07-21):** charge immediately on payment (a one-step "sale"), not
+  authorize-now-capture-on-delivery. A failed extract is handled by a **refund**, not a released
+  hold. So no `capture()`/`release()` needed; `AUTHORIZED` status stays unused for now, and payment
+  flows `CREATED → PENDING → SETTLED`.
+- **No provider abstraction (flat by choice, 2026-07-21):** we briefly built a `PaymentProvider`
+  ABC + registry port and then **removed it**. With only one provider actually planned, an
+  interface with a single implementation is speculative generality (YAGNI). PostFinance is written
+  as **plain service functions** called directly by the views/order flow. An interface will be
+  extracted **only if** a second provider ever appears (rule of three). The `api/payments/` package
+  keeps just flat, provider-neutral value objects (`Session`, `WebhookEvent`, `ReturnUrls`) and
+  error types (`PaymentError`, `WebhookVerificationError`) — data, not abstraction.
 
 ---
 
@@ -79,11 +91,10 @@ So regardless of provider, the same gap must be filled — and that gap is entir
    - `created_at` / `updated_at`.
 3. **`PaymentEvent` model** — append-only audit trail of the **raw, verbatim** message the
    provider sent; `provider_event_id` is unique and used for webhook **dedup**.
-4. **Adapter interface (the "port")** in a new `api/payments/` module — a `PaymentProvider`
-   protocol with `create_session()`, `get_status()`, `refund()`, `parse_and_verify_webhook()`.
-   Each provider becomes one file implementing this; callers only touch the interface, so
-   switching providers is a one-line config change.
-5. **Idempotent webhook receiver** — one provider-agnostic endpoint that verifies the signature,
+4. **PostFinance service module** — `api/payments.py` with plain functions
+   (`create_session()`, `get_status()`, `refund()`, `parse_and_verify_webhook()`) called directly.
+   No abstraction layer (see §2); provider-neutral value objects live in the same file.
+5. **Idempotent webhook receiver** — one endpoint that verifies the signature,
    dedups by `provider_event_id`, records the raw payload, updates payment status, and advances
    the order to `PAID` on settlement. `select_for_update` + the unique event id make concurrent
    duplicate webhooks safe.
