@@ -392,3 +392,10 @@ MAX_ORDER_AREA=float(os.environ.get("MAX_ORDER_AREA", "0"))
 DATA_UPLOAD_MAX_MEMORY_SIZE=int(os.environ.get("DATA_UPLOAD_MAX_MEMORY_SIZE", "26214400"))
 
 ALLOW_IDENTITY_AUTOAPPROVE=bool(os.environ.get("ALLOW_IDENTITY_AUTOAPPROVE", "False"))
+
+# Payment provider. Secrets come from the environment (see .env.sample); never commit them.
+PAYMENT_PROVIDER = os.environ.get("PAYMENT_PROVIDER", "postfinance")
+# PostFinance Checkout credentials (Application User under a Space).
+POSTFINANCE_SPACE_ID = os.environ.get("POSTFINANCE_SPACE_ID")
+POSTFINANCE_USER_ID = os.environ.get("POSTFINANCE_USER_ID")
+POSTFINANCE_API_SECRET = os.environ.get("POSTFINANCE_API_SECRET")
