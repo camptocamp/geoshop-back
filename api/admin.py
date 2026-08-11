@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
 from django.contrib.gis import admin
@@ -107,6 +108,30 @@ class OrderItemInline(admin.StackedInline):
     extra = 0
 
 
+class OwnedProductOrderFilter(SimpleListFilter):
+    title = _("product ownership")
+    parameter_name = "product_ownership"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", _("Contains a product owned by one of my groups")),
+            ("no", _("Does not contain a product owned by one of my groups")),
+        )
+
+    def queryset(self, request, queryset):
+        owned_filter = {
+            "items__product__productownership__user_group__in": request.user.groups.all(),
+        }
+
+        if self.value() == "yes":
+            return queryset.filter(**owned_filter).distinct()
+
+        if self.value() == "no":
+            return queryset.exclude(**owned_filter).distinct()
+
+        return queryset
+
+
 class OrderAdminForm(forms.ModelForm):
     """
     Custom model form for Order for custom validation
@@ -136,7 +161,7 @@ class OrderAdmin(CustomGeoModelAdmin):
     raw_id_fields = ['client', 'invoice_contact']
     ordering = ['-id']
     actions = ['quote']
-    list_filter = ['order_status', 'date_ordered']
+    list_filter = ['order_status', 'date_ordered', OwnedProductOrderFilter]
 
     def title_small(self, order):
         title = order.title
