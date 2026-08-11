@@ -28,6 +28,11 @@ from .models import (
 
 UserModel = get_user_model()
 
+def get_owned_product_order_filter(request):
+    return {
+        "items__product__productownership__user_group__in": request.user.groups.all(),
+    }
+
 class CustomModelAdmin(admin.GISModelAdmin):
     """
     This is just a cosmetic class adding custom CSS and Replacing CharField Widget by
@@ -119,9 +124,7 @@ class OwnedProductOrderFilter(SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        owned_filter = {
-            "items__product__productownership__user_group__in": request.user.groups.all(),
-        }
+        owned_filter = get_owned_product_order_filter(request)
 
         if self.value() == "yes":
             return queryset.filter(**owned_filter).distinct()
@@ -162,6 +165,26 @@ class OrderAdmin(CustomGeoModelAdmin):
     ordering = ['-id']
     actions = ['quote']
     list_filter = ['order_status', 'date_ordered', OwnedProductOrderFilter]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        if not request.user.is_superuser:
+            return queryset.filter(**get_owned_product_order_filter(request)).distinct()
+
+        return queryset
+
+    def get_list_filter(self, request):
+        list_filter = list(super().get_list_filter(request))
+
+        if not request.user.is_superuser:
+            return [
+                list_filter_item
+                for list_filter_item in list_filter
+                if list_filter_item != OwnedProductOrderFilter
+            ]
+
+        return list_filter
 
     def title_small(self, order):
         title = order.title
