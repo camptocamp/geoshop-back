@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
 from django.contrib.gis import admin
@@ -26,6 +27,16 @@ from .models import (
     UserChange)
 
 UserModel = get_user_model()
+
+def get_owned_product_order_filter(request):
+    return {
+        "items__product__productownership__user_group__in": request.user.groups.all(),
+    }
+
+def get_owned_product_order_item_filter(request):
+    return {
+        "product__productownership__user_group__in": request.user.groups.all(),
+    }
 
 class CustomModelAdmin(admin.GISModelAdmin):
     """
@@ -107,6 +118,28 @@ class OrderItemInline(admin.StackedInline):
     extra = 0
 
 
+class OwnedProductOrderFilter(SimpleListFilter):
+    title = _("product ownership")
+    parameter_name = "product_ownership"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", _("Contains a product owned by one of my groups")),
+            ("no", _("Does not contain a product owned by one of my groups")),
+        )
+
+    def queryset(self, request, queryset):
+        owned_filter = get_owned_product_order_filter(request)
+
+        if self.value() == "yes":
+            return queryset.filter(**owned_filter).distinct()
+
+        if self.value() == "no":
+            return queryset.exclude(**owned_filter).distinct()
+
+        return queryset
+
+
 class OrderAdminForm(forms.ModelForm):
     """
     Custom model form for Order for custom validation
@@ -136,7 +169,27 @@ class OrderAdmin(CustomGeoModelAdmin):
     raw_id_fields = ['client', 'invoice_contact']
     ordering = ['-id']
     actions = ['quote']
-    list_filter = ['order_status', 'date_ordered']
+    list_filter = ['order_status', 'date_ordered', OwnedProductOrderFilter]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        if not request.user.is_superuser:
+            return queryset.filter(**get_owned_product_order_filter(request)).distinct()
+
+        return queryset
+
+    def get_list_filter(self, request):
+        list_filter = list(super().get_list_filter(request))
+
+        if not request.user.is_superuser:
+            return [
+                list_filter_item
+                for list_filter_item in list_filter
+                if list_filter_item != OwnedProductOrderFilter
+            ]
+
+        return list_filter
 
     def title_small(self, order):
         title = order.title
@@ -197,6 +250,53 @@ class OrderAdmin(CustomGeoModelAdmin):
                 item.save()
 
         return super().response_change(request, obj)
+
+
+class OwnedProductOrderItemFilter(SimpleListFilter):
+    title = _("product ownership")
+    parameter_name = "product_ownership"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", _("Contains a product owned by one of my groups")),
+            ("no", _("Does not contain a product owned by one of my groups")),
+        )
+
+    def queryset(self, request, queryset):
+        owned_filter = get_owned_product_order_item_filter(request)
+
+        if self.value() == "yes":
+            return queryset.filter(**owned_filter).distinct()
+
+        if self.value() == "no":
+            return queryset.exclude(**owned_filter).distinct()
+
+        return queryset
+
+
+class OrderItemAdmin(CustomGeoModelAdmin):
+    list_filter = [OwnedProductOrderItemFilter]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        if not request.user.is_superuser:
+            return queryset.filter(**get_owned_product_order_item_filter(request)).distinct()
+
+        return queryset
+
+    def get_list_filter(self, request):
+        list_filter = list(super().get_list_filter(request))
+
+        if not request.user.is_superuser:
+            return [
+                list_filter_item
+                for list_filter_item in list_filter
+                if list_filter_item != OwnedProductOrderItemFilter
+            ]
+
+        return list_filter
+
 
 class ProductOwnershipAdmin(CustomGeoModelAdmin):
     pass
@@ -307,7 +407,7 @@ admin.site.register(Contact, ContactAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(MetadataContact, MetadataContactAdmin)
 admin.site.register(Order, OrderAdmin)
-admin.site.register(OrderItem)
+admin.site.register(OrderItem, OrderItemAdmin)
 admin.site.register(Pricing, PricingAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(ProductFormat)
