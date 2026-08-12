@@ -33,6 +33,11 @@ def get_owned_product_order_filter(request):
         "items__product__productownership__user_group__in": request.user.groups.all(),
     }
 
+def get_owned_product_order_item_filter(request):
+    return {
+        "product__productownership__user_group__in": request.user.groups.all(),
+    }
+
 class CustomModelAdmin(admin.GISModelAdmin):
     """
     This is just a cosmetic class adding custom CSS and Replacing CharField Widget by
@@ -246,6 +251,53 @@ class OrderAdmin(CustomGeoModelAdmin):
 
         return super().response_change(request, obj)
 
+
+class OwnedProductOrderItemFilter(SimpleListFilter):
+    title = _("product ownership")
+    parameter_name = "product_ownership"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", _("Contains a product owned by one of my groups")),
+            ("no", _("Does not contain a product owned by one of my groups")),
+        )
+
+    def queryset(self, request, queryset):
+        owned_filter = get_owned_product_order_item_filter(request)
+
+        if self.value() == "yes":
+            return queryset.filter(**owned_filter).distinct()
+
+        if self.value() == "no":
+            return queryset.exclude(**owned_filter).distinct()
+
+        return queryset
+
+
+class OrderItemAdmin(CustomGeoModelAdmin):
+    list_filter = [OwnedProductOrderItemFilter]
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        if not request.user.is_superuser:
+            return queryset.filter(**get_owned_product_order_item_filter(request)).distinct()
+
+        return queryset
+
+    def get_list_filter(self, request):
+        list_filter = list(super().get_list_filter(request))
+
+        if not request.user.is_superuser:
+            return [
+                list_filter_item
+                for list_filter_item in list_filter
+                if list_filter_item != OwnedProductOrderItemFilter
+            ]
+
+        return list_filter
+
+
 class ProductOwnershipAdmin(CustomGeoModelAdmin):
     pass
 
@@ -355,7 +407,7 @@ admin.site.register(Contact, ContactAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(MetadataContact, MetadataContactAdmin)
 admin.site.register(Order, OrderAdmin)
-admin.site.register(OrderItem)
+admin.site.register(OrderItem, OrderItemAdmin)
 admin.site.register(Pricing, PricingAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(ProductFormat)
