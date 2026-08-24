@@ -95,6 +95,14 @@ def _configuration() -> Configuration:
     )
 
 
+def _payment_page_url(provider_transaction_id) -> str:
+    """The hosted payment-page URL for an existing PostFinance transaction."""
+    service = TransactionsService(_configuration())
+    return service.get_payment_transactions_id_payment_page_url(
+        int(provider_transaction_id), _space_id()
+    )
+
+
 def create_session(payment: "Payment", return_urls: "ReturnUrls") -> "Session":
     """
     Open a hosted-payment session for ``payment`` and return where to redirect the
@@ -121,11 +129,71 @@ def create_session(payment: "Payment", return_urls: "ReturnUrls") -> "Session":
     )
 
     transaction = service.post_payment_transactions(space, transaction_create)
-    redirect_url = service.get_payment_transactions_id_payment_page_url(transaction.id, space)
+    redirect_url = _payment_page_url(transaction.id)
     LOGGER.info(
         "Opened PostFinance transaction %s for payment %s", transaction.id, payment.merchant_reference
     )
     return Session(provider_transaction_id=str(transaction.id), redirect_url=redirect_url)
+
+
+def start_payment(order, return_urls: "ReturnUrls") -> "tuple[Payment, str]":
+    """
+    Orchestrate a card payment for a finalized, fully-priced ``order``.
+
+    The caller (the ``/pay`` view) must have already finalized the order's contents
+    and recomputed its price (``_prepare_order_items()`` + ``set_price()``), so
+    ``order.total_with_vat`` is the definitive amount to charge.
+
+    Behaviour:
+    - If the order already has an in-flight payment (a ``CREATED``/``PENDING`` row that
+      already opened a PostFinance transaction), reuse it -- never charge twice.
+    - Otherwise create a ``Payment`` row first (so a local trace survives even if the
+      provider call fails), open a PostFinance session, then record the provider
+      transaction, mark the payment ``PENDING``, and move the order to
+      ``AWAITING_PAYMENT``.
+
+    Returns ``(payment, redirect_url)``.
+    """
+    from django.db import transaction as db_transaction
+
+    from api.models import Order, Payment  # local import avoids any import cycle
+
+    if order.total_with_vat is None:
+        raise PaymentError(
+            "Cannot start a card payment for order %s: it is not fully priced." % order.id
+        )
+
+    # Dedup: an order should have at most one in-flight payment.
+    open_payment = order.payments.filter(
+        status__in=(Payment.PaymentStatus.CREATED, Payment.PaymentStatus.PENDING)
+    ).first()
+    if open_payment and open_payment.provider_transaction_id:
+        LOGGER.info(
+            "Reusing in-flight payment %s for order %s", open_payment.merchant_reference, order.id
+        )
+        return open_payment, _payment_page_url(open_payment.provider_transaction_id)
+
+    # Local record first, so we keep a trace even if the provider call fails.
+    payment = open_payment or Payment.objects.create(
+        order=order,
+        amount=order.total_with_vat,
+        provider=PROVIDER_NAME,
+        status=Payment.PaymentStatus.CREATED,
+    )
+
+    session = create_session(payment, return_urls)
+
+    with db_transaction.atomic():
+        payment.provider_transaction_id = session.provider_transaction_id
+        payment.status = Payment.PaymentStatus.PENDING
+        payment.save(update_fields=["provider_transaction_id", "status", "updated_at"])
+        order.order_status = Order.OrderStatus.AWAITING_PAYMENT
+        order.save(update_fields=["order_status"])
+
+    LOGGER.info(
+        "Started payment %s for order %s (%s)", payment.merchant_reference, order.id, payment.amount
+    )
+    return payment, session.redirect_url
 
 
 def get_status(provider_transaction_id: str) -> "Payment.PaymentStatus":

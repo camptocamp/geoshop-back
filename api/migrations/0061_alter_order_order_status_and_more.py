@@ -28,7 +28,6 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('merchant_reference', models.UUIDField(default=uuid.uuid4, editable=False, unique=True, verbose_name='merchant_reference')),
-                ('idempotency_key', models.CharField(max_length=64, unique=True, verbose_name='idempotency_key')),
                 ('provider', models.CharField(max_length=32, verbose_name='provider')),
                 ('provider_transaction_id', models.CharField(blank=True, max_length=255, verbose_name='provider_transaction_id')),
                 ('status', models.CharField(choices=[('CREATED', 'Created'), ('PENDING', 'Pending'), ('AUTHORIZED', 'Authorized'), ('SETTLED', 'Settled'), ('FAILED', 'Failed'), ('CANCELED', 'Canceled'), ('REFUNDED', 'Refunded')], default='CREATED', max_length=20, verbose_name='status')),

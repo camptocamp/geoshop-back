@@ -876,10 +876,80 @@ class Order(models.Model):
             self._create_order_item(product_with_largest_overlap, order_item.data_format)
             order_item.delete()
 
-    def confirm(self):
-        """Customer's confirmations he wants to proceed with the order"""
+    def _finalize_order_items(self):
+        """
+        WRITE path. Finalize the cart's contents by *persisting* group expansion: each
+        group OrderItem is replaced by its concrete child product(s) -- fan-out or
+        largest-overlap, per the group flag -- deleting group items and creating children.
+
+        Called by the commit paths: confirm() (invoice) and the card payment flow.
+        Structural only: it does not stamp dates, trigger validations, or change status.
+        """
         self._expand_product_groups()
         self._resolve_grouped_order_items_by_overlap()
+
+    def _resolve_group_children(self, group_of_products: Product) -> List[Product]:
+        """
+        READ-ONLY mirror of _flatten_groups: the intersecting leaf children a group
+        fans out to (recursing into nested groups). No database writes.
+        """
+        children: List[Product] = []
+        for child in group_of_products.products.all():
+            if child.products.exists():
+                children.extend(self._resolve_group_children(child))
+            elif child.geom.intersects(self.geom):
+                children.append(child)
+        return children
+
+    def _prepare_order_items(self) -> List["OrderItem"]:
+        """
+        READ-ONLY preview of the order's finalized items. Returns a list of UNSAVED,
+        priced OrderItem instances representing what the order expands to at checkout,
+        WITHOUT persisting anything (no group item deleted, no child created).
+
+        Mirrors _finalize_order_items() (the write path) so /prepare can price and
+        classify the order without mutating the group-based cart. The read and write
+        paths are pinned together by a consistency test. Touches no database rows.
+        """
+        prepared: List["OrderItem"] = []
+        for item in self.items.all():
+            product = item.product
+            if product.use_largest_area_validation and product.products.exists():
+                winner = self._find_product_with_largest_overlap_recursively(product)
+                concrete_products = [winner] if winner is not None else [product]
+            elif product.products.exists():
+                concrete_products = self._resolve_group_children(product)
+            else:
+                concrete_products = [product]
+            for concrete in concrete_products:
+                preview_item = OrderItem(order=self, product=concrete, data_format=item.data_format)
+                preview_item.set_price()
+                prepared.append(preview_item)
+        return prepared
+
+    def prepare_checkout(self):
+        """
+        READ-ONLY. Compute the order's finalized total and payment option without
+        persisting expansion. Returns ``(payment_option, total_with_vat)`` where
+        payment_option is 'quote' (an item needs a manual quote), 'free' (total is 0)
+        or 'card' (auto-priced with a positive total). Used by the /prepare endpoint.
+        """
+        items = self._prepare_order_items()
+        if any(item.base_fee is None for item in items):
+            return 'quote', None
+        processing_fee = Money(0, settings.DEFAULT_CURRENCY)
+        total_without_vat = Money(0, settings.DEFAULT_CURRENCY)
+        for item in items:
+            if item.base_fee > processing_fee:
+                processing_fee = item.base_fee
+            total_without_vat += item.price
+        total_without_vat += processing_fee
+        total_with_vat = total_without_vat + total_without_vat * settings.VAT
+        return ('free' if total_with_vat.amount == 0 else 'card'), total_with_vat
+
+    def confirm(self):
+        """Customer's confirmations he wants to proceed with the order"""
+        self._finalize_order_items()
         items = self.items.all()
         self.date_ordered = timezone.now()
         self.download_guid = uuid.uuid4()
@@ -995,8 +1065,6 @@ class Payment(models.Model):
     merchant_reference = models.UUIDField(
         _("merchant_reference"), default=uuid.uuid4, unique=True, editable=False
     )
-    # Idempotency: a retried "create payment" with the same key returns this row instead of charging again.
-    idempotency_key = models.CharField(_("idempotency_key"), max_length=64, unique=True)
     provider = models.CharField(_("provider"), max_length=32)
     # The provider's own id, known only once the session is created.
     provider_transaction_id = models.CharField(

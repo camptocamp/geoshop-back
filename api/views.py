@@ -3,6 +3,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -38,6 +39,8 @@ from .serializers import (
     VerifyEmailSerializer, ValidationSerializer, UntypedOrderSerializer)
 
 from .helpers import send_geoshop_email
+
+from . import payments
 
 from .filters import FullTextSearchFilter
 
@@ -244,6 +247,21 @@ class OrderTypeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OrderTypeSerializer
 
 
+def _payment_return_urls(order):
+    """
+    Build the PostFinance return URLs (where the buyer's browser lands after the hosted
+    page) as frontend links, from settings -- kept entirely backend-side. They point at
+    the frontend app with the outcome + order as query params, so no specific frontend
+    route has to be hard-coded here.
+    """
+    base = "{}://{}{}".format(settings.FRONT_PROTOCOL, settings.FRONT_URL, settings.FRONT_HREF)
+    return payments.ReturnUrls(
+        success="{}?payment=success&order={}".format(base, order.id),
+        failure="{}?payment=failed&order={}".format(base, order.id),
+        cancel="{}?payment=canceled&order={}".format(base, order.id),
+    )
+
+
 class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows Orders to be viewed or edited.
@@ -329,6 +347,89 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
         order.confirm()
         order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
+
+    @action(detail=True, methods=['post'])
+    def pay(self, request, pk=None):
+        """
+        Start a card payment for a fully auto-priced order and return the PostFinance
+        redirect URL. Card applies only to orders priced automatically (see
+        docs/card-checkout-integration.md); a manually-quoted (`QUOTE_DONE`) or
+        not-fully-priced order is invoice-only and rejected here.
+        """
+        order = self.get_object()
+        with transaction.atomic():
+            # Lock the order so two simultaneous /pay requests can't both start a payment.
+            order = Order.objects.select_for_update().get(pk=order.pk)
+
+            if order.order_status != Order.OrderStatus.DRAFT:
+                raise PermissionDenied(detail=_('Order must be a draft to be paid by card'))
+            items = order.items.all()
+            if not items:
+                raise ValidationError(detail=_('This order has no item'))
+            for item in items:
+                if not item.data_format:
+                    raise ValidationError(detail=_("One or more items don't have data_format"))
+
+            # Finalize the contents (expand groups) then recompute the definitive total.
+            order._finalize_order_items()
+            is_fully_priced = order.set_price()
+            order.save()
+            if not is_fully_priced:
+                raise ValidationError(
+                    detail=_('This order needs a manual quote and cannot be paid by card')
+                )
+
+            # Free order: nothing to charge -- proceed like the invoice path.
+            if order.total_with_vat.amount == 0:
+                order.confirm()
+                order.save()
+                return Response({'payment_required': False}, status=status.HTTP_200_OK)
+
+            payment, redirect_url = payments.start_payment(order, _payment_return_urls(order))
+
+        return Response(
+            {
+                'payment_required': True,
+                'redirect_url': redirect_url,
+                'payment_id': payment.id,
+                'amount': str(payment.amount.amount),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=['post'])
+    def prepare(self, request, pk=None):
+        """
+        Report which payment option a checkout offers, and the definitive total, when the
+        buyer goes to checkout (products + geometry final). READ-ONLY: it previews group
+        expansion in memory to price the order, but persists nothing -- the group-based
+        cart is never mutated (that only happens at commit, in confirm()/pay). See
+        docs/card-checkout-integration.md.
+
+        Response `payment_option`:
+        - "quote" -> an item needs a manual quote; invoice/quote only;
+        - "free"  -> total is 0; no payment needed;
+        - "card"  -> auto-priced with a positive total; card or invoice.
+        """
+        order = self.get_object()
+        if order.order_status != Order.OrderStatus.DRAFT:
+            raise PermissionDenied(detail=_('Order must be a draft to be prepared for checkout'))
+        items = order.items.all()
+        if not items:
+            raise ValidationError(detail=_('This order has no item'))
+        for item in items:
+            if not item.data_format:
+                raise ValidationError(detail=_("One or more items don't have data_format"))
+
+        payment_option, total = order.prepare_checkout()
+        return Response(
+            {
+                'payment_option': payment_option,
+                'total': str(total.amount) if total is not None else None,
+                'currency': str(total.currency) if total is not None else None,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=True, methods=['get'])
     def download_link(self, request, pk=None):

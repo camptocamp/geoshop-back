@@ -415,7 +415,7 @@ class PaymentAdmin(CustomModelAdmin):
     list_filter = ['provider', 'status']
     search_fields = ['merchant_reference', 'provider_transaction_id', 'order__id']
     readonly_fields = (
-        'order', 'merchant_reference', 'idempotency_key', 'provider',
+        'order', 'merchant_reference', 'provider',
         'provider_transaction_id', 'status', 'amount', 'created_at', 'updated_at',
     )
     inlines = [PaymentEventInline]
