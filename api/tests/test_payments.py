@@ -370,6 +370,7 @@ class PostFinanceWebhookTests(TestCase):
         self.assertEqual(resp.status_code, 400)
 
 
+@override_settings(POSTFINANCE_SPACE_ID="1")
 class GetStatusMappingTests(TestCase):
     """get_status maps PostFinance transaction states to our PaymentStatus values."""
 
