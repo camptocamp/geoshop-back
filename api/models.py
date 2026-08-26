@@ -31,7 +31,7 @@ UserModel = get_user_model()
 
 class AbstractIdentity(models.Model):
     """
-    Common properties for identities, addresses and temporary users
+    Common properties for identities, addresses, and temporary users
     """
 
     first_name = models.CharField(_("first_name"), max_length=50, blank=True)
@@ -56,7 +56,7 @@ class AbstractIdentity(models.Model):
 
 class Contact(AbstractIdentity):
     """
-    Address book of contacts linked to an user that stores addresses
+    Address book of contacts linked to a user that stores addresses
     previously filled by the user.
     """
 
@@ -85,7 +85,7 @@ class Copyright(models.Model):
 
 class Document(models.Model):
     """
-    Named links to more informations on metadata
+    Named links to more information on metadata
     """
 
     name = models.CharField(_("name"), max_length=80)
@@ -174,7 +174,7 @@ class Identity(AbstractIdentity):
 
 class MetadataCategoryEch(models.Model):
     """
-    Imported list of eCH categories used to thematize metadatas
+    Imported list of eCH categories used to thematize metadata
     """
 
     notation = models.CharField(_("notation"), max_length=3, unique=True)
@@ -351,12 +351,12 @@ class MetadataContact(models.Model):
 
 class Pricing(models.Model):
     """
-    Pricing for free products, single tax products or area priced products.
+    Pricing for free products, single tax products, or area-priced products.
     For free products, set base_fee and unit_price both to 0.
-    For unique price set base_fee to desired amount and unit_price to 0.
+    For unique price set base_fee to the desired amount and unit_price to 0.
     For price based on area, provide unit_price
     For prices based on a PricingGeometry, create the pricing layer and
-    link it to pricing_layer field.
+    link it to the pricing_layer field.
     """
 
     class PricingType(models.TextChoices):
@@ -596,7 +596,7 @@ class ProductOwnership(models.Model):
 
 class Order(models.Model):
     """
-    processing_fee should default to the maximum of base fees in the order but can then be edited mannually
+    processing_fee should default to the maximum of base fees in the order but can then be edited manually
     """
 
     class OrderStatus(models.TextChoices):
@@ -739,7 +739,7 @@ class Order(models.Model):
         return True
 
     def quote_done(self):
-        """Admins confirmation they have given a manual price"""
+        """Admins' confirmation they have given a manual price"""
         price_is_set = self.set_price()
         if price_is_set:
             self.order_status = self.OrderStatus.QUOTE_DONE
@@ -1144,7 +1144,7 @@ class OrderItem(models.Model):
     def ask_validation(self):
         """
         Sends email to the first metadata contact that is validator to ask for validation.
-        If validator cannot be found, an email to one of the metadata contact is sent.
+        If a validator cannot be found, an email to one of the metadata contact is sent.
         """
         self.token = secrets.token_urlsafe(32)
         self.status = OrderItem.OrderItemStatus.VALIDATION_PENDING
@@ -1220,7 +1220,7 @@ class ProductFormat(models.Model):
 
 class UserChange(AbstractIdentity):
     """
-    Stores temporary data in order to proceed user profile change requests.
+    Stores temporary data to process user profile change requests.
     """
 
     _excluded_fields = ['id', 'belongs_to']
