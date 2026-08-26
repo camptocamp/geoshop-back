@@ -1756,8 +1756,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-<<<<<<< HEAD
-content-hash = "a230a23dab6c9bf8831012dc289850e5455fa1f09fd1b372e46462ed7ce119fd"
-=======
-content-hash = "4321f2f3bf075a63d7d73605da99a3ac5ea48068d7f469edd4f373fa87cd72fb"
->>>>>>> de0e316 (create connection with PosFinance)
+content-hash = "909abf2cdf76c2e2cb76186786e2b030e486ecaf4b18ce07e1e60d7fc3f07fbf"
