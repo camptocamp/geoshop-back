@@ -104,5 +104,5 @@ static/*
 # local dev files
 files/*
 !files/.gitkeep
-docs/*
+plan/*
 testdata/keyfile.json

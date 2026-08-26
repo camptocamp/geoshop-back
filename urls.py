@@ -75,6 +75,7 @@ urlpatterns = [
     path(f'{ROOTURL}auth/verify-email/', views.VerifyEmailView.as_view(), name='auth_verify_email'),
     re_path(rf'^{ROOTURL}auth/account-confirm-email/(?P<key>[-:\w]+)/$', TemplateView.as_view(),
             name='account_confirm_email'),
+    path(f'{ROOTURL}payment/webhook/postfinance/', views.postfinance_webhook, name='postfinance_webhook'),
     path(f'{ROOTURL}extract/order/', views.ExtractOrderView.as_view(), name='extract_order'),
     path(f'{ROOTURL}extract/orderitem/', views.ExtractOrderItemView.as_view(), name='extract_orderitem'),
     re_path(rf'^{ROOTURL}extract/orderitem/(?P<pk>[0-9]+)$',

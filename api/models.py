@@ -605,14 +605,12 @@ class Order(models.Model):
         QUOTE_DONE = "QUOTE_DONE", _("Quote done")
         AWAITING_PAYMENT = "AWAITING_PAYMENT", _("Awaiting payment")
         PAYMENT_FAILED = "PAYMENT_FAILED", _("Payment failed")
-        PAID = "PAID", _("Paid")
         READY = "READY", _("Ready")
         IN_EXTRACT = "IN_EXTRACT", _("In extract")
         PARTIALLY_DELIVERED = "PARTIALLY_DELIVERED", _("Partially delivered")
         PROCESSED = "PROCESSED", _("Processed")
         ARCHIVED = "ARCHIVED", _("Archived")
         REJECTED = "REJECTED", _("Rejected")
-        REFUNDED = "REFUNDED", _("Refunded")
 
     title = models.CharField(
         _("title"),
@@ -1053,7 +1051,6 @@ class Payment(models.Model):
         SETTLED = "SETTLED", _("Settled")  # money captured => order can proceed
         FAILED = "FAILED", _("Failed")
         CANCELED = "CANCELED", _("Canceled")
-        REFUNDED = "REFUNDED", _("Refunded")
 
     order = models.ForeignKey(
         Order,

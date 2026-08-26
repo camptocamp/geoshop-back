@@ -3,7 +3,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -12,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
 
 from rest_framework import filters, generics, views, viewsets, permissions, status, mixins
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, authentication_classes, permission_classes
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
@@ -24,7 +24,7 @@ from allauth.account.views import ConfirmEmailView
 
 from .models import (
     Contact, Copyright, Document, DataFormat, Identity, Metadata, MetadataContact,
-    Order, OrderItem, OrderType, Pricing, Product,
+    Order, OrderItem, OrderType, Payment, PaymentEvent, Pricing, Product,
     ProductFormat, UserChange, AbstractIdentity)
 
 from .serializers import (
@@ -260,6 +260,60 @@ def _payment_return_urls(order):
         failure="{}?payment=failed&order={}".format(base, order.id),
         cancel="{}?payment=canceled&order={}".format(base, order.id),
     )
+
+
+@api_view(['POST'])
+@authentication_classes([])  # server-to-server: no session/JWT auth
+@permission_classes([permissions.AllowAny])  # the default denies anonymous POSTs
+def postfinance_webhook(request):
+    """
+    Settlement webhook for PostFinance Checkout (server-to-server; no user auth). PostFinance
+    POSTs here whenever a transaction changes. We verify the signature, read the transaction's
+    authoritative state, and move our Payment/Order accordingly.
+
+    Always answers `200` once a notification is safely handled or can be ignored, so PostFinance
+    stops retrying; only an unverifiable request gets `400`. Idempotent: duplicated notifications
+    (same `eventId`) take effect exactly once.
+    """
+    try:
+        event = payments.parse_and_verify_webhook(request)
+    except payments.WebhookVerificationError:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    # Dedup: a notification we've already recorded is acknowledged but not reprocessed.
+    if PaymentEvent.objects.filter(provider_event_id=event.provider_event_id).exists():
+        return Response(status=status.HTTP_200_OK)
+
+    try:
+        with transaction.atomic():
+            payment = Payment.objects.select_for_update().get(
+                provider_transaction_id=event.provider_transaction_id
+            )
+            # Append-only audit trail; the unique provider_event_id also guards concurrent dupes.
+            PaymentEvent.objects.create(
+                payment=payment,
+                provider_event_id=event.provider_event_id,
+                raw_payload=event.raw_payload,
+            )
+            payment.status = event.new_status
+            payment.save(update_fields=["status", "updated_at"])
+
+            order = payment.order
+            if payment.status == Payment.PaymentStatus.SETTLED:
+                # Payment guaranteed -> take the order into the normal delivery pipeline.
+                order.confirm()
+                order.save()
+            elif payment.status in (Payment.PaymentStatus.FAILED, Payment.PaymentStatus.CANCELED):
+                order.order_status = Order.OrderStatus.PAYMENT_FAILED
+                order.save(update_fields=["order_status"])
+    except Payment.DoesNotExist:
+        # A transaction we don't know about -- acknowledge so PostFinance stops retrying.
+        return Response(status=status.HTTP_200_OK)
+    except IntegrityError:
+        # Concurrent duplicate (same eventId) already recorded by another request.
+        return Response(status=status.HTTP_200_OK)
+
+    return Response(status=status.HTTP_200_OK)
 
 
 class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):

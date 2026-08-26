@@ -16,6 +16,7 @@ rest of geoshop only ever sees ``create_session`` / ``get_status`` / etc.
 """
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -27,7 +28,9 @@ from postfinancecheckout import (
     LineItemCreate,
     LineItemType,
     TransactionCreate,
+    TransactionEnvironmentSelectionStrategy,
     TransactionsService,
+    WebhookEncryptionKeysService,
 )
 
 if TYPE_CHECKING:
@@ -69,8 +72,8 @@ class WebhookEvent:
 
     # The provider's unique id for this event -- the dedup key (see PaymentEvent).
     provider_event_id: str
-    # Our own reference, echoed back by the provider, used to find the Payment.
-    merchant_reference: str
+    # The provider's transaction id (webhook `entityId`), matched to Payment.provider_transaction_id.
+    provider_transaction_id: str
     # The provider's outcome mapped onto our PaymentStatus.
     new_status: "Payment.PaymentStatus"
     # The exact, verbatim payload as received, stored on PaymentEvent.raw_payload.
@@ -120,12 +123,20 @@ def create_session(payment: "Payment", return_urls: "ReturnUrls") -> "Session":
         amount_including_tax=float(payment.amount.amount),
         type=LineItemType.PRODUCT,
     )
+    # Force test vs production per settings. Defaults to test, so we never accidentally
+    # take a real payment against a space that happens to have live connectors.
+    if settings.POSTFINANCE_TEST_MODE:
+        environment_strategy = TransactionEnvironmentSelectionStrategy.FORCE_TEST_ENVIRONMENT
+    else:
+        environment_strategy = TransactionEnvironmentSelectionStrategy.FORCE_PRODUCTION_ENVIRONMENT
+
     transaction_create = TransactionCreate(
         currency=str(payment.amount.currency),
         line_items=[line_item],
         merchant_reference=str(payment.merchant_reference),
         success_url=return_urls.success,
         failed_url=return_urls.failure,
+        environment_selection_strategy=environment_strategy,
     )
 
     transaction = service.post_payment_transactions(space, transaction_create)
@@ -196,16 +207,64 @@ def start_payment(order, return_urls: "ReturnUrls") -> "tuple[Payment, str]":
     return payment, session.redirect_url
 
 
-def get_status(provider_transaction_id: str) -> "Payment.PaymentStatus":
-    """Query PostFinance for a transaction's status, mapped to our PaymentStatus."""
-    raise NotImplementedError  # next step
+# PostFinance TransactionState -> our PaymentStatus value. Only FULFILL means "paid,
+# deliver"; COMPLETED/AUTHORIZED are funds-in-flight but not yet safe to fulfil (per
+# PostFinance docs). Unknown states map to PENDING (never settle on a state we don't know).
+_STATE_TO_STATUS = {
+    "FULFILL": "SETTLED",
+    "AUTHORIZED": "AUTHORIZED",
+    "COMPLETED": "AUTHORIZED",
+    "FAILED": "FAILED",
+    "DECLINE": "FAILED",
+    "VOIDED": "CANCELED",
+    "CONFIRMED": "PENDING",
+    "PROCESSING": "PENDING",
+    "PENDING": "PENDING",
+    "CREATE": "CREATED",
+}
+
+
+def get_status(provider_transaction_id) -> "Payment.PaymentStatus":
+    """Read a transaction's authoritative state from PostFinance, mapped to our PaymentStatus."""
+    service = TransactionsService(_configuration())
+    transaction = service.get_payment_transactions_id(int(provider_transaction_id), _space_id())
+    state = getattr(transaction.state, "value", transaction.state)
+    return _STATE_TO_STATUS.get(str(state), "PENDING")
 
 
 def refund(provider_transaction_id: str, amount) -> None:
     """Refund a settled transaction."""
-    raise NotImplementedError  # next step
+    raise NotImplementedError  # not in scope yet
 
 
 def parse_and_verify_webhook(request) -> "WebhookEvent":
-    """Verify an incoming PostFinance webhook and parse it into a WebhookEvent."""
-    raise NotImplementedError  # next step
+    """
+    Verify an incoming PostFinance webhook and parse it into a :class:`WebhookEvent`.
+
+    Authenticity: the request carries an ``X-Signature`` header; the SDK's
+    ``is_content_valid`` fetches the matching public key and checks the raw body against
+    it. A missing/invalid signature raises :class:`WebhookVerificationError`.
+
+    The verified body carries only ids (``eventId``, ``entityId`` = the transaction id);
+    the authoritative status is then read back from PostFinance via ``get_status`` -- we
+    never trust a status value from the POST body itself.
+    """
+    signature = request.headers.get("X-Signature")
+    raw_body = request.body.decode("utf-8")
+    if not signature:
+        raise WebhookVerificationError("Missing X-Signature header")
+    try:
+        is_valid = WebhookEncryptionKeysService(_configuration()).is_content_valid(signature, raw_body)
+    except Exception as exc:  # SDK raises on malformed header / unknown key
+        raise WebhookVerificationError("Could not verify webhook signature: %s" % exc)
+    if not is_valid:
+        raise WebhookVerificationError("Webhook signature does not match the payload")
+
+    payload = json.loads(raw_body)
+    provider_transaction_id = str(payload.get("entityId"))
+    return WebhookEvent(
+        provider_event_id=str(payload.get("eventId")),
+        provider_transaction_id=provider_transaction_id,
+        new_status=get_status(provider_transaction_id),
+        raw_payload=payload,
+    )

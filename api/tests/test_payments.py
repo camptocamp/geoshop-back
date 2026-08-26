@@ -8,7 +8,15 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from api.models import Order, OrderItem, Payment, Product, ProductFormat
-from api.payments import PaymentError, ReturnUrls, Session, start_payment
+from api.payments import (
+    PaymentError,
+    ReturnUrls,
+    Session,
+    WebhookEvent,
+    WebhookVerificationError,
+    get_status,
+    start_payment,
+)
 from api.tests.factories import BaseObjectsFactory
 
 RETURN_URLS = ReturnUrls(
@@ -274,3 +282,106 @@ class PrepareFinalizeConsistencyTests(TestCase):
         self.assertTrue(write_priced)
         self.assertEqual(read_total, order.total_with_vat)
         self.assertEqual(read_option, "card")
+
+
+class PostFinanceWebhookTests(TestCase):
+    """The POST /payment/webhook/postfinance/ settlement webhook (verification mocked)."""
+
+    def setUp(self):
+        self.config = BaseObjectsFactory()
+        self.url = reverse("postfinance_webhook")
+
+    def _awaiting_payment_order(self, tx_id="tx-1"):
+        order = Order.objects.create(
+            client=self.config.user_private,
+            order_type=self.config.order_types["private"],
+            title="paid order",
+            geom=self.config.order.geom,
+            order_status=Order.OrderStatus.AWAITING_PAYMENT,
+        )
+        item = OrderItem.objects.create(
+            order=order, product=self.config.products["single"],
+            data_format=self.config.formats["dxf"],
+        )
+        item.set_price()
+        item.save()
+        order.set_price()
+        order.save()
+        payment = Payment.objects.create(
+            order=order, amount=order.total_with_vat, provider="postfinance",
+            provider_transaction_id=tx_id, status=Payment.PaymentStatus.PENDING,
+        )
+        return order, payment
+
+    def _event(self, tx_id, new_status, event_id="evt-1"):
+        return WebhookEvent(
+            provider_event_id=event_id, provider_transaction_id=tx_id,
+            new_status=new_status, raw_payload={"eventId": event_id, "entityId": tx_id},
+        )
+
+    @mock.patch("api.payments.parse_and_verify_webhook")
+    def test_settled_payment_moves_order_to_ready(self, mock_parse):
+        order, payment = self._awaiting_payment_order()
+        mock_parse.return_value = self._event("tx-1", Payment.PaymentStatus.SETTLED)
+
+        resp = self.client.post(self.url)
+
+        self.assertEqual(resp.status_code, 200)
+        payment.refresh_from_db()
+        order.refresh_from_db()
+        self.assertEqual(payment.status, Payment.PaymentStatus.SETTLED)
+        self.assertEqual(order.order_status, Order.OrderStatus.READY)
+        self.assertEqual(payment.events.count(), 1)
+
+    @mock.patch("api.payments.parse_and_verify_webhook")
+    def test_failed_payment_marks_order_payment_failed(self, mock_parse):
+        order, payment = self._awaiting_payment_order()
+        mock_parse.return_value = self._event("tx-1", Payment.PaymentStatus.FAILED)
+
+        resp = self.client.post(self.url)
+
+        self.assertEqual(resp.status_code, 200)
+        payment.refresh_from_db()
+        order.refresh_from_db()
+        self.assertEqual(payment.status, Payment.PaymentStatus.FAILED)
+        self.assertEqual(order.order_status, Order.OrderStatus.PAYMENT_FAILED)
+
+    @mock.patch("api.payments.parse_and_verify_webhook")
+    def test_duplicate_event_takes_effect_once(self, mock_parse):
+        order, payment = self._awaiting_payment_order()
+        mock_parse.return_value = self._event("tx-1", Payment.PaymentStatus.SETTLED, event_id="evt-dup")
+
+        self.client.post(self.url)
+        self.client.post(self.url)  # same eventId again
+
+        self.assertEqual(payment.events.count(), 1)
+
+    @mock.patch("api.payments.parse_and_verify_webhook")
+    def test_unknown_transaction_is_acknowledged(self, mock_parse):
+        mock_parse.return_value = self._event("no-such-tx", Payment.PaymentStatus.SETTLED)
+
+        resp = self.client.post(self.url)
+
+        self.assertEqual(resp.status_code, 200)
+
+    @mock.patch("api.payments.parse_and_verify_webhook", side_effect=WebhookVerificationError("bad signature"))
+    def test_invalid_signature_returns_400(self, mock_parse):
+        resp = self.client.post(self.url)
+        self.assertEqual(resp.status_code, 400)
+
+
+class GetStatusMappingTests(TestCase):
+    """get_status maps PostFinance transaction states to our PaymentStatus values."""
+
+    @mock.patch("api.payments.TransactionsService")
+    def _status_for(self, state, mock_svc):
+        mock_svc.return_value.get_payment_transactions_id.return_value = mock.Mock(state=state)
+        return get_status("123")
+
+    def test_state_mapping(self):
+        self.assertEqual(self._status_for("FULFILL"), "SETTLED")
+        self.assertEqual(self._status_for("COMPLETED"), "AUTHORIZED")
+        self.assertEqual(self._status_for("FAILED"), "FAILED")
+        self.assertEqual(self._status_for("VOIDED"), "CANCELED")
+        self.assertEqual(self._status_for("PROCESSING"), "PENDING")
+        self.assertEqual(self._status_for("SOMETHING_NEW"), "PENDING")  # unknown -> safe default
