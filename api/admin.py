@@ -141,6 +141,17 @@ class OrderItemAdmin(CustomGeoModelAdmin):
     list_filter = [OwnedProductOrderItemFilter]
     readonly_fields = ['extract_result_download']
 
+    # place the field 'extract_result_download' right after the field 'extract_result' to facilitate
+    # spotting the correct field for downloading
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+
+        if 'extract_result' in fields and 'extract_result_download' in fields:
+            fields.remove('extract_result_download')
+            fields.insert(fields.index('extract_result') + 1, 'extract_result_download')
+
+        return fields
+
     def get_urls(self) -> list[URLPattern]:
         urls: list[URLPattern] = super().get_urls()
         custom_urls: list[URLPattern] = [
@@ -208,6 +219,17 @@ class OrderItemInline(admin.StackedInline):
     extra = 0
     readonly_fields = ['extract_result_download']
 
+    # place the field 'extract_result_download' right after the field 'extract_result' to facilitate
+    # spotting the correct field for downloading
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+
+        if 'extract_result' in fields and 'extract_result_download' in fields:
+            fields.remove('extract_result_download')
+            fields.insert(fields.index('extract_result') + 1, 'extract_result_download')
+
+        return fields
+
     def extract_result_download(self, obj):
         if not obj or not obj.pk or not obj.extract_result:
             return _("No extract result available")
@@ -271,6 +293,17 @@ class OrderAdmin(CustomGeoModelAdmin):
     actions = ['quote']
     list_filter = ['order_status', 'date_ordered', OwnedProductOrderFilter]
     readonly_fields = ['extract_result_download']
+
+    # place the field 'extract_result_download' right after the field 'extract_result' to facilitate
+    # spotting the correct field for downloading
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+
+        if 'extract_result' in fields and 'extract_result_download' in fields:
+            fields.remove('extract_result_download')
+            fields.insert(fields.index('extract_result') + 1, 'extract_result_download')
+
+        return fields
 
     def get_urls(self) -> list[URLPattern]:
         urls: list[URLPattern] = super().get_urls()
