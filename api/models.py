@@ -612,6 +612,11 @@ class Order(models.Model):
         ARCHIVED = "ARCHIVED", _("Archived")
         REJECTED = "REJECTED", _("Rejected")
 
+    class PaymentOption(models.TextChoices):
+        QUOTE = "quote", _("Quote")
+        FREE = "free", _("Free")  
+        CARD = "card", _("Card")
+
     title = models.CharField(
         _("title"),
         max_length=255,
@@ -876,12 +881,8 @@ class Order(models.Model):
 
     def _finalize_order_items(self):
         """
-        WRITE path. Finalize the cart's contents by *persisting* group expansion: each
-        group OrderItem is replaced by its concrete child product(s) -- fan-out or
-        largest-overlap, per the group flag -- deleting group items and creating children.
-
-        Called by the commit paths: confirm() (invoice) and the card payment flow.
-        Structural only: it does not stamp dates, trigger validations, or change status.
+        Finalize the cart's contents by *persisting* group expansion: each
+        group OrderItem is replaced by its concrete child product(s).
         """
         self._expand_product_groups()
         self._resolve_grouped_order_items_by_overlap()
@@ -901,13 +902,9 @@ class Order(models.Model):
 
     def _prepare_order_items(self) -> List["OrderItem"]:
         """
-        READ-ONLY preview of the order's finalized items. Returns a list of UNSAVED,
-        priced OrderItem instances representing what the order expands to at checkout,
-        WITHOUT persisting anything (no group item deleted, no child created).
-
-        Mirrors _finalize_order_items() (the write path) so /prepare can price and
-        classify the order without mutating the group-based cart. The read and write
-        paths are pinned together by a consistency test. Touches no database rows.
+        READ-ONLY: Mirrors _finalize_order_items() (the write path) so /prepare can price and
+        classify the order without mutating the group-based cart.
+        This method does not persist any changes to the database.
         """
         prepared: List["OrderItem"] = []
         for item in self.items.all():
@@ -927,14 +924,12 @@ class Order(models.Model):
 
     def prepare_checkout(self):
         """
-        READ-ONLY. Compute the order's finalized total and payment option without
-        persisting expansion. Returns ``(payment_option, total_with_vat)`` where
-        payment_option is 'quote' (an item needs a manual quote), 'free' (total is 0)
-        or 'card' (auto-priced with a positive total). Used by the /prepare endpoint.
+        READ-ONLY: step before final confirmation of the order.
+        Evaluates the order's items and computes the total and payment option.
         """
         items = self._prepare_order_items()
         if any(item.base_fee is None for item in items):
-            return 'quote', None
+            return self.PaymentOption.QUOTE, None
         processing_fee = Money(0, settings.DEFAULT_CURRENCY)
         total_without_vat = Money(0, settings.DEFAULT_CURRENCY)
         for item in items:
@@ -943,7 +938,10 @@ class Order(models.Model):
             total_without_vat += item.price
         total_without_vat += processing_fee
         total_with_vat = total_without_vat + total_without_vat * settings.VAT
-        return ('free' if total_with_vat.amount == 0 else 'card'), total_with_vat
+        payment_option = (
+            self.PaymentOption.FREE if total_with_vat.amount == 0 else self.PaymentOption.CARD
+        )
+        return payment_option, total_with_vat
 
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""
@@ -1036,12 +1034,8 @@ class Order(models.Model):
 
 class Payment(models.Model):
     """
-    A single payment attempt for an Order.
-
-    The Order (and this project) stays the source of truth for the order itself; the payment
-    provider is authoritative for the money transfer. This row is our mirror of the provider's payment
-    state plus the links needed to reconcile the two, keyed by our own ``merchant_reference``.
-    No card data is ever stored here (hosted payment page => PCI SAQ-A).
+    Payment connects the Order to the provider's payment system.
+    The PaymentStatus here reflects the provider's status, that stays authoritative for the money transfer.
     """
 
     class PaymentStatus(models.TextChoices):
@@ -1095,9 +1089,9 @@ class Payment(models.Model):
 
 class PaymentEvent(models.Model):
     """
-    Append-only (rows are never updated) trail of the raw messages a provider sent about a Payment. 
-    ``provider_event_id`` is the dedup (deduplication) key: an event id already seen is acknowledged
-    but not reprocessed, so a duplicated webhook takes effect exactly once.
+    Append-only (payment events are never updated) log of the raw messages a provider sent about a Payment (received via webhooks).
+    These logs are kept for auditing and troubleshooting purposes.
+    Deduplicated on ``provider_event_id`` so a repeated webhook takes effect exactly once.
     """
 
     payment = models.ForeignKey(

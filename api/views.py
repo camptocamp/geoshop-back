@@ -460,7 +460,7 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
         cart is never mutated (that only happens at commit, in confirm()/pay). See
         docs/card-checkout-integration.md.
 
-        Response `payment_option`:
+        Response `payment_option` (an `Order.PaymentOption`):
         - "quote" -> an item needs a manual quote; invoice/quote only;
         - "free"  -> total is 0; no payment needed;
         - "card"  -> auto-priced with a positive total; card or invoice.
