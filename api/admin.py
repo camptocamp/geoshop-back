@@ -5,9 +5,12 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
 from django.contrib.gis import admin
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404, FileResponse, HttpRequest
+from django.urls import path, reverse, URLPattern
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django_extended_ol.forms.widgets import WMTSWidget
+from rest_framework.status import HTTP_403_FORBIDDEN
 
 from .helpers import send_geoshop_email
 from .models import (
@@ -112,10 +115,129 @@ class MetadataContactAdmin(CustomModelAdmin):
         return metadata_contact.contact_person
 
 
+class OwnedProductOrderItemFilter(SimpleListFilter):
+    title = _("product ownership")
+    parameter_name = "product_ownership"
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", _("Contains a product owned by one of my groups")),
+            ("no", _("Does not contain a product owned by one of my groups")),
+        )
+
+    def queryset(self, request, queryset):
+        owned_filter = get_owned_product_order_item_filter(request)
+
+        if self.value() == "yes":
+            return queryset.filter(**owned_filter).distinct()
+
+        if self.value() == "no":
+            return queryset.exclude(**owned_filter).distinct()
+
+        return queryset
+
+
+class OrderItemAdmin(CustomGeoModelAdmin):
+    list_filter = [OwnedProductOrderItemFilter]
+    readonly_fields = ['extract_result_download']
+
+    # place the field 'extract_result_download' right after the field 'extract_result' to facilitate
+    # spotting the correct field for downloading
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+
+        if 'extract_result' in fields and 'extract_result_download' in fields:
+            fields.remove('extract_result_download')
+            fields.insert(fields.index('extract_result') + 1, 'extract_result_download')
+
+        return fields
+
+    def get_urls(self) -> list[URLPattern]:
+        urls: list[URLPattern] = super().get_urls()
+        custom_urls: list[URLPattern] = [
+            path(
+                '<int:object_id>/download-extract-result/',
+                self.admin_site.admin_view(self.download_extract_result),
+                name='order_item_download_extract_result',
+            ),
+        ]
+        return custom_urls + urls
+
+    def extract_result_download(self, obj):
+        if not obj or not obj.pk or not obj.extract_result:
+            return _("No extract result available")
+
+        url = reverse('admin:order_item_download_extract_result', args=[obj.pk])
+        return format_html('<a href="{}">Download extract result</a>', url)
+
+    extract_result_download.short_description = _("Extract result download")
+
+    def download_extract_result(self, request: HttpRequest, object_id: str):
+        obj = self.get_object(request, object_id)
+
+        if obj is None:
+            raise Http404(_("Order not found"))
+
+        if not self.has_view_or_change_permission(request, obj):
+            raise HTTP_403_FORBIDDEN
+
+        if not obj.extract_result:
+            raise Http404(_("No extract result available"))
+
+        try:
+            file_handle = obj.extract_result.open('rb')
+        except FileNotFoundError:
+            raise Http404(_("Extract result file not found"))
+
+        filename = obj.extract_result.name.split('/')[-1]
+        return FileResponse(file_handle, as_attachment=True, filename=filename)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+
+        if not request.user.is_superuser:
+            return queryset.filter(**get_owned_product_order_item_filter(request)).distinct()
+
+        return queryset
+
+    def get_list_filter(self, request):
+        list_filter = list(super().get_list_filter(request))
+
+        if not request.user.is_superuser:
+            return [
+                list_filter_item
+                for list_filter_item in list_filter
+                if list_filter_item != OwnedProductOrderItemFilter
+            ]
+
+        return list_filter
+
+
 class OrderItemInline(admin.StackedInline):
     raw_id_fields = ['product']
     model = OrderItem
     extra = 0
+    readonly_fields = ['extract_result_download']
+
+    # place the field 'extract_result_download' right after the field 'extract_result' to facilitate
+    # spotting the correct field for downloading
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+
+        if 'extract_result' in fields and 'extract_result_download' in fields:
+            fields.remove('extract_result_download')
+            fields.insert(fields.index('extract_result') + 1, 'extract_result_download')
+
+        return fields
+
+    def extract_result_download(self, obj):
+        if not obj or not obj.pk or not obj.extract_result:
+            return _("No extract result available")
+
+        url = reverse('admin:order_item_download_extract_result', args=[obj.pk])
+        return format_html('<a href="{}">Download extract result</a>', url)
+
+    extract_result_download.short_description = _("Extract result download")
 
 
 class OwnedProductOrderFilter(SimpleListFilter):
@@ -170,6 +292,58 @@ class OrderAdmin(CustomGeoModelAdmin):
     ordering = ['-id']
     actions = ['quote']
     list_filter = ['order_status', 'date_ordered', OwnedProductOrderFilter]
+    readonly_fields = ['extract_result_download']
+
+    # place the field 'extract_result_download' right after the field 'extract_result' to facilitate
+    # spotting the correct field for downloading
+    def get_fields(self, request, obj=None):
+        fields = list(super().get_fields(request, obj))
+
+        if 'extract_result' in fields and 'extract_result_download' in fields:
+            fields.remove('extract_result_download')
+            fields.insert(fields.index('extract_result') + 1, 'extract_result_download')
+
+        return fields
+
+    def get_urls(self) -> list[URLPattern]:
+        urls: list[URLPattern] = super().get_urls()
+        custom_urls: list[URLPattern] = [
+            path(
+                '<int:object_id>/download-extract-result/',
+                self.admin_site.admin_view(self.download_extract_result),
+                name='order_download_extract_result',
+            ),
+        ]
+        return custom_urls + urls
+
+    def extract_result_download(self, obj):
+        if not obj or not obj.pk or not obj.extract_result:
+            return _("No extract result available")
+
+        url = reverse('admin:order_download_extract_result', args=[obj.pk])
+        return format_html('<a href="{}">Download extract result</a>', url)
+
+    extract_result_download.short_description = _("Extract result download")
+
+    def download_extract_result(self, request: HttpRequest, object_id: str):
+        obj = self.get_object(request, object_id)
+
+        if obj is None:
+            raise Http404(_("Order not found"))
+
+        if not self.has_view_or_change_permission(request, obj):
+            raise HTTP_403_FORBIDDEN
+
+        if not obj.extract_result:
+            raise Http404(_("No extract result available"))
+
+        try:
+            file_handle = obj.extract_result.open('rb')
+        except FileNotFoundError:
+            raise Http404(_("Extract result file not found"))
+
+        filename = obj.extract_result.name.split('/')[-1]
+        return FileResponse(file_handle, as_attachment=True, filename=filename)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -250,52 +424,6 @@ class OrderAdmin(CustomGeoModelAdmin):
                 item.save()
 
         return super().response_change(request, obj)
-
-
-class OwnedProductOrderItemFilter(SimpleListFilter):
-    title = _("product ownership")
-    parameter_name = "product_ownership"
-
-    def lookups(self, request, model_admin):
-        return (
-            ("yes", _("Contains a product owned by one of my groups")),
-            ("no", _("Does not contain a product owned by one of my groups")),
-        )
-
-    def queryset(self, request, queryset):
-        owned_filter = get_owned_product_order_item_filter(request)
-
-        if self.value() == "yes":
-            return queryset.filter(**owned_filter).distinct()
-
-        if self.value() == "no":
-            return queryset.exclude(**owned_filter).distinct()
-
-        return queryset
-
-
-class OrderItemAdmin(CustomGeoModelAdmin):
-    list_filter = [OwnedProductOrderItemFilter]
-
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-
-        if not request.user.is_superuser:
-            return queryset.filter(**get_owned_product_order_item_filter(request)).distinct()
-
-        return queryset
-
-    def get_list_filter(self, request):
-        list_filter = list(super().get_list_filter(request))
-
-        if not request.user.is_superuser:
-            return [
-                list_filter_item
-                for list_filter_item in list_filter
-                if list_filter_item != OwnedProductOrderItemFilter
-            ]
-
-        return list_filter
 
 
 class ProductOwnershipAdmin(CustomGeoModelAdmin):
