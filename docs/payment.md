@@ -73,10 +73,11 @@ POST /prepare   ── READ-ONLY: compute the definitive final price + eligibili
    ├─ "free"   → total is 0 → no payment
    └─ "card"   → buyer chooses:
                     ├─ invoice → confirm → order READY
-                    └─ card    → POST /pay → redirect to PostFinance hosted page
+                    └─ card    → POST /pay → order AWAITING_PAYMENT → redirect to hosted page
                                                 │  buyer pays (card / TWINT)
                                                 ▼
-                                    signed webhook → Payment SETTLED → order READY
+                                    signed webhook ─┬─ SETTLED  → confirm() → order READY
+                                                    └─ FAILED   → order back to DRAFT (retryable)
 ```
 
 1. The buyer builds a cart (an order in `DRAFT`) and draws the perimeter.
@@ -86,16 +87,18 @@ POST /prepare   ── READ-ONLY: compute the definitive final price + eligibili
    **free**.
 4. If the buyer chooses **card**, the backend opens a PostFinance transaction and redirects the buyer
    to the hosted page, where they pay.
-5. PostFinance notifies the backend with a **signed webhook** when the payment settles; the order
-   advances to `READY` and joins the normal delivery pipeline.
+5. PostFinance notifies the backend with a **signed webhook**. On **settlement** the order is
+   finalized (`confirm()`) and advances to `READY`, joining the normal delivery pipeline. On
+   **failure** the order returns to `DRAFT` so the buyer can edit or retry.
 
-**Why `prepare` is read-only.** For a **product group**, the final price depends on server-side
-*expansion* — turning the group into the concrete products that actually apply to the drawn
-perimeter. Doing that expansion destructively at checkout would corrupt the frontend's group-based
-cart. Instead, `prepare` **previews** the expansion **in memory**: it computes the exact final price
-and eligibility without changing anything. The number shown is therefore guaranteed to match what
-`/pay` charges, and the cart is never mutated. The real expansion is persisted **only** when the
-order is actually committed (at `pay` or invoice `confirm`).
+**Why `prepare` and `pay` are non-destructive until settlement.** For a **product group**, the final
+price depends on server-side *expansion* — turning the group into the concrete products that actually
+apply to the drawn perimeter. Doing that expansion destructively at checkout would corrupt the
+frontend's group-based cart. So both `prepare` and `pay` compute the price by **previewing** the
+expansion **in memory** — they write nothing. The order is finalized (expansion persisted) **only on
+payment settlement** (`confirm()`), or on the invoice path's own `confirm`. This guarantees the amount
+shown, the amount charged, and the amount finalized all match, and that a failed or abandoned payment
+leaves the cart exactly as it was — ready to retry.
 
 ---
 
@@ -154,12 +157,12 @@ CANCELED    # payment cancelled / voided
 **Order status added for card payment** (`Order.OrderStatus`):
 
 ```python
-AWAITING_PAYMENT  # buyer redirected to pay; waiting for settlement
-PAYMENT_FAILED    # the payment failed or was cancelled
+AWAITING_PAYMENT  # buyer redirected to pay; waiting for the settlement webhook
 ```
 
 On a successful settlement the order proceeds to `READY`, exactly like a confirmed invoice order, so
-the rest of the extraction/delivery process is unchanged.
+the rest of the extraction/delivery process is unchanged. A failed or canceled payment sends the order
+back to `DRAFT` (the cart was never finalized), so the buyer can edit or retry.
 
 ---
 
@@ -174,3 +177,12 @@ the rest of the extraction/delivery process is unchanged.
   refund on the PostFinance transaction and move the `Payment` to a `REFUNDED` state — the status was
   removed for now (unused) and would be re-added with the feature, along with deciding how the order
   should reflect it.
+- **Freeze the cart while an order awaits payment.** OrderItem create/update are not status-guarded,
+  so the cart can still be changed while the order is `AWAITING_PAYMENT`. Since the amount to charge is
+  snapshotted when payment starts, a later change would make the charged total diverge from the
+  finalized order. The backend should block item changes in this state, and the frontend should
+  disable editing while awaiting payment.
+- **Prompt handling of abandoned payments.** If a buyer leaves the payment page without paying,
+  PostFinance sends no immediate notification — it only moves the transaction to a terminal state
+  after its authorization timeout. Until then the order stays `AWAITING_PAYMENT`, so the buyer can't
+  retry. We need a quicker way to release an abandoned order back to `DRAFT`.

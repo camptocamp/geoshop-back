@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='order_status',
-            field=models.CharField(choices=[('DRAFT', 'Draft'), ('PENDING', 'Pending'), ('QUOTE_DONE', 'Quote done'), ('AWAITING_PAYMENT', 'Awaiting payment'), ('PAYMENT_FAILED', 'Payment failed'), ('READY', 'Ready'), ('IN_EXTRACT', 'In extract'), ('PARTIALLY_DELIVERED', 'Partially delivered'), ('PROCESSED', 'Processed'), ('ARCHIVED', 'Archived'), ('REJECTED', 'Rejected')], default='DRAFT', max_length=20, verbose_name='order_status'),
+            field=models.CharField(choices=[('DRAFT', 'Draft'), ('PENDING', 'Pending'), ('QUOTE_DONE', 'Quote done'), ('AWAITING_PAYMENT', 'Awaiting payment'), ('READY', 'Ready'), ('IN_EXTRACT', 'In extract'), ('PARTIALLY_DELIVERED', 'Partially delivered'), ('PROCESSED', 'Processed'), ('ARCHIVED', 'Archived'), ('REJECTED', 'Rejected')], default='DRAFT', max_length=20, verbose_name='order_status'),
         ),
         migrations.AlterField(
             model_name='product',

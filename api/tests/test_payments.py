@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -48,7 +49,7 @@ class StartPaymentTests(TestCase):
 
     @mock.patch("api.payments.create_session", return_value=FAKE_SESSION)
     def test_creates_payment_and_moves_order_to_awaiting_payment(self, mock_create):
-        payment, redirect_url = start_payment(self.order, RETURN_URLS)
+        payment, redirect_url = start_payment(self.order, RETURN_URLS, self.order.total_with_vat)
 
         mock_create.assert_called_once()
         self.assertEqual(redirect_url, FAKE_SESSION.redirect_url)
@@ -65,9 +66,9 @@ class StartPaymentTests(TestCase):
     @mock.patch("api.payments._payment_page_url", return_value="https://pf/pay/txn-123")
     @mock.patch("api.payments.create_session", return_value=FAKE_SESSION)
     def test_dedups_an_in_flight_payment(self, mock_create, mock_url):
-        start_payment(self.order, RETURN_URLS)
+        start_payment(self.order, RETURN_URLS, self.order.total_with_vat)
         # Second attempt must reuse the open payment, not charge again.
-        _, redirect_url = start_payment(self.order, RETURN_URLS)
+        _, redirect_url = start_payment(self.order, RETURN_URLS, self.order.total_with_vat)
 
         self.assertEqual(self.order.payments.count(), 1)
         self.assertEqual(mock_create.call_count, 1)  # provider not hit again
@@ -82,7 +83,7 @@ class StartPaymentTests(TestCase):
             geom=self.order.geom,
         )
         with self.assertRaises(PaymentError):
-            start_payment(unpriced, RETURN_URLS)
+            start_payment(unpriced, RETURN_URLS, unpriced.total_with_vat)
 
 
 @override_settings(LANGUAGE_CODE="en")
@@ -155,6 +156,28 @@ class PayEndpointTests(_OrderApiTestBase):
         order.refresh_from_db()
         self.assertEqual(order.order_status, Order.OrderStatus.READY)
         self.assertEqual(order.payments.count(), 0)
+
+    @mock.patch("api.payments.create_session", return_value=FAKE_SESSION)
+    def test_previously_failed_order_can_pay_again(self, mock_create):
+        # A failed payment releases the order back to DRAFT, leaving a FAILED payment behind.
+        # The buyer must be able to start a fresh payment -- not get a 403.
+        order = self._draft_order("single")
+        Payment.objects.create(
+            order=order,
+            amount=Money(150, "CHF"),
+            provider="postfinance",
+            status=Payment.PaymentStatus.FAILED,
+        )
+
+        resp = self.client.post(reverse("order-pay", kwargs={"pk": order.id}), format="json")
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue(resp.data["payment_required"])
+        order.refresh_from_db()
+        self.assertEqual(order.order_status, Order.OrderStatus.AWAITING_PAYMENT)
+        # A new payment is started; the old FAILED one is not reused.
+        self.assertEqual(order.payments.count(), 2)
+        self.assertEqual(order.payments.filter(status=Payment.PaymentStatus.PENDING).count(), 1)
 
 
 class PrepareEndpointTests(_OrderApiTestBase):
@@ -334,7 +357,7 @@ class PostFinanceWebhookTests(TestCase):
         self.assertEqual(payment.events.count(), 1)
 
     @mock.patch("api.payments.parse_and_verify_webhook")
-    def test_failed_payment_marks_order_payment_failed(self, mock_parse):
+    def test_failed_payment_releases_order_to_draft(self, mock_parse):
         order, payment = self._awaiting_payment_order()
         mock_parse.return_value = self._event("tx-1", Payment.PaymentStatus.FAILED)
 
@@ -344,7 +367,8 @@ class PostFinanceWebhookTests(TestCase):
         payment.refresh_from_db()
         order.refresh_from_db()
         self.assertEqual(payment.status, Payment.PaymentStatus.FAILED)
-        self.assertEqual(order.order_status, Order.OrderStatus.PAYMENT_FAILED)
+        # Order returns to DRAFT so the buyer can edit or retry.
+        self.assertEqual(order.order_status, Order.OrderStatus.DRAFT)
 
     @mock.patch("api.payments.parse_and_verify_webhook")
     def test_duplicate_event_takes_effect_once(self, mock_parse):

@@ -604,7 +604,6 @@ class Order(models.Model):
         PENDING = "PENDING", _("Pending")
         QUOTE_DONE = "QUOTE_DONE", _("Quote done")
         AWAITING_PAYMENT = "AWAITING_PAYMENT", _("Awaiting payment")
-        PAYMENT_FAILED = "PAYMENT_FAILED", _("Payment failed")
         READY = "READY", _("Ready")
         IN_EXTRACT = "IN_EXTRACT", _("In extract")
         PARTIALLY_DELIVERED = "PARTIALLY_DELIVERED", _("Partially delivered")

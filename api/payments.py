@@ -147,13 +147,14 @@ def create_session(payment: "Payment", return_urls: "ReturnUrls") -> "Session":
     return Session(provider_transaction_id=str(transaction.id), redirect_url=redirect_url)
 
 
-def start_payment(order, return_urls: "ReturnUrls") -> "tuple[Payment, str]":
+def start_payment(order, return_urls: "ReturnUrls", amount) -> "tuple[Payment, str]":
     """
-    Orchestrate a card payment for a finalized, fully-priced ``order``.
+    Orchestrate a card payment for ``order``, charging ``amount``.
 
-    The caller (the ``/pay`` view) must have already finalized the order's contents
-    and recomputed its price (``_prepare_order_items()`` + ``set_price()``), so
-    ``order.total_with_vat`` is the definitive amount to charge.
+    The caller (the ``/pay`` view) computes the definitive ``amount`` read-only via
+    ``prepare_checkout()`` -- the order is NOT finalized here. Finalization (group
+    expansion, price persistence) happens only on settlement, in ``confirm()``, so an
+    abandoned or failed payment leaves the cart untouched and retryable.
 
     Behaviour:
     - If the order already has an in-flight payment (a ``CREATED``/``PENDING`` row that
@@ -169,9 +170,9 @@ def start_payment(order, return_urls: "ReturnUrls") -> "tuple[Payment, str]":
 
     from api.models import Order, Payment  # local import avoids any import cycle
 
-    if order.total_with_vat is None:
+    if amount is None:
         raise PaymentError(
-            "Cannot start a card payment for order %s: it is not fully priced." % order.id
+            "Cannot start a card payment for order %s: no amount to charge." % order.id
         )
 
     # Dedup: an order should have at most one in-flight payment.
@@ -187,7 +188,7 @@ def start_payment(order, return_urls: "ReturnUrls") -> "tuple[Payment, str]":
     # Local record first, so we keep a trace even if the provider call fails.
     payment = open_payment or Payment.objects.create(
         order=order,
-        amount=order.total_with_vat,
+        amount=amount,
         provider=PROVIDER_NAME,
         status=Payment.PaymentStatus.CREATED,
     )

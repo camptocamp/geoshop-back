@@ -333,6 +333,24 @@ class Command(BaseCommand):
             "provider": extractUser,
         })
         self.getOrCreate(ProductFormat, product=product2, data_format=data_format_maquette)
+
+        # Auto-priced, non-free product to exercise the card payment flow: a fixed
+        # SINGLE price (base_fee + unit_price) => prepare_checkout returns "card".
+        product_paid = self.addProduct(mma, "Produit payant (test carte)", {
+            "product_status": Product.ProductStatus.PUBLISHED,
+            "pricing": self.getOrCreate(
+                Pricing,
+                name="Paid - auto",
+                defaults={
+                    "pricing_type": Pricing.PricingType.SINGLE,
+                    "base_fee": Money(50, "CHF"),
+                    "unit_price": Money(100, "CHF"),
+                },
+            ),
+            "provider": extractUser,
+        })
+        self.getOrCreate(ProductFormat, product=product_paid, data_format=data_format)
+
         product_deprecated = self.addProduct(
             mma, "MO07 - Objets divers et éléments linéaires - linéaires",
             defaults = {

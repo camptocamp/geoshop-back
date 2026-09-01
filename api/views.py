@@ -304,7 +304,8 @@ def postfinance_webhook(request):
                 order.confirm()
                 order.save()
             elif payment.status in (Payment.PaymentStatus.FAILED, Payment.PaymentStatus.CANCELED):
-                order.order_status = Order.OrderStatus.PAYMENT_FAILED
+                # Release the order so the buyer can edit or retry.
+                order.order_status = Order.OrderStatus.DRAFT
                 order.save(update_fields=["order_status"])
     except Payment.DoesNotExist:
         # A transaction we don't know about -- acknowledge so PostFinance stops retrying.
@@ -424,22 +425,23 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
                 if not item.data_format:
                     raise ValidationError(detail=_("One or more items don't have data_format"))
 
-            # Finalize the contents (expand groups) then recompute the definitive total.
-            order._finalize_order_items()
-            is_fully_priced = order.set_price()
-            order.save()
-            if not is_fully_priced:
+            # Compute the definitive total read-only, the order is finalized only on settlement, in confirm()
+            payment_option, total = order.prepare_checkout()
+
+            if payment_option == Order.PaymentOption.QUOTE:
                 raise ValidationError(
                     detail=_('This order needs a manual quote and cannot be paid by card')
                 )
 
             # Free order: nothing to charge -- proceed like the invoice path.
-            if order.total_with_vat.amount == 0:
+            if payment_option == Order.PaymentOption.FREE:
                 order.confirm()
                 order.save()
                 return Response({'payment_required': False}, status=status.HTTP_200_OK)
 
-            payment, redirect_url = payments.start_payment(order, _payment_return_urls(order))
+            payment, redirect_url = payments.start_payment(
+                order, _payment_return_urls(order), total
+            )
 
         return Response(
             {

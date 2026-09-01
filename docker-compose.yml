@@ -56,9 +56,10 @@ services:
       migrate:
         condition: service_completed_successfully
     env_file: .env
+    command: gunicorn wsgi -b :8000 --timeout 90 --reload
     environment:
       PGHOST: "db"
-    command: gunicorn wsgi -b :8000 --timeout 90
+      DJANGO_SETTINGS_MODULE: "default_settings"
     restart: unless-stopped
     healthcheck:
       test:
@@ -70,6 +71,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
+      - "./:/app/geoshop_back"
       - "static-files:/app/geoshop_back/static:ro"
       - "./testdata:/testdata:ro"
     ports:
