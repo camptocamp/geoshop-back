@@ -872,14 +872,6 @@ class Order(models.Model):
             self._create_order_item(product_with_largest_overlap, order_item.data_format)
             order_item.delete()
 
-    def _finalize_order_items(self):
-        """
-        Finalize the cart's contents by *persisting* group expansion: each
-        group OrderItem is replaced by its concrete child product(s).
-        """
-        self._expand_product_groups()
-        self._resolve_grouped_order_items_by_overlap()
-
     @property
     def is_card_paid(self) -> bool:
         """
@@ -889,7 +881,8 @@ class Order(models.Model):
 
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""
-        self._finalize_order_items()
+        self._expand_product_groups()
+        self._resolve_grouped_order_items_by_overlap()
         items = self.items.all()
         self.date_ordered = timezone.now()
         self.download_guid = uuid.uuid4()
