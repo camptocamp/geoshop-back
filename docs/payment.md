@@ -66,7 +66,7 @@ There is a test account that can be accessed in [this page](https://checkout.pos
 
 ```
 Cart (order in DRAFT)
-   │  buyer confirms  (POST /order/{id}/confirm/ — returns the updated order)
+   │  buyer confirms  (POST /order/{id}/confirm-checkout/ — returns the updated order)
    ▼
 confirm() finalizes the order (expands groups, prices) and sets the status
     │
@@ -93,7 +93,8 @@ by card" — otherwise an abandoned payment is delivered and never billed by any
 
 | Endpoint | Method | Purpose |
 |---|---|---|
-| `/order/{id}/confirm/` | `POST` | Finalizes the order, advances it to `READY`, and **returns the serialized order** so the frontend can decide whether to offer payment. |
+| `/order/{id}/confirm/` | `GET` | **Unchanged** existing endpoint. Confirms the order and advances it to `READY`; returns an empty `202`. Used by the standard (non-card) flow. |
+| `/order/{id}/confirm-checkout/` | `POST` | Same effect as `confirm`, but **returns the serialized order** so the frontend can decide whether to offer card/invoice. A separate endpoint (rather than changing `confirm`) so backend/frontend can deploy independently; the frontend calls it only when card payment is enabled. |
 | `/order/{id}/pay/` | `POST` | Start a card payment for a confirmed (`READY`), priced order. Creates a `Payment`, opens a PostFinance session, returns `{ redirect_url, payment_id, amount }`. **Does not change `order_status`.** |
 | `/payment/webhook/postfinance/` | `POST` | PostFinance settlement callback. Verifies the signature, records a `PaymentEvent`, updates the `Payment` status. **Does not change `order_status`.** |
 

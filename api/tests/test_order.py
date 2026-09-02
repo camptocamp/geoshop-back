@@ -130,7 +130,7 @@ class OrderTests(APITestCase):
         order_item_id = response.data['items'][0]['id']
         # Confirm order without format should not work
         url = reverse('order-confirm', kwargs={'pk':order_id})
-        response = self.client.post(url, format='json')
+        response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.content)
 
         # Choose format
@@ -145,10 +145,10 @@ class OrderTests(APITestCase):
 
         # Confirm order with format should work
         url = reverse('order-confirm', kwargs={'pk':order_id})
-        response = self.client.post(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         # Confirm order that's already confirmed, should not work
-        response = self.client.post(url, format='json')
+        response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, response.content)
         # Edit order that's already confirmed, should not work
         data = {
@@ -193,8 +193,8 @@ class OrderTests(APITestCase):
 
         # Ask for a quote
         url = reverse('order-confirm', kwargs={'pk':order_id})
-        response = self.client.post(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(len(mail.outbox), 1, 'An email has been sent to admins')
 
         # Admin sets the quote
@@ -213,8 +213,8 @@ class OrderTests(APITestCase):
         self.assertEqual(response.data['processing_fee'], '150.00', 'Check price is ok')
         self.assertEqual(response.data['total_without_vat'], '550.00', 'Check price is ok')
         url = reverse('order-confirm', kwargs={'pk':order_id})
-        response = self.client.post(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
 
     def test_post_order_subscribed(self):
         self.config.user_private.identity.subscribed = True
@@ -242,8 +242,8 @@ class OrderTests(APITestCase):
         self.assertEqual(response.data['processing_fee'], '0.00', 'Check price is 0')
         self.assertEqual(response.data['total_without_vat'], '0.00', 'Check price is 0')
         url = reverse('order-confirm', kwargs={'pk':order_id})
-        response = self.client.post(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         order = Order.objects.get(pk=order_id)
         self.assertIsNotNone(order.download_guid, "Check order has a GUID")
         self.assertIsNotNone(order.date_ordered, "Check order has a date")
@@ -275,8 +275,8 @@ class OrderTests(APITestCase):
         self.assertEqual(response.data['processing_fee'], '0.00', 'Check price is 0')
         self.assertEqual(response.data['total_without_vat'], '0.00', 'Check price is 0')
         url = reverse('order-confirm', kwargs={'pk':order_id})
-        response = self.client.post(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         order = Order.objects.get(pk=order_id)
         self.assertIsNotNone(order.download_guid, "Check order has a GUID")
         self.assertIsNotNone(order.date_ordered, "Check order has a date")
@@ -420,8 +420,8 @@ class OrderTests(APITestCase):
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         url = reverse('order-confirm', kwargs={'pk': order_id})
-        response = self.client.post(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        response = self.client.get(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
         self.assertEqual(len(mail.outbox), 2, 'An email has been sent to the validator and one to admin')
         order = Order.objects.get(pk=order_id)
         items = order.items.all()
@@ -719,8 +719,8 @@ class OrderValidationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         url_confirm = reverse('order-confirm', kwargs={'pk': order_id})
-        response = self.client.post(url_confirm, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(url_confirm, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
         order: Order = Order.objects.get(pk=order_id)
         self.assertEqual(order.items.count(), 1)

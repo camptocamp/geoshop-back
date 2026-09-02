@@ -375,11 +375,32 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['get'])
     def confirm(self, request, pk=None):
         """
-        Confirm the order: it can no longer be edited by the user. Returns the updated
-        order so the client can react to its new status -- e.g. offer card/invoice payment
+        Confirms order meaning it can not be edited anymore by user.
+        """
+        order = self.get_object()
+        if order.order_status not in [Order.OrderStatus.DRAFT, Order.OrderStatus.QUOTE_DONE]:
+            raise PermissionDenied(detail='Order status is not DRAFT or QUOTE_DONE')
+        items = order.items.all()
+        if not items:
+            raise ValidationError(detail="This order has no item")
+        for item in items:
+            if not item.data_format:
+                raise ValidationError(detail="One or more items don't have data_format")
+        order.confirm()
+        order.save()
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+    @action(detail=True, methods=['post'], url_path='confirm-checkout')
+    def confirm_checkout(self, request, pk=None):
+        """
+        Confirm the order and return it, for the card-payment checkout flow. Same effect as
+        `confirm`, but responds with the serialized order so the frontend can decide whether to
+        offer card/invoice payment. Kept as a separate endpoint so the existing `confirm` (GET)
+        stays unchanged and backend/frontend can deploy independently -- the frontend
+        calls this one only when card payment is enabled (e.g. `cardPayment=true`).
         """
         order = self.get_object()
         if order.order_status not in [Order.OrderStatus.DRAFT, Order.OrderStatus.QUOTE_DONE]:

@@ -174,6 +174,32 @@ class PayEndpointTests(_OrderApiTestBase):
         self.assertEqual(order.payments.filter(status=Payment.PaymentStatus.PENDING).count(), 1)
 
 
+class ConfirmCheckoutTests(_OrderApiTestBase):
+    """POST /order/{id}/confirm-checkout/ -- confirm and return the order for the card flow."""
+
+    def test_confirms_and_returns_the_order(self):
+        order = self._draft_order("single")
+        resp = self.client.post(
+            reverse("order-confirm-checkout", kwargs={"pk": order.id}), format="json"
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["id"], order.id)
+        self.assertEqual(resp.data["order_status"], Order.OrderStatus.READY)
+        self.assertFalse(resp.data["is_card_paid"])  # nothing paid yet
+        order.refresh_from_db()
+        self.assertEqual(order.order_status, Order.OrderStatus.READY)
+
+    def test_rejects_an_order_without_data_format(self):
+        order = self._draft_order("single")
+        order.items.update(data_format=None)
+        resp = self.client.post(
+            reverse("order-confirm-checkout", kwargs={"pk": order.id}), format="json"
+        )
+
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class PostFinanceWebhookTests(TestCase):
     """The POST /payment/webhook/postfinance/ settlement webhook (verification mocked)."""
 
