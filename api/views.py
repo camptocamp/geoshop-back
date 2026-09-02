@@ -297,16 +297,6 @@ def postfinance_webhook(request):
             )
             payment.status = event.new_status
             payment.save(update_fields=["status", "updated_at"])
-
-            order = payment.order
-            if payment.status == Payment.PaymentStatus.SETTLED:
-                # Payment guaranteed -> take the order into the normal delivery pipeline.
-                order.confirm()
-                order.save()
-            elif payment.status in (Payment.PaymentStatus.FAILED, Payment.PaymentStatus.CANCELED):
-                # Release the order so the buyer can edit or retry.
-                order.order_status = Order.OrderStatus.DRAFT
-                order.save(update_fields=["order_status"])
     except Payment.DoesNotExist:
         # A transaction we don't know about -- acknowledge so PostFinance stops retrying.
         return Response(status=status.HTTP_200_OK)
@@ -385,10 +375,11 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['post'])
     def confirm(self, request, pk=None):
         """
-        Confirms order meaning it can not be edited anymore by user.
+        Confirm the order: it can no longer be edited by the user. Returns the updated
+        order so the client can react to its new status -- e.g. offer card/invoice payment
         """
         order = self.get_object()
         if order.order_status not in [Order.OrderStatus.DRAFT, Order.OrderStatus.QUOTE_DONE]:
@@ -401,88 +392,33 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
                 raise ValidationError(detail="One or more items don't have data_format")
         order.confirm()
         order.save()
-        return Response(status=status.HTTP_202_ACCEPTED)
+        return Response(self.get_serializer(order).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def pay(self, request, pk=None):
         """
-        Start a card payment for a fully auto-priced order and return the PostFinance
-        redirect URL. Card applies only to orders priced automatically (see
-        docs/card-checkout-integration.md); a manually-quoted (`QUOTE_DONE`) or
-        not-fully-priced order is invoice-only and rejected here.
+        Start a card payment for a confirmed, priced order and return the
+        PostFinance redirect URL.
         """
         order = self.get_object()
         with transaction.atomic():
             # Lock the order so two simultaneous /pay requests can't both start a payment.
             order = Order.objects.select_for_update().get(pk=order.pk)
 
-            if order.order_status != Order.OrderStatus.DRAFT:
-                raise PermissionDenied(detail=_('Order must be a draft to be paid by card'))
-            items = order.items.all()
-            if not items:
-                raise ValidationError(detail=_('This order has no item'))
-            for item in items:
-                if not item.data_format:
-                    raise ValidationError(detail=_("One or more items don't have data_format"))
-
-            # Compute the definitive total read-only, the order is finalized only on settlement, in confirm()
-            payment_option, total = order.prepare_checkout()
-
-            if payment_option == Order.PaymentOption.QUOTE:
-                raise ValidationError(
-                    detail=_('This order needs a manual quote and cannot be paid by card')
+            if order.order_status != Order.OrderStatus.READY:
+                raise PermissionDenied(
+                    detail=_('Order must be confirmed (READY) to be paid by card')
                 )
+            if order.total_with_vat is None or order.total_with_vat.amount == 0:
+                raise ValidationError(detail=_('This order has nothing to pay'))
 
-            # Free order: nothing to charge -- proceed like the invoice path.
-            if payment_option == Order.PaymentOption.FREE:
-                order.confirm()
-                order.save()
-                return Response({'payment_required': False}, status=status.HTTP_200_OK)
-
-            payment, redirect_url = payments.start_payment(
-                order, _payment_return_urls(order), total
-            )
+            payment, redirect_url = payments.start_payment(order, _payment_return_urls(order))
 
         return Response(
             {
-                'payment_required': True,
                 'redirect_url': redirect_url,
                 'payment_id': payment.id,
                 'amount': str(payment.amount.amount),
-            },
-            status=status.HTTP_200_OK,
-        )
-
-    @action(detail=True, methods=['post'])
-    def prepare(self, request, pk=None):
-        """
-        Report which payment option a checkout offers, and the definitive total, when the
-        buyer goes to checkout (products + geometry final). READ-ONLY: it previews group
-        expansion in memory to price the order, but persists nothing -- the group-based
-        cart is never mutated (that only happens at commit, in confirm()/pay). See
-        docs/card-checkout-integration.md.
-
-        Response `payment_option` (an `Order.PaymentOption`):
-        - "quote" -> an item needs a manual quote; invoice/quote only;
-        - "free"  -> total is 0; no payment needed;
-        - "card"  -> auto-priced with a positive total; card or invoice.
-        """
-        order = self.get_object()
-        if order.order_status != Order.OrderStatus.DRAFT:
-            raise PermissionDenied(detail=_('Order must be a draft to be prepared for checkout'))
-        items = order.items.all()
-        if not items:
-            raise ValidationError(detail=_('This order has no item'))
-        for item in items:
-            if not item.data_format:
-                raise ValidationError(detail=_("One or more items don't have data_format"))
-
-        payment_option, total = order.prepare_checkout()
-        return Response(
-            {
-                'payment_option': payment_option,
-                'total': str(total.amount) if total is not None else None,
-                'currency': str(total.currency) if total is not None else None,
             },
             status=status.HTTP_200_OK,
         )

@@ -116,8 +116,8 @@ class ProductGroupTests(APITestCase):
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         url = reverse('order-confirm', kwargs={'pk':self.config.order.id})
-        response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        response = self.client.post(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # First Extract user
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.extract_config.token)
@@ -143,8 +143,8 @@ class ProductGroupTests(APITestCase):
         """
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.config.client_token)
         url = reverse('order-confirm', kwargs={'pk':self.config.order.id})
-        response = self.client.get(url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED, response.content)
+        response = self.client.post(url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
         # First Extract user
         self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.extract_config.token)

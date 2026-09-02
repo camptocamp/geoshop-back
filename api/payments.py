@@ -19,9 +19,9 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.db import transaction as db_transaction
 
 from postfinancecheckout import (
     Configuration,
@@ -33,8 +33,7 @@ from postfinancecheckout import (
     WebhookEncryptionKeysService,
 )
 
-if TYPE_CHECKING:
-    from api.models import Payment
+from api.models import Payment
 
 LOGGER = logging.getLogger(__name__)
 
@@ -147,48 +146,41 @@ def create_session(payment: "Payment", return_urls: "ReturnUrls") -> "Session":
     return Session(provider_transaction_id=str(transaction.id), redirect_url=redirect_url)
 
 
-def start_payment(order, return_urls: "ReturnUrls", amount) -> "tuple[Payment, str]":
+def start_payment(order, return_urls: "ReturnUrls") -> "tuple[Payment, str]":
     """
-    Orchestrate a card payment for ``order``, charging ``amount``.
+    Orchestrate a card payment for a confirmed, priced ``order``.
 
-    The caller (the ``/pay`` view) computes the definitive ``amount`` read-only via
-    ``prepare_checkout()`` -- the order is NOT finalized here. Finalization (group
-    expansion, price persistence) happens only on settlement, in ``confirm()``, so an
-    abandoned or failed payment leaves the cart untouched and retryable.
+    Card payment is a side-record: it charges the order's already-persisted
+    ``total_with_vat`` (written by ``confirm()``).
 
     Behaviour:
     - If the order already has an in-flight payment (a ``CREATED``/``PENDING`` row that
       already opened a PostFinance transaction), reuse it -- never charge twice.
     - Otherwise create a ``Payment`` row first (so a local trace survives even if the
       provider call fails), open a PostFinance session, then record the provider
-      transaction, mark the payment ``PENDING``, and move the order to
-      ``AWAITING_PAYMENT``.
+      transaction and mark the payment ``PENDING``.
 
     Returns ``(payment, redirect_url)``.
     """
-    from django.db import transaction as db_transaction
-
-    from api.models import Order, Payment  # local import avoids any import cycle
-
-    if amount is None:
+    if order.total_with_vat is None:
         raise PaymentError(
-            "Cannot start a card payment for order %s: no amount to charge." % order.id
+            "Cannot start a card payment for order %s: it is not priced." % order.id
         )
 
-    # Dedup: an order should have at most one in-flight payment.
+    # Dedup: an order should have at most one ongoing payment.
     open_payment = order.payments.filter(
         status__in=(Payment.PaymentStatus.CREATED, Payment.PaymentStatus.PENDING)
     ).first()
     if open_payment and open_payment.provider_transaction_id:
         LOGGER.info(
-            "Reusing in-flight payment %s for order %s", open_payment.merchant_reference, order.id
+            "Reusing ongoing payment %s for order %s", open_payment.merchant_reference, order.id
         )
         return open_payment, _payment_page_url(open_payment.provider_transaction_id)
 
     # Local record first, so we keep a trace even if the provider call fails.
     payment = open_payment or Payment.objects.create(
         order=order,
-        amount=amount,
+        amount=order.total_with_vat,
         provider=PROVIDER_NAME,
         status=Payment.PaymentStatus.CREATED,
     )
@@ -199,8 +191,6 @@ def start_payment(order, return_urls: "ReturnUrls", amount) -> "tuple[Payment, s
         payment.provider_transaction_id = session.provider_transaction_id
         payment.status = Payment.PaymentStatus.PENDING
         payment.save(update_fields=["provider_transaction_id", "status", "updated_at"])
-        order.order_status = Order.OrderStatus.AWAITING_PAYMENT
-        order.save(update_fields=["order_status"])
 
     LOGGER.info(
         "Started payment %s for order %s (%s)", payment.merchant_reference, order.id, payment.amount

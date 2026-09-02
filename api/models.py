@@ -603,18 +603,12 @@ class Order(models.Model):
         DRAFT = "DRAFT", _("Draft")
         PENDING = "PENDING", _("Pending")
         QUOTE_DONE = "QUOTE_DONE", _("Quote done")
-        AWAITING_PAYMENT = "AWAITING_PAYMENT", _("Awaiting payment")
         READY = "READY", _("Ready")
         IN_EXTRACT = "IN_EXTRACT", _("In extract")
         PARTIALLY_DELIVERED = "PARTIALLY_DELIVERED", _("Partially delivered")
         PROCESSED = "PROCESSED", _("Processed")
         ARCHIVED = "ARCHIVED", _("Archived")
         REJECTED = "REJECTED", _("Rejected")
-
-    class PaymentOption(models.TextChoices):
-        QUOTE = "quote", _("Quote")
-        FREE = "free", _("Free")  
-        CARD = "card", _("Card")
 
     title = models.CharField(
         _("title"),
@@ -886,61 +880,12 @@ class Order(models.Model):
         self._expand_product_groups()
         self._resolve_grouped_order_items_by_overlap()
 
-    def _resolve_group_children(self, group_of_products: Product) -> List[Product]:
+    @property
+    def is_card_paid(self) -> bool:
         """
-        READ-ONLY mirror of _flatten_groups: the intersecting leaf children a group
-        fans out to (recursing into nested groups). No database writes.
+        True when this order has been settled by card.
         """
-        children: List[Product] = []
-        for child in group_of_products.products.all():
-            if child.products.exists():
-                children.extend(self._resolve_group_children(child))
-            elif child.geom.intersects(self.geom):
-                children.append(child)
-        return children
-
-    def _prepare_order_items(self) -> List["OrderItem"]:
-        """
-        READ-ONLY: Mirrors _finalize_order_items() (the write path) so /prepare can price and
-        classify the order without mutating the group-based cart.
-        This method does not persist any changes to the database.
-        """
-        prepared: List["OrderItem"] = []
-        for item in self.items.all():
-            product = item.product
-            if product.use_largest_area_validation and product.products.exists():
-                winner = self._find_product_with_largest_overlap_recursively(product)
-                concrete_products = [winner] if winner is not None else [product]
-            elif product.products.exists():
-                concrete_products = self._resolve_group_children(product)
-            else:
-                concrete_products = [product]
-            for concrete in concrete_products:
-                preview_item = OrderItem(order=self, product=concrete, data_format=item.data_format)
-                preview_item.set_price()
-                prepared.append(preview_item)
-        return prepared
-
-    def prepare_checkout(self):
-        """
-        READ-ONLY: step before final confirmation of the order.
-        Evaluates the order's items and computes the total and payment option.
-        """
-        items = self._prepare_order_items()
-        if any(item.base_fee is None for item in items):
-            return self.PaymentOption.QUOTE, None
-        processing_fee = Money(0, settings.DEFAULT_CURRENCY)
-        total_without_vat = Money(0, settings.DEFAULT_CURRENCY)
-        for item in items:
-            if item.base_fee > processing_fee:
-                processing_fee = item.base_fee
-            total_without_vat += item.price
-        total_without_vat += processing_fee
-        total_with_vat = total_without_vat + total_without_vat * settings.VAT
-        payment_option = (
-            self.PaymentOption.FREE if total_with_vat.amount == 0 else self.PaymentOption.CARD
-        )
-        return payment_option, total_with_vat
+        return self.payments.filter(status=Payment.PaymentStatus.SETTLED).exists()
 
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""

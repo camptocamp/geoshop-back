@@ -335,7 +335,7 @@ class Command(BaseCommand):
         self.getOrCreate(ProductFormat, product=product2, data_format=data_format_maquette)
 
         # Auto-priced, non-free product to exercise the card payment flow: a fixed
-        # SINGLE price (base_fee + unit_price) => prepare_checkout returns "card".
+        # SINGLE price (base_fee + unit_price) => a positive, auto-calculated total to pay by card.
         product_paid = self.addProduct(mma, "Produit payant (test carte)", {
             "product_status": Product.ProductStatus.PUBLISHED,
             "pricing": self.getOrCreate(
