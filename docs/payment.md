@@ -83,8 +83,8 @@ invoice behaviour: geoshop delivers, then bills. Card payment is a convenience f
 gate on fulfilment.
 
 **This means an abandoned card payment must still be invoiced.** The external billing process has to
-exclude orders on `is_card_paid` (i.e. *has a settled payment*), never on "the buyer intended to pay
-by card" — otherwise an abandoned payment is delivered and never billed by any route.
+exclude orders that have a **settled** card payment, never orders where "the buyer intended to pay by
+card" — otherwise an abandoned payment is delivered and never billed by any route.
 
 
 ---
@@ -146,6 +146,12 @@ CANCELED    # payment cancelled / voided
 
 ## 7. TODO
 
-- **Billing exclusion (external).** Coordinate with whoever generates invoices so card-paid orders are
-  skipped, reading `is_card_paid` at invoice time. This is the load-bearing integration.
+- **Billing exclusion (external).** Coordinate with whoever generates invoices so orders with a settled
+  card payment are skipped at invoice time. This is the load-bearing integration — how those orders are
+  identified (a derived flag, a query on settled payments, etc.) is still to be decided with the
+  external team, so nothing is exposed for it yet.
+- **Which order statuses may be paid.** `/pay` currently accepts only `READY`. Since delivery is not
+  gated on payment, an order can move on to `PARTIALLY_DELIVERED` or `PROCESSED` while still unpaid —
+  decide whether card payment should still be allowed in those states (timing is unclear: is it useful
+  to let a buyer pay after extraction has started/finished, or should that always fall to invoicing?).
 - **Refunds** — still not implemented (`refund()` is a stub).

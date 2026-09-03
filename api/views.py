@@ -13,7 +13,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 
 from rest_framework import filters, generics, views, viewsets, permissions, status, mixins
 from rest_framework.decorators import action, api_view, authentication_classes, permission_classes
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import APIException, PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.parsers import MultiPartParser
@@ -53,6 +53,12 @@ sensitive_post_parameters_m = method_decorator(
 )
 
 UserModel = get_user_model()
+
+
+class PaymentConflictError(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = _('This order already has a payment being processed or settled.')
+    default_code = 'payment_conflict'
 
 
 class CopyrightViewSet(viewsets.ReadOnlyModelViewSet):
@@ -255,10 +261,12 @@ def _payment_return_urls(order):
     route has to be hard-coded here.
     """
     base = "{}://{}{}".format(settings.FRONT_PROTOCOL, settings.FRONT_URL, settings.FRONT_HREF)
+    checkout = "{}/account/orders/{}/payment".format(base, order.id)
+
     return payments.ReturnUrls(
-        success="{}?payment=success&order={}".format(base, order.id),
-        failure="{}?payment=failed&order={}".format(base, order.id),
-        cancel="{}?payment=canceled&order={}".format(base, order.id),
+    success="{}?payment=success".format(checkout),
+    failure="{}?payment=failed".format(checkout),
+    cancel="{}?payment=canceled".format(checkout),
     )
 
 
@@ -433,7 +441,10 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
             if order.total_with_vat is None or order.total_with_vat.amount == 0:
                 raise ValidationError(detail=_('This order has nothing to pay'))
 
-            payment, redirect_url = payments.start_payment(order, _payment_return_urls(order))
+            try:
+                payment, redirect_url = payments.start_payment(order, _payment_return_urls(order))
+            except payments.PaymentConflict:
+                raise PaymentConflictError()
 
         return Response(
             {

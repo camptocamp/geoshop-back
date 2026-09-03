@@ -873,11 +873,12 @@ class Order(models.Model):
             order_item.delete()
 
     @property
-    def is_card_paid(self) -> bool:
+    def payment_status(self) -> str | None:
         """
-        True when this order has been settled by card.
+        Status of the order's most recent card payment, or None if it was never paid by card.
         """
-        return self.payments.filter(status=Payment.PaymentStatus.SETTLED).exists()
+        latest = self.payments.first()
+        return latest.status if latest else None
 
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""

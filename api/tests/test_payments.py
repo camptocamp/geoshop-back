@@ -1,13 +1,16 @@
+import datetime
 from unittest import mock
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from djmoney.money import Money
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from api.models import Order, OrderItem, Payment
 from api.payments import (
+    PaymentConflict,
     PaymentError,
     ReturnUrls,
     Session,
@@ -84,6 +87,19 @@ class StartPaymentTests(TestCase):
         )
         with self.assertRaises(PaymentError):
             start_payment(unpriced, RETURN_URLS)
+
+    def test_refuses_when_a_payment_is_authorized_or_settled(self):
+        # Money already in flight/captured -> a second /pay must not open another charge.
+        for st in (Payment.PaymentStatus.AUTHORIZED, Payment.PaymentStatus.SETTLED):
+            with self.subTest(status=st):
+                existing = Payment.objects.create(
+                    order=self.order, amount=self.order.total_with_vat,
+                    provider="postfinance", status=st, provider_transaction_id="tx",
+                )
+                with self.assertRaises(PaymentConflict):
+                    start_payment(self.order, RETURN_URLS)
+                self.assertEqual(self.order.payments.count(), 1)  # no new payment
+                existing.delete()
 
 
 @override_settings(LANGUAGE_CODE="en")
@@ -173,6 +189,19 @@ class PayEndpointTests(_OrderApiTestBase):
         self.assertEqual(order.payments.count(), 2)
         self.assertEqual(order.payments.filter(status=Payment.PaymentStatus.PENDING).count(), 1)
 
+    def test_rejects_pay_when_already_settled(self):
+        # An already-paid (SETTLED) order must not be chargeable again -> 409, no new payment.
+        order = self._ready_order("single")
+        Payment.objects.create(
+            order=order, amount=Money(150, "CHF"), provider="postfinance",
+            status=Payment.PaymentStatus.SETTLED, provider_transaction_id="tx",
+        )
+
+        resp = self.client.post(reverse("order-pay", kwargs={"pk": order.id}), format="json")
+
+        self.assertEqual(resp.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(order.payments.count(), 1)  # no new payment created
+
 
 class ConfirmCheckoutTests(_OrderApiTestBase):
     """POST /order/{id}/confirm-checkout/ -- confirm and return the order for the card flow."""
@@ -186,7 +215,6 @@ class ConfirmCheckoutTests(_OrderApiTestBase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["id"], order.id)
         self.assertEqual(resp.data["order_status"], Order.OrderStatus.READY)
-        self.assertFalse(resp.data["is_card_paid"])  # nothing paid yet
         order.refresh_from_db()
         self.assertEqual(order.order_status, Order.OrderStatus.READY)
 
@@ -198,6 +226,33 @@ class ConfirmCheckoutTests(_OrderApiTestBase):
         )
 
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class PaymentStatusPropertyTests(TestCase):
+    """Order.payment_status, derived from the Payment rows."""
+
+    def setUp(self):
+        self.config = BaseObjectsFactory()
+        self.order = self.config.order
+
+    def test_none_when_never_paid_by_card(self):
+        self.assertIsNone(self.order.payment_status)
+
+    def test_returns_the_latest_payment_status(self):
+        older = Payment.objects.create(
+            order=self.order, amount=Money(10, "CHF"),
+            provider="postfinance", status=Payment.PaymentStatus.FAILED,
+        )
+        Payment.objects.create(
+            order=self.order, amount=Money(10, "CHF"),
+            provider="postfinance", status=Payment.PaymentStatus.SETTLED,
+        )
+        # Make the FAILED one unambiguously older so "latest" is deterministic.
+        Payment.objects.filter(pk=older.pk).update(
+            created_at=timezone.now() - datetime.timedelta(days=1)
+        )
+
+        self.assertEqual(self.order.payment_status, Payment.PaymentStatus.SETTLED)
 
 
 class PostFinanceWebhookTests(TestCase):
@@ -237,7 +292,7 @@ class PostFinanceWebhookTests(TestCase):
         )
 
     @mock.patch("api.payments.parse_and_verify_webhook")
-    def test_settled_payment_marks_the_payment_and_order_is_card_paid(self, mock_parse):
+    def test_settled_payment_marks_the_payment(self, mock_parse):
         order, payment = self._paid_order()
         mock_parse.return_value = self._event("tx-1", Payment.PaymentStatus.SETTLED)
 
@@ -247,9 +302,8 @@ class PostFinanceWebhookTests(TestCase):
         payment.refresh_from_db()
         order.refresh_from_db()
         self.assertEqual(payment.status, Payment.PaymentStatus.SETTLED)
-        # Order flow is untouched; the settlement is surfaced via is_card_paid.
+        # Order flow is untouched (card is a side-record).
         self.assertEqual(order.order_status, Order.OrderStatus.READY)
-        self.assertTrue(order.is_card_paid)
         self.assertEqual(payment.events.count(), 1)
 
     @mock.patch("api.payments.parse_and_verify_webhook")
@@ -264,7 +318,6 @@ class PostFinanceWebhookTests(TestCase):
         order.refresh_from_db()
         self.assertEqual(payment.status, Payment.PaymentStatus.FAILED)
         self.assertEqual(order.order_status, Order.OrderStatus.READY)  # untouched
-        self.assertFalse(order.is_card_paid)
 
     @mock.patch("api.payments.parse_and_verify_webhook")
     def test_duplicate_event_takes_effect_once(self, mock_parse):

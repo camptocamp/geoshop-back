@@ -46,6 +46,10 @@ class WebhookVerificationError(PaymentError):
     """Raised when an incoming webhook fails signature/authenticity verification."""
 
 
+class PaymentConflict(PaymentError):
+    """Raised when an order already has an authorized or settled payment (never charge twice)."""
+
+
 @dataclass(frozen=True)
 class ReturnUrls:
     """Where the provider sends the buyer's browser back to after the hosted page."""
@@ -150,14 +154,15 @@ def start_payment(order, return_urls: "ReturnUrls") -> "tuple[Payment, str]":
     """
     Orchestrate a card payment for a confirmed, priced ``order``.
 
-    Card payment is a side-record: it charges the order's already-persisted
+    Card payment charges the order's already-persisted
     ``total_with_vat`` (written by ``confirm()``).
 
     Behaviour:
-    - If the order already has an in-flight payment (a ``CREATED``/``PENDING`` row that
-      already opened a PostFinance transaction), reuse it -- never charge twice.
-    - Otherwise create a ``Payment`` row first (so a local trace survives even if the
-      provider call fails), open a PostFinance session, then record the provider
+    - If the order already has an ``AUTHORIZED``/``SETTLED`` payment, raise
+      ``PaymentConflict`` -- the money is in flight or captured, never charge again.
+    - If the order already has an ongoing payment (a ``CREATED``/``PENDING`` row that
+      already opened a PostFinance transaction), reuse it.
+    - Otherwise create a ``Payment``, open a PostFinance session, then record the provider
       transaction and mark the payment ``PENDING``.
 
     Returns ``(payment, redirect_url)``.
@@ -167,7 +172,15 @@ def start_payment(order, return_urls: "ReturnUrls") -> "tuple[Payment, str]":
             "Cannot start a card payment for order %s: it is not priced." % order.id
         )
 
-    # Dedup: an order should have at most one ongoing payment.
+    # Money already authorized or settled -> never start a second charge.
+    if order.payments.filter(
+        status__in=(Payment.PaymentStatus.AUTHORIZED, Payment.PaymentStatus.SETTLED)
+    ).exists():
+        raise PaymentConflict(
+            "Order %s already has a payment being processed or settled." % order.id
+        )
+
+    # Reuse an open hosted-page session (CREATED/PENDING) instead of creating a new one.
     open_payment = order.payments.filter(
         status__in=(Payment.PaymentStatus.CREATED, Payment.PaymentStatus.PENDING)
     ).first()
