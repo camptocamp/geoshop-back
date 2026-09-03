@@ -872,6 +872,14 @@ class Order(models.Model):
             self._create_order_item(product_with_largest_overlap, order_item.data_format)
             order_item.delete()
 
+    @property
+    def payment_status(self) -> str | None:
+        """
+        Status of the order's most recent card payment, or None if it was never paid by card.
+        """
+        latest = self.payments.first()
+        return latest.status if latest else None
+
     def confirm(self):
         """Customer's confirmations he wants to proceed with the order"""
         self._expand_product_groups()
@@ -960,6 +968,90 @@ class Order(models.Model):
 
     def __str__(self):
         return "%s - %s" % (self.id, self.title)
+
+
+class Payment(models.Model):
+    """
+    Payment connects the Order to the provider's payment system.
+    The PaymentStatus here reflects the provider's status, that stays authoritative for the money transfer.
+    """
+
+    class PaymentStatus(models.TextChoices):
+        CREATED = "CREATED", _("Created")  # row exists, buyer not yet redirected
+        PENDING = "PENDING", _("Pending")  # redirected, awaiting provider outcome
+        AUTHORIZED = "AUTHORIZED", _("Authorized")  # funds held, not captured
+        SETTLED = "SETTLED", _("Settled")  # money captured => order can proceed
+        FAILED = "FAILED", _("Failed")
+        CANCELED = "CANCELED", _("Canceled")
+
+    order = models.ForeignKey(
+        Order,
+        models.PROTECT,
+        related_name="payments",
+        verbose_name=_("order"),
+    )
+    # Our stable anchor: generated here, sent to the provider, and used to match webhooks back.
+    merchant_reference = models.UUIDField(
+        _("merchant_reference"), default=uuid.uuid4, unique=True, editable=False
+    )
+    provider = models.CharField(_("provider"), max_length=32)
+    # The provider's own id, known only once the session is created.
+    provider_transaction_id = models.CharField(
+        _("provider_transaction_id"), max_length=255, blank=True
+    )
+    status = models.CharField(
+        _("status"),
+        max_length=20,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.CREATED,
+    )
+    # Snapshot of what was charged, independent of later edits to the order.
+    amount = MoneyField(
+        _("amount"),
+        max_digits=14,
+        decimal_places=2,
+        default_currency=settings.DEFAULT_CURRENCY,
+    )
+    created_at = models.DateTimeField(_("created_at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated_at"), auto_now=True)
+
+    class Meta:
+        db_table = "payment"
+        ordering = ["-created_at"]
+        verbose_name = _("payment")
+        verbose_name_plural = _("payments")
+
+    def __str__(self):
+        return "%s - %s (%s)" % (self.id, self.merchant_reference, self.status)
+
+
+class PaymentEvent(models.Model):
+    """
+    Append-only (payment events are never updated) log of the raw messages a provider sent about a Payment (received via webhooks).
+    These logs are kept for auditing and troubleshooting purposes.
+    Deduplicated on ``provider_event_id`` so a repeated webhook takes effect exactly once.
+    """
+
+    payment = models.ForeignKey(
+        Payment,
+        models.CASCADE,
+        related_name="events",
+        verbose_name=_("payment"),
+    )
+    provider_event_id = models.CharField(
+        _("provider_event_id"), max_length=255, unique=True
+    )
+    raw_payload = models.JSONField(_("raw_payload"))
+    received_at = models.DateTimeField(_("received_at"), auto_now_add=True)
+
+    class Meta:
+        db_table = "payment_event"
+        ordering = ["received_at"]
+        verbose_name = _("payment event")
+        verbose_name_plural = _("payment events")
+
+    def __str__(self):
+        return "%s - %s" % (self.payment_id, self.provider_event_id)
 
 
 class OrderItem(models.Model):

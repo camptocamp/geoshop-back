@@ -3,6 +3,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -11,8 +12,8 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
 
 from rest_framework import filters, generics, views, viewsets, permissions, status, mixins
-from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.decorators import action, api_view, authentication_classes, permission_classes
+from rest_framework.exceptions import APIException, PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.parsers import MultiPartParser
@@ -23,7 +24,7 @@ from allauth.account.views import ConfirmEmailView
 
 from .models import (
     Contact, Copyright, Document, DataFormat, Identity, Metadata, MetadataContact,
-    Order, OrderItem, OrderType, Pricing, Product,
+    Order, OrderItem, OrderType, Payment, PaymentEvent, Pricing, Product,
     ProductFormat, UserChange, AbstractIdentity)
 
 from .serializers import (
@@ -39,6 +40,8 @@ from .serializers import (
 
 from .helpers import send_geoshop_email
 
+from . import payments
+
 from .filters import FullTextSearchFilter
 
 from .permissions import ExtractGroupPermission, InternalGroupObjectPermission
@@ -50,6 +53,12 @@ sensitive_post_parameters_m = method_decorator(
 )
 
 UserModel = get_user_model()
+
+
+class PaymentConflictError(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = _('This order already has a payment being processed or settled.')
+    default_code = 'payment_conflict'
 
 
 class CopyrightViewSet(viewsets.ReadOnlyModelViewSet):
@@ -244,6 +253,66 @@ class OrderTypeViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OrderTypeSerializer
 
 
+def _payment_return_urls(order):
+    """
+    Build the PostFinance return URLs (where the buyer's browser lands after the successful,
+    failed, or canceled payment) as frontend links, from settings -- kept entirely backend-side.
+    """
+    base = "{}://{}{}".format(settings.FRONT_PROTOCOL, settings.FRONT_URL, settings.FRONT_HREF)
+    checkout = "{}/account/orders/{}/payment".format(base, order.id)
+
+    return payments.ReturnUrls(
+    success="{}?payment=success".format(checkout),
+    failure="{}?payment=failed".format(checkout),
+    cancel="{}?payment=canceled".format(checkout),
+    )
+
+
+@api_view(['POST'])
+@authentication_classes([])  # server-to-server: no session/JWT auth
+@permission_classes([permissions.AllowAny])  # the default denies anonymous POSTs
+def postfinance_webhook(request):
+    """
+    Settlement webhook for PostFinance Checkout (server-to-server; no user auth). PostFinance
+    POSTs here whenever a transaction changes. We verify the signature, read the transaction's
+    authoritative state, and move our Payment accordingly.
+
+    Always answers `200` once a notification is safely handled or can be ignored, so PostFinance
+    stops retrying; only an unverifiable request gets `400`. Duplicated notifications
+    (same `eventId`) take effect exactly once.
+    """
+    try:
+        event = payments.parse_and_verify_webhook(request)
+    except payments.WebhookVerificationError:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    # Dedup: a notification we've already recorded is acknowledged but not reprocessed.
+    if PaymentEvent.objects.filter(provider_event_id=event.provider_event_id).exists():
+        return Response(status=status.HTTP_200_OK)
+
+    try:
+        with transaction.atomic():
+            payment = Payment.objects.select_for_update().get(
+                provider_transaction_id=event.provider_transaction_id
+            )
+            # Append-only audit trail; the unique provider_event_id also guards concurrent dupes.
+            PaymentEvent.objects.create(
+                payment=payment,
+                provider_event_id=event.provider_event_id,
+                raw_payload=event.raw_payload,
+            )
+            payment.status = event.new_status
+            payment.save(update_fields=["status", "updated_at"])
+    except Payment.DoesNotExist:
+        # A transaction we don't know about -- acknowledge so PostFinance stops retrying.
+        return Response(status=status.HTTP_200_OK)
+    except IntegrityError:
+        # Concurrent duplicate (same eventId) already recorded by another request.
+        return Response(status=status.HTTP_200_OK)
+
+    return Response(status=status.HTTP_200_OK)
+
+
 class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows Orders to be viewed or edited.
@@ -329,6 +398,60 @@ class OrderViewSet(MultiSerializerMixin, viewsets.ModelViewSet):
         order.confirm()
         order.save()
         return Response(status=status.HTTP_202_ACCEPTED)
+
+    @action(detail=True, methods=['post'], url_path='confirm-checkout')
+    def confirm_checkout(self, request, pk=None):
+        """
+        Confirm the order and return it, for the card-payment checkout flow. Same effect as
+        `confirm`, but responds with the serialized order so the frontend can decide whether to
+        offer card/invoice payment. Kept as a separate endpoint so the existing `confirm` (GET)
+        stays unchanged and backend/frontend can deploy independently -- the frontend
+        calls this one only when card payment is enabled (e.g. `cardPayment=true`).
+        """
+        order = self.get_object()
+        if order.order_status not in [Order.OrderStatus.DRAFT, Order.OrderStatus.QUOTE_DONE]:
+            raise PermissionDenied(detail='Order status is not DRAFT or QUOTE_DONE')
+        items = order.items.all()
+        if not items:
+            raise ValidationError(detail="This order has no item")
+        for item in items:
+            if not item.data_format:
+                raise ValidationError(detail="One or more items don't have data_format")
+        order.confirm()
+        order.save()
+        return Response(self.get_serializer(order).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def pay(self, request, pk=None):
+        """
+        Start a card payment for a confirmed, priced order and return the
+        PostFinance redirect URL.
+        """
+        order = self.get_object()
+        with transaction.atomic():
+            # Lock the order so two simultaneous /pay requests can't both start a payment.
+            order = Order.objects.select_for_update().get(pk=order.pk)
+
+            if order.order_status != Order.OrderStatus.READY:
+                raise PermissionDenied(
+                    detail=_('Order must be confirmed (READY) to be paid by card')
+                )
+            if order.total_with_vat is None or order.total_with_vat.amount == 0:
+                raise ValidationError(detail=_('This order has nothing to pay'))
+
+            try:
+                payment, redirect_url = payments.start_payment(order, _payment_return_urls(order))
+            except payments.PaymentConflict:
+                raise PaymentConflictError()
+
+        return Response(
+            {
+                'redirect_url': redirect_url,
+                'payment_id': payment.id,
+                'amount': str(payment.amount.amount),
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=True, methods=['get'])
     def download_link(self, request, pk=None):

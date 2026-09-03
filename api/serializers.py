@@ -302,6 +302,7 @@ class OrderSerializer(serializers.ModelSerializer):
     client = serializers.HiddenField(
         default=serializers.CurrentUserDefault(),
     )
+    payment_status = serializers.ReadOnlyField()
 
     def validate(self, attrs):
         super().validate(attrs)
