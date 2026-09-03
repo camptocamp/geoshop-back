@@ -255,10 +255,8 @@ class OrderTypeViewSet(viewsets.ReadOnlyModelViewSet):
 
 def _payment_return_urls(order):
     """
-    Build the PostFinance return URLs (where the buyer's browser lands after the hosted
-    page) as frontend links, from settings -- kept entirely backend-side. They point at
-    the frontend app with the outcome + order as query params, so no specific frontend
-    route has to be hard-coded here.
+    Build the PostFinance return URLs (where the buyer's browser lands after the successful,
+    failed, or canceled payment) as frontend links, from settings -- kept entirely backend-side.
     """
     base = "{}://{}{}".format(settings.FRONT_PROTOCOL, settings.FRONT_URL, settings.FRONT_HREF)
     checkout = "{}/account/orders/{}/payment".format(base, order.id)
@@ -277,10 +275,10 @@ def postfinance_webhook(request):
     """
     Settlement webhook for PostFinance Checkout (server-to-server; no user auth). PostFinance
     POSTs here whenever a transaction changes. We verify the signature, read the transaction's
-    authoritative state, and move our Payment/Order accordingly.
+    authoritative state, and move our Payment accordingly.
 
     Always answers `200` once a notification is safely handled or can be ignored, so PostFinance
-    stops retrying; only an unverifiable request gets `400`. Idempotent: duplicated notifications
+    stops retrying; only an unverifiable request gets `400`. Duplicated notifications
     (same `eventId`) take effect exactly once.
     """
     try:

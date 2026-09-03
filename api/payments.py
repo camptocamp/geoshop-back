@@ -1,19 +1,3 @@
-"""
-Payment integration.
-
-Deliberately flat: there is no provider abstraction layer. This single module holds
-the whole payment integration -- the small, provider-neutral value objects and error
-types below, and the PostFinance service functions that the views/order flow call
-directly.
-
-The value objects are plain data, not an abstraction: they document the shapes that
-cross into and out of the provider code. If a second provider is ever needed, split
-this module then -- not before.
-
-PostFinance Checkout is integrated via its official SDK (``postfinancecheckout``). The
-SDK's verbose, path-style method names are wrapped by the small functions here so the
-rest of geoshop only ever sees ``create_session`` / ``get_status`` / etc.
-"""
 from __future__ import annotations
 
 import json
