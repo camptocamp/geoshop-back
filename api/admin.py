@@ -5,6 +5,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
 from django.contrib.gis import admin
+from django.db.models import OuterRef, Subquery
 from django.http import HttpResponseRedirect, Http404, FileResponse, HttpRequest
 from django.urls import path, reverse, URLPattern
 from django.utils.html import format_html
@@ -264,6 +265,76 @@ class OwnedProductOrderFilter(SimpleListFilter):
         return queryset
 
 
+class NeedsInvoiceFilter(SimpleListFilter):
+    """
+    Orders that are confirmed, non-free, and not already settled by card -- i.e. still
+    need an (offline) invoice. Card is a side-record (does not gate delivery), so this is
+    an existence check, not a "latest payment" one: a settled payment at any point means
+    the order is covered, regardless of any earlier failed attempts.
+    """
+    title = _("invoice required")
+    parameter_name = "needs_invoice"
+
+    BILLABLE_STATUSES = [
+        Order.OrderStatus.READY,
+        Order.OrderStatus.IN_EXTRACT,
+        Order.OrderStatus.PARTIALLY_DELIVERED,
+        Order.OrderStatus.PROCESSED,
+        Order.OrderStatus.ARCHIVED,
+    ]
+
+    def lookups(self, request, model_admin):
+        return (
+            ("yes", _("Yes")),
+            ("no", _("No")),
+        )
+
+    def _needs_invoice(self, queryset):
+        return queryset.filter(
+            order_status__in=self.BILLABLE_STATUSES,
+            total_with_vat__gt=0,
+        ).exclude(payments__status=Payment.PaymentStatus.SETTLED).distinct()
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return self._needs_invoice(queryset)
+
+        if self.value() == "no":
+            return queryset.exclude(pk__in=self._needs_invoice(queryset).values("pk"))
+
+        return queryset
+
+
+class PaymentStatusFilter(SimpleListFilter):
+    """
+    Filters on the order's MOST RECENT card payment status (matching Order.payment_status).
+    Unlike NeedsInvoiceFilter, "latest" matters here: a per-order correlated subquery picks
+    the newest Payment row, so an order that once failed and later settled is filtered under
+    SETTLED, not FAILED.
+    """
+    title = _("payment status")
+    parameter_name = "payment_status"
+
+    def lookups(self, request, model_admin):
+        choices = list(Payment.PaymentStatus.choices)
+        choices.append(("NONE", _("Never paid by card")))
+        return choices
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if not value:
+            return queryset
+
+        latest_status = Payment.objects.filter(
+            order=OuterRef("pk")
+        ).order_by("-created_at").values("status")[:1]
+        queryset = queryset.annotate(latest_payment_status=Subquery(latest_status))
+
+        if value == "NONE":
+            return queryset.filter(latest_payment_status__isnull=True)
+        return queryset.filter(latest_payment_status=value)
+
+
 class OrderAdminForm(forms.ModelForm):
     """
     Custom model form for Order for custom validation
@@ -289,11 +360,15 @@ class OrderAdmin(CustomGeoModelAdmin):
     inlines = [OrderItemInline]
     search_fields = ['id', 'title', 'client__identity__first_name', 'client__identity__last_name', 'client__email']
     list_display = [
-        'id', 'title_small', 'order_type_name', 'client_first_name', 'client_last_name', 'client_email', 'date_ordered']
+        'id', 'title_small', 'order_type_name', 'client_first_name', 'client_last_name', 'client_email',
+        'date_ordered', 'payment_status']
     raw_id_fields = ['client', 'invoice_contact']
     ordering = ['-id']
     actions = ['quote']
-    list_filter = ['order_status', 'date_ordered', OwnedProductOrderFilter]
+    list_filter = [
+        'order_status', 'date_ordered', OwnedProductOrderFilter,
+        NeedsInvoiceFilter, PaymentStatusFilter,
+    ]
     readonly_fields = ['extract_result_download']
 
     # place the field 'extract_result_download' right after the field 'extract_result' to facilitate
