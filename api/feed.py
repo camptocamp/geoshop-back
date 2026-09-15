@@ -13,9 +13,9 @@ class OverallProductUpdateFeed(Feed):
         return item.product.metadata.name
 
     def item_description(self, item: ProductUpdate):
-        return item.product.metadata.description_long
+        return item.product.metadata.name + ": last data import at " + item.created_at.strftime("%d/%m/%Y %H:%M:%S")
 
-    # item_link is only needed if NewsItem has no get_absolute_url method.
+    # item_link is only needed if item has no get_absolute_url method.
     def item_link(self, item: ProductUpdate):
         return reverse("product-update", args=[item.pk])
 
