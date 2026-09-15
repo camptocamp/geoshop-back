@@ -1,7 +1,7 @@
 from django.contrib.syndication.views import Feed
 from django.urls import reverse
 
-from models import ProductUpdate
+from .models import ProductUpdate
 
 # check for naming (DatasetUpdateFeed) is a Dataset = Product?
 class OverallProductUpdateFeed(Feed):
