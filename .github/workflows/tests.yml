@@ -46,9 +46,6 @@ jobs:
       - name: Copy .env file
         run: cp .env.sample .env
 
-      - name: Prepare Docker images and start Compose environment
-        run: make prepare_env
-
       - name: Run tests
         run: make docker-test
 
