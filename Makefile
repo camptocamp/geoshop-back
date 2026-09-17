@@ -5,11 +5,11 @@ export DOCKER_BUILDKIT=1
 
 .DEFAULT_GOAL := help
 
-.env:
+.env: ## Prepare .env file
 	cp .env.sample .env
 	sed -i 's/PGHOST=db/PGHOST=localhost/g' .env
 
-settings.py:
+settings.py: ## Prepare settings.py
 	cp -vn default_settings.py settings.py
 
 .venv/touchfile: settings.py .env
@@ -19,14 +19,14 @@ settings.py:
 	poetry install --no-root
 	touch .venv/touchfile
 
-venv: .venv/touchfile
+venv: .venv/touchfile ## Setup a python virtual environment and install the required dependencies
 
 .PHONY: run-db-localhost
-run-db-localhost:
+run-db-localhost: ## Run the db in a docker container and expose the container on port 5432
 	docker compose -f docker-compose.yml -f docker-compose.localhost.yml up -d db
 
 .PHONY: run-manage-scripts
-run-manage-scripts: venv run-db-localhost
+run-manage-scripts: venv run-db-localhost ## Run the Django management scripts
 	. .venv/bin/activate; \
 	python manage.py migrate; \
 	python manage.py collectstatic --no-input; \
@@ -35,14 +35,20 @@ run-manage-scripts: venv run-db-localhost
 	python manage.py seed
 
 .PHONY: run-server
-run-server: run-manage-scripts
+run-server: run-manage-scripts ## Run the server on the host machine
 	. .venv/bin/activate; \
 	python manage.py runserver
 
-clean: docker-clean
-	rm -rf .venv
-	rm settings.py
-	rm .env
+.PHONY: docker-run-server
+docker-run-server: .env prepare_env ## Run the server in a dockerized environment
+	docker compose exec api bash -c "python manage.py seed"
+
+.PHONY: clean
+clean: docker-clean ## Clean the environment
+	rm -rf .venv || true
+	rm settings.py || true
+	rm .env || true
+	rm -rf static/* || true
 
 .PHONY: build
 build: ## Build docker image
@@ -61,9 +67,14 @@ push_ghcr: ## Push docker image to GHCR
 	docker push ghcr.io/camptocamp/geoshop-api:$(VERSION)
 	docker push ghcr.io/camptocamp/geoshop-api:$(DOCKER_TAG)
 
-.PHONY: test
-test: ## Run tests
+.PHONY: docker-test
+docker-test: docker-run-server ## Run tests in docker container
 	docker compose exec -T api python manage.py test -v 2 --force-color --noinput
+
+.PHONY: test
+test: run-manage-scripts ## Run tests on host machine
+	. .venv/bin/activate; \
+	python manage.py test -v 2 --force-color --noinput
 
 .PHONY: prepare_env
 prepare_env: docker-down ## Prepare Docker environment

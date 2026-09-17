@@ -3,10 +3,9 @@ from django.http import HttpRequest
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 
-from .models import ProductUpdate, Product
+from .models import ProductUpdate
 
 
-# check for naming (DatasetUpdateFeed) is a Dataset = Product?
 class OverallProductUpdateFeed(Feed):
     title = "Product updates"
     description = "Latest product update feed"
