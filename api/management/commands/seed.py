@@ -8,7 +8,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from django.contrib.sites.models import Site
 from api.models import (
     Contact,
     Group,
@@ -459,8 +458,3 @@ class Command(BaseCommand):
         order_quoted.set_price()
         order_quoted.quote_done()
         order_quoted.save()
-
-        Site.objects.update_or_create(
-            id=2,
-            defaults={'domain': 'localhost:8000', 'name': 'localhost'}
-        )
