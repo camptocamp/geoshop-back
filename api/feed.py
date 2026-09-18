@@ -29,7 +29,7 @@ class OverallProductUpdateFeed(Feed):
 class SingleProductUpdateFeed(Feed):
 
     def get_object(self, request: HttpRequest, *args, **kwargs):
-        return get_object_or_404(ProductUpdate.objects.filter(product_id=kwargs["pk"]))
+        return get_object_or_404(ProductUpdate.objects.filter(product_id=kwargs["pk"]).order_by("-created_at")[:1])
 
     def title(self, item: ProductUpdate):
         return item.product.label
@@ -41,7 +41,7 @@ class SingleProductUpdateFeed(Feed):
         return reverse("single-product-update-feed", args=[item.product.id])
 
     def items(self, item: ProductUpdate):
-        return ProductUpdate.objects.filter(product_id=item.product.id).order_by("-created_at")
+        return ProductUpdate.objects.filter(product_id=item.product.id).order_by("-created_at")[:15]
 
     def item_title(self, item: ProductUpdate):
         return item.product.label
