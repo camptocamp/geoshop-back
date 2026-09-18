@@ -16,9 +16,9 @@ The application can be operated via dedicated Make targets defined in the [`Make
 To run the application directly on your host machine:
 
 ```bash
-# The command handles the .env files, environment setup, virtual environment, and database seeding
 make run-server
 ```
+The command handles the .env files, environment setup, virtual environment, and database seeding.
 
 The server will be available at [http://localhost:8000](http://localhost:8000).
 
@@ -27,12 +27,12 @@ The server will be available at [http://localhost:8000](http://localhost:8000).
 To run the application in a fully containerized environment:
 
 ```bash
-# The command handles all the necessary steps to set up the environment:
-# 1. Copy the sample .env file
-# 2. Builds images, starts containers and waits for the API to be healthy
-# 3. Seeds the database with test data
 make docker-run-server
 ```
+The command handles all the necessary steps to set up the environment:
+- Copy the sample .env file 
+- Builds images, starts containers and waits for the API to be healthy 
+- Seeds the database with test data
 
 The server will be available at [http://localhost:8000](http://localhost:8000).
 
