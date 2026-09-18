@@ -586,6 +586,10 @@ class ProductUpdate(models.Model):
     created_at = models.DateTimeField(_("created_at"), auto_now_add=True)
     title = models.CharField(_("title"), max_length=200)
 
+    class Meta:
+        db_table = "product_update"
+        verbose_name = _("product update")
+
 class ProductOwnership(models.Model):
     user_group = models.ForeignKey(
         Group, models.CASCADE, verbose_name=_("user_group")
