@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 
+from api.feed import absolute_reverse
 from api.models import Product, ProductUpdate, Metadata, Pricing
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
@@ -33,6 +34,13 @@ class FeedTest(APITestCase):
         cls.update_a1 = ProductUpdate.objects.create(product=cls.product_alpha, title="Alpha Update 1")
         cls.update_a2 = ProductUpdate.objects.create(product=cls.product_alpha, title="Alpha Update 2")
         cls.update_b1 = ProductUpdate.objects.create(product=cls.product_beta, title="Beta Update 1")
+
+    def test_absolute_reverse(self):
+        result = absolute_reverse("product-update-feed")
+        expected_path = reverse("product-update-feed")
+
+        self.assertEqual(result, f"http://localhost:8000{expected_path}")
+        self.assertEqual(result, "http://localhost:8000/rss/all")
 
     def test_get_overall_product_update_feed(self):
         url = reverse('product-update-feed')
