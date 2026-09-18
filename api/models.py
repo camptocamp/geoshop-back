@@ -579,6 +579,17 @@ class Product(models.Model):
 
     thumbnail_tag.short_description = _("thumbnail")
 
+class ProductUpdate(models.Model):
+    product = models.ForeignKey(
+        Product, models.CASCADE, verbose_name=_("product"), default=1
+    )
+    created_at = models.DateTimeField(_("created_at"), auto_now_add=True)
+    title = models.CharField(_("title"), max_length=200)
+
+    class Meta:
+        db_table = "product_update"
+        verbose_name = _("product update")
+
 class ProductOwnership(models.Model):
     user_group = models.ForeignKey(
         Group, models.CASCADE, verbose_name=_("user_group")

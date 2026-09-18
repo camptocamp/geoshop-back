@@ -146,7 +146,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-SITE_ID = 2
+SITE_ID = 1
 
 VAT = 0.081
 
@@ -254,6 +254,7 @@ BACKEND_URL = os.environ.get("BACKEND_URL", "localhost:8000")
 FRONT_HREF = os.environ.get("FRONT_HREF", '')
 CSRF_COOKIE_DOMAIN = os.environ["CSRF_COOKIE_DOMAIN"]
 CSRF_TRUSTED_ORIGINS = []
+FEED_BASE_URL = os.environ.get("FEED_BASE_URL", "http://localhost:8000")
 
 for host in ALLOWED_HOSTS:
     CSRF_TRUSTED_ORIGINS.append(f'http://{host}')

@@ -6,51 +6,57 @@
 * Python >= 3.13
 * GDAL
 * gettext
+* Docker & Docker Compose (optional, for containerized environment)
 
-## Quick start
+## Quick Start
+The application can be operated via dedicated Make targets defined in the [`Makefile`](Makefile).
 
-In a container:
+### Host Machine
+
+To run the application directly on your host machine:
+
 ```bash
-cp .env.sample .env
-sed -i 's/PGHOST=localhost/PGHOST=db/g' .env
-
-docker compose up -d
-docker compose exec api bash -c "python manage.py seed"
+make run-server
 ```
+The command handles the `.env` file, environment setup, virtual environment, and database seeding.
 
-Without a container:
+The server will be available at [http://localhost:8000](http://localhost:8000).
+
+### Docker Environment
+
+To run the application in a fully containerized environment:
+
 ```bash
-cp .env.sample .env
-sed -i 's/PGHOST=db/PGHOST=localhost/g' .env
-cp -vn default_settings.py settings.py
-docker compose up -d db
-
-# Start a virtual environment
-python -m venv .venv
-source .venv/bin/activate
-pip install poetry
-poetry install --no-root
-
-python manage.py migrate
-python manage.py collectstatic
-python manage.py compilemessages --locale=de
-python manage.py fixturize
-python manage.py seed
-
-python manage.py runserver
-
+make docker-run-server
 ```
+The command handles all the necessary steps to set up the environment:
+- Copy the sample `.env` file 
+- Builds images, starts containers and waits for the API to be healthy 
+- Seeds the database with test data
 
-Now, go to [http://localhost:8000](http://localhost:8000) and log in with ```admin```, ```Test1234```
+The server will be available at [http://localhost:8000](http://localhost:8000).
 
-To use it with frontend, see the [OIDC authentication](#oidc-authentication) part.
+### Access
+
+Log in with:
+- **Username**: `admin`
+- **Password**: `Test1234`
 
 ### Testing
-
+To run tests you can simply use the following make target:
 ```bash
-python manage.py seed
-python manage.py test
+make test
 ```
+
+## Useful Make Targets
+
+The `Makefile` provides several dedicate targets to simplify common tasks.
+They can be viewed by running
+```bash
+make help
+```
+
+For more details on OIDC authentication, see the [OIDC authentication](#oidc-authentication) section.
 
 ## Make translations strings
 
