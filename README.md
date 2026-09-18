@@ -18,7 +18,7 @@ To run the application directly on your host machine:
 ```bash
 make run-server
 ```
-The command handles the .env files, environment setup, virtual environment, and database seeding.
+The command handles the `.env` file, environment setup, virtual environment, and database seeding.
 
 The server will be available at [http://localhost:8000](http://localhost:8000).
 
@@ -30,7 +30,7 @@ To run the application in a fully containerized environment:
 make docker-run-server
 ```
 The command handles all the necessary steps to set up the environment:
-- Copy the sample .env file 
+- Copy the sample `.env` file 
 - Builds images, starts containers and waits for the API to be healthy 
 - Seeds the database with test data
 
