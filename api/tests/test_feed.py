@@ -6,6 +6,8 @@ from api.models import Product, ProductUpdate, Metadata, Pricing
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
 
+from api.routers import GeoshopRouter
+
 UserModel = get_user_model()
 
 class FeedTest(APITestCase):
@@ -124,4 +126,23 @@ class FeedTest(APITestCase):
         url = reverse('single-product-update-feed', args=[product_gamma.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_product_update_feed_view_set(self):
+        url = absolute_reverse('feeds-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        feeds: list[dict] = response.data
+        print(feeds)
+        self.assertTrue(isinstance(feeds, list))
+        self.assertEqual(len(feeds), 3)
+        names = [feed['name'] for feed in feeds]
+        urls = [feed['url'] for feed in feeds]
+        self.assertIn(f'http://localhost:8000/rss/product/{self.product_alpha.id}', urls)
+        self.assertIn(f'http://localhost:8000/rss/product/{self.product_beta.id}', urls)
+        self.assertIn(f'http://localhost:8000/rss/all', urls)
+        self.assertIn(f'Product Alpha', names)
+        self.assertIn(f'Product Beta', names)
+        self.assertIn(f'All Product Updates', names)
+
 
