@@ -11,11 +11,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='product',
-            name='max_order_area',
-            field=models.IntegerField(default=0.0, verbose_name='max_order_area'),
-        ),
         migrations.CreateModel(
             name='ProductUpdate',
             fields=[
