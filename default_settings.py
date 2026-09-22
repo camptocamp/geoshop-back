@@ -146,7 +146,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-SITE_ID = 1
+SITE_ID = 2
 
 VAT = 0.081
 
