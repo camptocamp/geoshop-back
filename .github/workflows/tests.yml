@@ -43,17 +43,11 @@ jobs:
         env:
           GITHUB_EVENT: ${{ toJson(github) }}
 
-      - name: Copy .env file
-        run: cp .env.sample .env
-
-      - name: Prepare Docker images and start Compose environment
-        run: make prepare_env
-
       - name: Run tests
-        run: make test
+        run: make docker-test
 
       - name: Docker logs
         run: c2cciutils-docker-logs
 
       - name: Stop Compose environment
-        run: make destroy_env
+        run: make docker-down

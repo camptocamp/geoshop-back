@@ -20,11 +20,11 @@ from api.models import (
     Identity,
     Metadata,
     Pricing,
-    Money,
+    Money, ProductUpdate,
 )
 from django.contrib.gis.geos import Polygon
 from api.helpers import _zip_them_all
-from typing import TypeVar, Generic, Type
+from typing import TypeVar, Type
 from collections.abc import MutableMapping
 
 T = TypeVar("T", bound=models.Model)
@@ -76,7 +76,7 @@ class Command(BaseCommand):
         self.success(f"Updated identity for user '{user.username}'")
         return user.identity
 
-    def addProduct(self, user: User, label: str, defaults: MutableMapping[str, any] = {}) -> OrderType:
+    def addProduct(self, user: User, label: str, defaults: MutableMapping[str, any] = {}) -> Product:
         return self.getOrCreate(
             Product,
             label=label,
@@ -357,6 +357,18 @@ class Command(BaseCommand):
                 "product_status": Product.ProductStatus.DEPRECATED,
                 "provider": extractUser,
             })
+
+        # Create ProductUpdate for Feed
+        ProductUpdate.objects.create(
+            product=product1,
+            created_at=datetime.datetime(2026, 9, 15, 12, 45, 12, 0, tzinfo=datetime.timezone.utc),
+            title=product1.metadata.name,
+        )
+        ProductUpdate.objects.create(
+            product=product2,
+            created_at=datetime.datetime(2026, 9, 15, 12, 45, 12, 0, tzinfo=datetime.timezone.utc),
+            title=product2.metadata.name,
+        )
 
         for order_item in [
             OrderItem.objects.create(order=order1, product=product1),

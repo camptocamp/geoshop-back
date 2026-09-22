@@ -22,10 +22,11 @@ from drf_spectacular.utils import extend_schema
 
 from allauth.account.views import ConfirmEmailView
 
+from .feed import absolute_reverse
 from .models import (
     Contact, Copyright, Document, DataFormat, Identity, Metadata, MetadataContact,
     Order, OrderItem, OrderType, Payment, PaymentEvent, Pricing, Product,
-    ProductFormat, UserChange, AbstractIdentity)
+    ProductFormat, UserChange, ProductUpdate)
 
 from .serializers import (
     ContactSerializer, CopyrightSerializer, DocumentSerializer, DataFormatSerializer,
@@ -775,7 +776,7 @@ class DownloadView(generics.RetrieveAPIView):
 class UserChangeView(generics.CreateAPIView):
     """
     API endpoint that allows users to submit profile changes.
-    The changes are stored in a DB table and an email is
+    The changes are stored in a DB table, and an email is
     sent to the admins.
     """
     queryset = UserChange.objects.all()
@@ -856,3 +857,38 @@ class OrderValidateView(views.APIView):
         if 'geom' in serializer.validated_data:
             data['geom'] = serializer.validated_data['geom'].ewkt
         return Response(data)
+
+class ProductUpdateFeedViewSet(viewsets.ViewSet):
+    """
+    API endpoint that returns a list of all available RSS feeds tracking
+    updates of product data sets. The endpoint returns a list of dict objects,
+    where each object is of the type
+    {
+        'name': str,
+        'url': str,
+    }
+    """
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    allowed_methods = ('GET', 'OPTIONS', 'HEAD')
+
+    def list(self, request):
+        product_ids = ProductUpdate.objects.values_list(
+            "product_id", flat=True
+        ).distinct()
+
+        feeds = []
+        feeds.append({
+            'name': 'All Product Updates',
+            'url': absolute_reverse('overall-product-update-feed')
+        })
+
+        products = Product.objects.filter(id__in=product_ids).order_by('id')
+        for product in products:
+            feeds.append({
+                'name': product.label,
+                'url': absolute_reverse('single-product-update-feed', args=[product.id])
+            })
+
+        return Response(feeds)
+
