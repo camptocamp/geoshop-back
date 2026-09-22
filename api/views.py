@@ -880,7 +880,7 @@ class ProductUpdateFeedViewSet(viewsets.ViewSet):
         feeds = []
         feeds.append({
             'name': 'All Product Updates',
-            'url': absolute_reverse('product-update-feed')
+            'url': absolute_reverse('overall-product-update-feed')
         })
 
         products = Product.objects.filter(id__in=product_ids).order_by('id')

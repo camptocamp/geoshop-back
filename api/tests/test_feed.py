@@ -38,14 +38,14 @@ class FeedTest(APITestCase):
         cls.update_b1 = ProductUpdate.objects.create(product=cls.product_beta, title="Beta Update 1")
 
     def test_absolute_reverse(self):
-        result = absolute_reverse("product-update-feed")
-        expected_path = reverse("product-update-feed")
+        result = absolute_reverse("overall-product-update-feed")
+        expected_path = reverse("overall-product-update-feed")
 
         self.assertEqual(result, f"http://localhost:8000{expected_path}")
         self.assertEqual(result, "http://localhost:8000/rss/all")
 
     def test_get_overall_product_update_feed(self):
-        url = reverse('product-update-feed')
+        url = reverse('overall-product-update-feed')
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -71,7 +71,7 @@ class FeedTest(APITestCase):
         for i in range(16):
             ProductUpdate.objects.create(product=self.product_alpha, title=f"Alpha Update {i}")
 
-        url = reverse('product-update-feed')
+        url = reverse('overall-product-update-feed')
         response = self.client.get(url)
 
         content = response.content.decode('utf-8')

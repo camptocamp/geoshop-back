@@ -29,7 +29,7 @@ class OverallProductUpdateFeed(Feed):
     description = "Latest product update feed"
 
     def link(self):
-        return absolute_reverse("product-update-feed")
+        return absolute_reverse("overall-product-update-feed")
 
     def items(self):
         return ProductUpdate.objects.order_by("-created_at")[:15]

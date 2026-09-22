@@ -94,7 +94,7 @@ urlpatterns = [
     path(f'{ROOTURL}docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path(f'{ROOTURL}health/', include('health_check.urls')),
     path(f'{ROOTURL}validate/order', views.OrderValidateView.as_view(), name='validate-order'),
-    path(f'{ROOTURL}rss/all', OverallProductUpdateFeed(), name='product-update-feed'),
+    path(f'{ROOTURL}rss/all', OverallProductUpdateFeed(), name='overall-product-update-feed'),
     path(f'{ROOTURL}rss/product/<int:pk>', SingleProductUpdateFeed(), name='single-product-update-feed'),
 ] + static(settings.STATIC_URL,document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
 
