@@ -68,7 +68,7 @@ class SingleProductUpdateFeed(Feed):
         return ProductUpdate.objects.filter(product_id=item.product.id).order_by("-created_at")[:15]
 
     def item_title(self, item: ProductUpdate):
-        return item.title + ' - ' + item.product.label
+        return self.title(item)
 
     def item_description(self, item: ProductUpdate):
         return "Data set updated at " + item.created_at.strftime("%d/%m/%Y %H:%M:%S")
