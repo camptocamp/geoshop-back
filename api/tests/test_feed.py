@@ -138,7 +138,6 @@ class FeedTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         feeds: list[dict] = response.data
-        print(feeds)
         self.assertTrue(isinstance(feeds, list))
         self.assertEqual(len(feeds), 3)
         names = [feed['name'] for feed in feeds]
