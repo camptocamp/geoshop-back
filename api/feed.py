@@ -35,7 +35,7 @@ class OverallProductUpdateFeed(Feed):
         return ProductUpdate.objects.order_by("-created_at")[:15]
 
     def item_title(self, item: ProductUpdate):
-        return item.product.label
+        return item.title + ' - ' + item.product.label
 
     def item_description(self, item: ProductUpdate):
         return item.product.label + ": last data import at " + item.created_at.strftime("%d/%m/%Y %H:%M:%S")
@@ -56,7 +56,7 @@ class SingleProductUpdateFeed(Feed):
         return get_object_or_404(ProductUpdate.objects.filter(product_id=kwargs["pk"]).order_by("-created_at")[:1])
 
     def title(self, item: ProductUpdate):
-        return item.product.label
+        return item.title + ' - ' + item.product.label
 
     def description(self, item: ProductUpdate):
         return "Latest updates/imports for product " + item.product.label
@@ -68,7 +68,7 @@ class SingleProductUpdateFeed(Feed):
         return ProductUpdate.objects.filter(product_id=item.product.id).order_by("-created_at")[:15]
 
     def item_title(self, item: ProductUpdate):
-        return item.product.label
+        return self.title(item)
 
     def item_description(self, item: ProductUpdate):
         return "Data set updated at " + item.created_at.strftime("%d/%m/%Y %H:%M:%S")

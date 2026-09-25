@@ -57,12 +57,17 @@ class FeedTest(APITestCase):
         self.assertIn('<link>http://localhost:8000/rss/all</link>', content)
         self.assertIn('<description>Latest product update feed</description>', content)
 
-        self.assertIn(f'<title>{self.product_alpha.label}</title>', content)
+        self.assertIn(f'<title>{self.update_a1.title} - {self.product_alpha.label}</title>', content)
+        self.assertIn(f'<link>http://localhost:8000/rss/product/{self.product_alpha.id}</link>', content)
+        date_str = self.update_a1.created_at.strftime("%d/%m/%Y %H:%M:%S")
+        self.assertIn(f'<description>{self.product_alpha.label}: last data import at {date_str}</description>', content)
+
+        self.assertIn(f'<title>{self.update_a2.title} - {self.product_alpha.label}</title>', content)
         self.assertIn(f'<link>http://localhost:8000/rss/product/{self.product_alpha.id}</link>', content)
         date_str = self.update_a2.created_at.strftime("%d/%m/%Y %H:%M:%S")
         self.assertIn(f'<description>{self.product_alpha.label}: last data import at {date_str}</description>', content)
 
-        self.assertIn(f'<title>{self.product_beta.label}</title>', content)
+        self.assertIn(f'<title>{self.update_b1.title} - {self.product_beta.label}</title>', content)
         self.assertIn(f'<link>http://localhost:8000/rss/product/{self.product_beta.id}</link>', content)
         date_str = self.update_b1.created_at.strftime("%d/%m/%Y %H:%M:%S")
         self.assertIn(f'<description>{self.product_beta.label}: last data import at {date_str}</description>', content)
@@ -87,7 +92,7 @@ class FeedTest(APITestCase):
 
         content = response.content.decode('utf-8')
 
-        self.assertIn(f'<title>{self.product_alpha.label}</title>', content)
+        self.assertIn(f'<title>{self.update_a1.title} - {self.product_alpha.label}</title>', content)
         self.assertIn(f'<description>Latest updates/imports for product {self.product_alpha.label}</description>', content)
         self.assertIn(f'<link>http://localhost:8000/rss/product/{self.product_alpha.id}</link>', content)
 
@@ -133,7 +138,6 @@ class FeedTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         feeds: list[dict] = response.data
-        print(feeds)
         self.assertTrue(isinstance(feeds, list))
         self.assertEqual(len(feeds), 3)
         names = [feed['name'] for feed in feeds]
