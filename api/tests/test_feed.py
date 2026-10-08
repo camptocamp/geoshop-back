@@ -56,6 +56,7 @@ class FeedTest(APITestCase):
         self.assertIn('<title>Product updates</title>', content)
         self.assertIn('<link>http://localhost:8000/rss/all</link>', content)
         self.assertIn('<description>Latest product update feed</description>', content)
+        self.assertIn('href="http://localhost:8000/rss/all"', content)
 
         self.assertIn(f'<title>{self.update_a1.title} - {self.product_alpha.label}</title>', content)
         self.assertIn(f'<link>http://localhost:8000/rss/product/{self.product_alpha.id}</link>', content)
@@ -72,8 +73,15 @@ class FeedTest(APITestCase):
         date_str = self.update_b1.created_at.strftime("%d/%m/%Y %H:%M:%S")
         self.assertIn(f'<description>{self.product_beta.label}: last data import at {date_str}</description>', content)
 
+        # Verify unique GUIDs and publication dates
+        for update in [self.update_a1, self.update_a2, self.update_b1]:
+            self.assertIn(f'geoshop:product-update:{update.id}', content)
+
+        self.assertEqual(content.count('<guid '), 3)
+        self.assertEqual(content.count('<pubDate>'), 3)
+
     def test_get_overall_product_update_feed_entries_limit(self):
-        for i in range(16):
+        for i in range(201):
             ProductUpdate.objects.create(product=self.product_alpha, title=f"Alpha Update {i}")
 
         url = reverse('overall-product-update-feed')
@@ -81,7 +89,7 @@ class FeedTest(APITestCase):
 
         content = response.content.decode('utf-8')
 
-        self.assertEqual(content.count('<item>'), 15)
+        self.assertEqual(content.count('<item>'), 200)
 
     def test_get_single_product_update_feed(self):
         url = reverse('single-product-update-feed', args=[self.product_alpha.id])
@@ -92,9 +100,11 @@ class FeedTest(APITestCase):
 
         content = response.content.decode('utf-8')
 
+        self.assertIn(f'<title>{self.product_alpha.label} - Datenaktualisierungen</title>', content)
         self.assertIn(f'<title>{self.update_a1.title} - {self.product_alpha.label}</title>', content)
         self.assertIn(f'<description>Latest updates/imports for product {self.product_alpha.label}</description>', content)
         self.assertIn(f'<link>http://localhost:8000/rss/product/{self.product_alpha.id}</link>', content)
+        self.assertIn(f'href="http://localhost:8000/rss/product/{self.product_alpha.id}"', content)
 
         date_str_update_a1 = self.update_a1.created_at.strftime("%d/%m/%Y %H:%M:%S")
         self.assertIn(f'<description>Data set updated at {date_str_update_a1}</description>', content)
@@ -102,10 +112,16 @@ class FeedTest(APITestCase):
         date_str_update_a2 = self.update_a2.created_at.strftime("%d/%m/%Y %H:%M:%S")
         self.assertIn(f'<description>Data set updated at {date_str_update_a2}</description>', content)
 
+        # Verify unique GUIDs and publication dates
+        self.assertIn(f'geoshop:product-update:{self.update_a1.id}', content)
+        self.assertIn(f'geoshop:product-update:{self.update_a2.id}', content)
+        self.assertEqual(content.count('<guid '), 2)
+        self.assertEqual(content.count('<pubDate>'), 2)
+
         self.assertEqual(content.count('<item>'), 2)
 
     def test_get_single_product_update_feed_entries_limit(self):
-        for i in range(16):
+        for i in range(201):
             ProductUpdate.objects.create(product=self.product_alpha, title=f"Alpha Update {i}")
 
         url = reverse('single-product-update-feed', args=[self.product_alpha.id])
@@ -113,7 +129,7 @@ class FeedTest(APITestCase):
 
         content = response.content.decode('utf-8')
 
-        self.assertEqual(content.count('<item>'), 15)
+        self.assertEqual(content.count('<item>'), 200)
 
     def test_get_single_product_update_feed_not_found(self):
         # Product does not exist
