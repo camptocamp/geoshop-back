@@ -5,6 +5,7 @@ from django.http import HttpRequest
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.conf import settings
+from django.utils import timezone
 
 from .models import ProductUpdate
 
@@ -78,10 +79,10 @@ class SingleProductUpdateFeed(Feed):
         )
 
     def title(self, item: ProductUpdate):
-        return item.product.label + " - Datenaktualisierungen"
+        return item.product.label
 
     def description(self, item: ProductUpdate):
-        return "Latest updates/imports for product " + item.product.label
+        return "Datenaktualisierungen für " + item.product.label
 
     def link(self, item: ProductUpdate):
         return absolute_reverse(
@@ -101,9 +102,13 @@ class SingleProductUpdateFeed(Feed):
         return item.title + " - " + item.product.label
 
     def item_description(self, item: ProductUpdate):
+        created_at = timezone.localtime(item.created_at)
         return (
-            "Data set updated at "
-            + item.created_at.strftime("%d/%m/%Y %H:%M:%S")
+            item.title
+            + " - "
+            + item.product.label
+            + " - aktualisiert am: "
+            + created_at.strftime("%d.%m.%Y um %H:%M")
         )
 
     def item_link(self, item: ProductUpdate):
