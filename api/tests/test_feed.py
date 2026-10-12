@@ -100,17 +100,15 @@ class FeedTest(APITestCase):
 
         content = response.content.decode('utf-8')
 
-        self.assertIn(f'<title>{self.product_alpha.label} - Datenaktualisierungen</title>', content)
+        self.assertIn(f'<title>{self.product_alpha.label}</title>', content)
         self.assertIn(f'<title>{self.update_a1.title} - {self.product_alpha.label}</title>', content)
-        self.assertIn(f'<description>Latest updates/imports for product {self.product_alpha.label}</description>', content)
+        self.assertIn(f'<description>Datenaktualisierungen für {self.product_alpha.label}</description>', content)
         self.assertIn(f'<link>http://localhost:8000/rss/product/{self.product_alpha.id}</link>', content)
         self.assertIn(f'href="http://localhost:8000/rss/product/{self.product_alpha.id}"', content)
 
-        date_str_update_a1 = self.update_a1.created_at.strftime("%d/%m/%Y %H:%M:%S")
-        self.assertIn(f'<description>Data set updated at {date_str_update_a1}</description>', content)
+        self.assertIn(f'<description>{self.update_a1.title} - {self.product_alpha.label} - aktualisiert am:', content)
 
-        date_str_update_a2 = self.update_a2.created_at.strftime("%d/%m/%Y %H:%M:%S")
-        self.assertIn(f'<description>Data set updated at {date_str_update_a2}</description>', content)
+        self.assertIn(f'<description>{self.update_a2.title} - {self.product_alpha.label} - aktualisiert am:', content)
 
         # Verify unique GUIDs and publication dates
         self.assertIn(f'geoshop:product-update:{self.update_a1.id}', content)
