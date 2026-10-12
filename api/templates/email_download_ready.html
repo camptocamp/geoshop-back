@@ -10,7 +10,7 @@ or by clicking directly on this link: {% endblocktrans %}<br>
         {% trans "Please note that the download links are only available for 1 month." %}
 </p>
 {% if items_comments %}
-<p>{% trans "Operator's comments" %}:</p>
+<p>{% blocktrans %}Operator's comments{% endblocktrans %}:</p>
 <ul>
 {% for entry in items_comments %}
 <li>{{ entry.product }}: {{ entry.comment }}</li>
