@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static %}
 {% autoescape off %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -59,9 +60,26 @@
     }
 
     .header {
-      background: #8F472A;
-      color: #fff;
+      background: #fff;
+      border-bottom: 1px solid #555;
+    }
+
+    .header td {
+      padding: 25px;
+    }
+
+    .header-title {
+      color: #8F472A;
       font-weight: bold;
+      font-size: 18px;
+    }
+
+    .header-logo {
+      text-align: right;
+    }
+
+    .header-logo img {
+      height: 40px;
     }
 
     td {
@@ -70,11 +88,16 @@
 
     .footer {
       font-size: 12px;
-      background: #eee;
+      background: #8F472A;
+      color: #fff;
     }
 
     .footer td {
       text-align: center;
+    }
+
+    .footer a {
+      color: #fff;
     }
   </style>
 </head>
@@ -82,12 +105,15 @@
 <body>
   <table cellpadding="0" cellspacing="0" border="0">
     <tr class="header">
-      <td>
-        Geoshop
+      <td class="header-title">
+        GeoShop
+      </td>
+      <td class="header-logo">
+        <img src="{{ BACKEND_URL }}{% static 'api/geogr_logo.png' %}" alt="Geoshop" />
       </td>
     </tr>
     <tr class="main">
-      <td>
+      <td colspan="2">
         {% block greetings %}
         <p>{% trans "Dear user," %}</p>
         {% endblock %}
@@ -96,7 +122,7 @@
       </td>
     </tr>
     <tr class="footer">
-      <td>
+      <td colspan="2">
         {% block footer %}
         {% endblock %}
         <p>
