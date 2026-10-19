@@ -1257,7 +1257,7 @@ class OrderItem(models.Model):
             .first()
         )
         send_geoshop_email(
-            "Geoshop - Validation requested",
+            _("Geoshop - Validation requested"),
             recipient=validator.contact_person,
             template_name="email_validation_needed",
             template_data={

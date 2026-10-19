@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-12 17:45+0200\n"
+"POT-Creation-Date: 2026-10-13 11:19-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,52 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "product ownership"
+msgstr ""
+
+msgid "Contains a product owned by one of my groups"
+msgstr ""
+
+msgid "Does not contain a product owned by one of my groups"
+msgstr ""
+
+msgid "No extract result available"
+msgstr ""
+
+#, fuzzy
+#| msgid "last_download"
+msgid "Extract result download"
+msgstr "date du dernier téléchargement"
+
+#, fuzzy
+#| msgid "Zip file not found"
+msgid "Order not found"
+msgstr "Le fichier zip n'a pas été trouvé"
+
+#, fuzzy
+#| msgid "Zip file not found"
+msgid "Extract result file not found"
+msgstr "Le fichier zip n'a pas été trouvé"
+
+#, fuzzy
+#| msgid "invoice_reference"
+msgid "invoice required"
+msgstr "référence"
+
+msgid "Yes"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+#, fuzzy
+#| msgid "price_status"
+msgid "payment status"
+msgstr "statut du prix"
+
+msgid "Never paid by card"
+msgstr ""
 
 msgid "Invoice contact does not belong to the client of this order!"
 msgstr ""
@@ -367,11 +413,32 @@ msgstr "lien vers l'aperçu"
 msgid "max_order_area"
 msgstr "Aire maximale de commande"
 
+msgid "use largest area validation"
+msgstr ""
+
+msgid ""
+"If checked, validation is requested only from the DMO (data management "
+"office) having the largest area overlap with the requested perimeter."
+msgstr ""
+
 msgid "product"
 msgstr "produit"
 
 msgid "thumbnail"
 msgstr "aperçu"
+
+#, fuzzy
+#| msgid "Deprecated"
+msgid "created_at"
+msgstr "Obsolète"
+
+msgid "title"
+msgstr "titre"
+
+#, fuzzy
+#| msgid "product"
+msgid "product update"
+msgstr "produit"
 
 msgid "user_group"
 msgstr "groupe"
@@ -399,9 +466,6 @@ msgstr "Archivé"
 
 msgid "Rejected"
 msgstr "Rejeté"
-
-msgid "title"
-msgstr "titre"
 
 msgid "Title contains forbidden characters"
 msgstr "Le titre contient des caractères spéciaux interdits."
@@ -467,6 +531,67 @@ msgstr ""
 "contact n'est pas encore défini comme tel dans l'admin. Il faut contrôler et "
 "renseigner les prix manuellement dans l'admin du geoshop. Détails:"
 
+#, fuzzy
+#| msgid "Deprecated"
+msgid "Created"
+msgstr "Obsolète"
+
+msgid "Authorized"
+msgstr ""
+
+msgid "Settled"
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Canceled"
+msgstr ""
+
+#, fuzzy
+#| msgid "invoice_reference"
+msgid "merchant_reference"
+msgstr "référence"
+
+msgid "provider_transaction_id"
+msgstr ""
+
+msgid "status"
+msgstr "statut"
+
+#, fuzzy
+#| msgid "country"
+msgid "amount"
+msgstr "pays"
+
+msgid "updated_at"
+msgstr ""
+
+msgid "payment"
+msgstr ""
+
+msgid "payments"
+msgstr ""
+
+#, fuzzy
+#| msgid "provider"
+msgid "provider_event_id"
+msgstr "fournisseur"
+
+msgid "raw_payload"
+msgstr ""
+
+#, fuzzy
+#| msgid "Archived"
+msgid "received_at"
+msgstr "Archivé"
+
+msgid "payment event"
+msgstr ""
+
+msgid "payment events"
+msgstr ""
+
 msgid "Calculated"
 msgstr "calculé"
 
@@ -491,9 +616,6 @@ msgstr "Commentaire sur la décision de validation"
 msgid "price_status"
 msgstr "statut du prix"
 
-msgid "status"
-msgstr "statut"
-
 msgid "comment"
 msgstr "Remarques"
 
@@ -502,6 +624,11 @@ msgstr "jeton"
 
 msgid "order_item"
 msgstr "produit commandé"
+
+#, fuzzy
+#| msgid "Geoshop - User change request"
+msgid "Geoshop - Validation requested"
+msgstr "Geoshop - Validation requise"
 
 msgid "db_name"
 msgstr "nom de la bd"
@@ -616,13 +743,16 @@ msgstr ""
 "Le statut de l'élément de commande n°%(item_id)s de la commande n°"
 "%(order_id)s est maintenant %(status)s"
 
-#, python-format
 msgid "Operator's comment"
 msgstr "Commentaire de l'opérateur"
 
 #, python-format
-msgid "The order item \"%(item_id)s - %(item_title)s\" for order n°%(order_id)s has been"
-msgstr "Le produit commandé \"%(item_id)s - %(item_title)s\" de la commande n° %(order_id)s a été"
+msgid ""
+"The order item \"%(item_id)s - %(item_title)s\" for order n°%(order_id)s has "
+"been"
+msgstr ""
+"Le produit commandé \"%(item_id)s - %(item_title)s\" de la commande n° "
+"%(order_id)s a été"
 
 msgid "approved"
 msgstr "approuvé"
@@ -721,6 +851,9 @@ msgstr "Liens"
 msgid "Metadata"
 msgstr "Métadonnée"
 
+msgid "This order already has a payment being processed or settled."
+msgstr ""
+
 msgid "This orderitem cannot be deleted anymore."
 msgstr "Ce produit ne peut plus être enlevé du panier."
 
@@ -728,6 +861,14 @@ msgid "Zip does not exist"
 msgstr "Le fichier zip n'existe pas"
 
 msgid "This order cannot be deleted anymore."
+msgstr "Cette commande ne peut pas être annulée."
+
+msgid "Order must be confirmed (READY) to be paid by card"
+msgstr ""
+
+#, fuzzy
+#| msgid "This order cannot be deleted anymore."
+msgid "This order has nothing to pay"
 msgstr "Cette commande ne peut pas être annulée."
 
 msgid "Full zip is not ready"
@@ -768,6 +909,9 @@ msgstr "Aucun objet trouvé pour cet id"
 msgid "Zip file not found"
 msgstr "Le fichier zip n'a pas été trouvé"
 
+msgid "Your data was successfully updated"
+msgstr "Vos données ont été correctement mises à jour"
+
 msgid "Geoshop - User change request"
 msgstr "Geoshop - Demande de modifications de la part d'un utilisateur"
 
@@ -776,9 +920,6 @@ msgstr "{} a fait une demande de modification de son profil."
 
 msgid "Geoshop - Your changes request"
 msgstr "Geoshop - Votre demande de modification"
-
-msgid "Your data was successfully updated"
-msgstr "Vos données ont été correctement mises à jour"
 
 msgid "ok"
 msgstr "ok"
