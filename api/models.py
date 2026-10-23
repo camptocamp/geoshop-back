@@ -955,6 +955,10 @@ class Order(models.Model):
                             "order_id": self.id,
                             "download_guid": self.download_guid,
                             "backend_url":  settings.BACKEND_URL,
+                            "items_comments": [
+                                {"product": item.product.label, "comment": item.comment}
+                                for item in self.items.all() if item.comment
+                            ],
                             "front_url": "{}://{}{}".format(
                                 settings.FRONT_PROTOCOL,
                                 settings.FRONT_URL,
