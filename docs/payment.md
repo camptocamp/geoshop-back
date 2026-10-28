@@ -60,6 +60,14 @@ There is a test account that can be accessed in [this page](https://checkout.pos
 > Note: PostFinance Checkout runs on Wallee's platform, so the SDK is effectively the white-labeled
 > Wallee SDK — useful when searching documentation.
 
+**Integration and production share one space.** A space already holds both a test and a production
+environment, and `POSTFINANCE_TEST_MODE` picks between them per transaction, so a second space would
+only duplicate connectors and keys. What is *not* shared: each deployment has its own **Application
+User** (`POSTFINANCE_USER_ID` / `POSTFINANCE_API_SECRET`), so one set of credentials can be revoked
+without breaking the other, and its own **webhook URL + transaction listener** pointing at its own
+host. Both listeners receive every transaction in the space; a notification for a transaction the
+deployment does not know is acknowledged with `200` and ignored.
+
 ---
 
 ## 4. Workflow
